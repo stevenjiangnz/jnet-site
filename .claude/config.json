@@ -1,0 +1,23 @@
+{
+  "project": {
+    "name": "jnetsolution",
+    "description": "Personal public site with microservices architecture",
+    "type": "fullstack-web",
+    "technologies": ["nextjs", "react", "docker", "gcp", "microservices"]
+  },
+  "development": {
+    "framework": "nextjs",
+    "containerization": "docker",
+    "deployment": "google-cloud-run"
+  },
+  "commands": {
+    "build": "Build all services and frontend",
+    "test": "Run comprehensive test suite",
+    "deploy": "Deploy to Google Cloud Run",
+    "dev": "Start local development environment"
+  },
+  "context": {
+    "include": ["prd/**/*.md", "README.md", "docker-compose.yml"],
+    "exclude": ["node_modules/**", "dist/**", "build/**"]
+  }
+}
