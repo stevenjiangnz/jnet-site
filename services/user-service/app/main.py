@@ -6,7 +6,7 @@ import os
 
 app = FastAPI(title="User Service", version="1.0.0")
 
-# Dummy comment to test user-service workflow - test 2
+# Dummy comment to test user-service workflow - test 3
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
