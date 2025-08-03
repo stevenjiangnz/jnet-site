@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./scripts/setup.sh
 
 # If .env.local doesn't exist, copy from example
-cp .env.example .env.local
+cp frontend/.env.local.example frontend/.env.local
 ```
 
 ### Development Workflow
@@ -42,10 +42,10 @@ docker-compose down -v
 
 **Frontend (Next.js with TypeScript)**
 ```bash
-# Run locally without Docker
+# Run locally without Docker (port 3100)
 cd frontend
 npm install
-npm run dev     # Uses Turbopack for fast refresh
+npm run dev     # Uses Turbopack for fast refresh at http://localhost:3100
 
 # Build for production
 npm run build
@@ -164,7 +164,7 @@ gcloud run deploy auth-service --source .
 
 ### Microservices Structure
 ```
-Frontend (Next.js) :3000
+Frontend (Next.js) :3110 (Docker) / :3100 (Local dev)
     ├── calls → Auth Service (.NET) :5001 (internal :5000)
     ├── calls → User Service (Python) :8001 (internal :8000)
     └── calls → Content Service (Node.js) :3001 (internal :3000)
@@ -203,7 +203,7 @@ Frontend (Next.js) :3000
 
 **API Conventions**
 - All backend APIs under `/api/*`
-- Health checks at `/health` or `/` 
+- Health checks at `/health` 
 - RESTful endpoints: `GET /api/users`, `POST /api/posts`, etc.
 - Consistent error responses: `{ error: string, details?: any }`
 
@@ -232,7 +232,7 @@ DATABASE_URL=postgresql://dev:devpass@db:5432/jnetsolution
 - Backend services: Require authentication
 - Environment variables set via Cloud Run UI or gcloud CLI
 - Cloud SQL for production database
-- Images stored in Google Container Registry
+- Images pushed to Docker Hub as `<username>/jnet-<service>:<version>`
 
 ### Common Development Tasks
 
@@ -268,3 +268,23 @@ curl http://localhost:<port>/health
 - API responses should be paginated for large datasets
 - Consider caching strategies for frequently accessed data
 - Database indexes on commonly queried fields
+
+## GitHub Actions CI/CD
+
+### Workflows
+- **ci.yml**: Runs tests on push/PR to main and develop branches
+- **develop.yml**: Builds and pushes Docker images for develop branch
+- **release.yml**: Handles versioning, tagging, and production deployment
+- **deploy-manual.yml**: Manual deployment to staging/production
+
+### Versioning Strategy
+Commit message conventions for automatic versioning:
+- `feat:` or `feature:` → Minor version bump (1.0.0 → 1.1.0)
+- `fix:` or `patch:` → Patch version bump (1.0.0 → 1.0.1)
+- `breaking change:` or `major:` → Major version bump (1.0.0 → 2.0.0)
+
+### Required GitHub Secrets
+- `GCP_PROJECT_ID`: Your Google Cloud project ID
+- `GCP_SA_KEY`: Service account JSON key for Cloud Run deployment
+- `DOCKER_HUB_TOKEN`: Docker Hub access token for image push
+- `DOCKER_USERNAME` (optional): Docker Hub username (defaults to 'stevenjiangnz')
