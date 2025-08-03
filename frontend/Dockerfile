@@ -1,21 +1,27 @@
-FROM node:18-alpine AS base
+FROM node:18-slim AS base
 
 # Dependencies
 FROM base AS deps
-RUN apk add --no-cache libc6-compat python3 make g++
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci --force
+RUN npm ci
 
 # Builder
 FROM base AS builder
-RUN apk add --no-cache libc6-compat python3 make g++
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Rebuild native modules to ensure they work in this stage
-RUN npm rebuild
 RUN npm run build
 
 # Runner
@@ -23,8 +29,8 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 --gid nodejs nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
