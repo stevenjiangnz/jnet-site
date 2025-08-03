@@ -72,21 +72,17 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.version.outputs.version }}
-          release_name: Frontend Release ${{ steps.version.outputs.version }}
-          body: |
-            Frontend Service Release ${{ steps.version.outputs.version }}
+        run: |
+          gh release create ${{ steps.version.outputs.version }} \
+            --title "Frontend Release ${{ steps.version.outputs.version }}" \
+            --notes "Frontend Service Release ${{ steps.version.outputs.version }}
             
-            Docker image: `${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:${{ steps.versioning.outputs.new-version }}`
+            Docker image: \`${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:${{ steps.versioning.outputs.new-version }}\`
             
             ## What's Changed
-            See commit history for changes included in this release.
-          draft: false
-          prerelease: false
+            See commit history for changes included in this release."
 
   build-and-push:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
