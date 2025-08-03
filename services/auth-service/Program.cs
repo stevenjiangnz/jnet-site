@@ -5,6 +5,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Dummy comment to test auth-service workflow
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
