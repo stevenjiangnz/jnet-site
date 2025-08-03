@@ -4,38 +4,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-### Development Environment
+### Initial Setup
 ```bash
-# Initial setup (first time only)
+# First time setup (creates .env.local, builds images, starts services)
 ./scripts/setup.sh
 
+# If .env.local doesn't exist, copy from example
+cp frontend/.env.local.example frontend/.env.local
+```
+
+### Development Workflow
+```bash
 # Start all services
 docker-compose up -d
 
-# View logs for specific service
+# View logs (all services or specific)
+docker-compose logs -f
 docker-compose logs -f frontend
 docker-compose logs -f auth-service
 docker-compose logs -f user-service
 docker-compose logs -f content-service
 
-# Restart a specific service after changes
+# Restart specific service after code changes
 docker-compose restart frontend
 
 # Stop all services
 docker-compose down
 
-# Rebuild a specific service
-docker-compose build frontend
-docker-compose up -d frontend
+# Rebuild and restart a specific service
+docker-compose build frontend && docker-compose up -d frontend
+
+# Remove all containers and volumes (clean slate)
+docker-compose down -v
 ```
 
 ### Service-Specific Commands
 
-**Frontend (Next.js)**
+**Frontend (Next.js with TypeScript)**
 ```bash
-# Run locally without Docker
+# Run locally without Docker (port 3100)
 cd frontend
-npm run dev
+npm install
+npm run dev     # Uses Turbopack for fast refresh at http://localhost:3100
 
 # Build for production
 npm run build
@@ -43,8 +53,11 @@ npm run build
 # Run linting
 npm run lint
 
-# Access container for debugging
+# Access container shell
 docker-compose exec frontend sh
+
+# Install new package
+docker-compose exec frontend npm install <package-name>
 ```
 
 **Auth Service (.NET 8)**
@@ -58,6 +71,12 @@ docker-compose exec auth-service bash
 # Run locally without Docker
 cd services/auth-service
 dotnet run
+
+# Add new package
+docker-compose exec auth-service dotnet add package <package-name>
+
+# Run specific test
+docker-compose exec auth-service dotnet test --filter "FullyQualifiedName~TestMethodName"
 ```
 
 **User Service (Python FastAPI)**
@@ -65,12 +84,20 @@ dotnet run
 # Run tests
 docker-compose exec user-service pytest
 
+# Run specific test
+docker-compose exec user-service pytest tests/test_users.py::test_create_user
+
 # Access container
 docker-compose exec user-service bash
 
 # Run locally without Docker
 cd services/user-service
-uvicorn app.main:app --reload
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+
+# Install new package
+docker-compose exec user-service pip install <package-name>
+# Then add to requirements.txt
 ```
 
 **Content Service (Node.js Express)**
@@ -78,81 +105,186 @@ uvicorn app.main:app --reload
 # Run tests
 docker-compose exec content-service npm test
 
+# Run specific test
+docker-compose exec content-service npm test -- --testNamePattern="should create post"
+
 # Access container
 docker-compose exec content-service sh
 
 # Run locally without Docker
 cd services/content-service
+npm install
 npm run dev
+
+# Install new package
+docker-compose exec content-service npm install <package-name>
+```
+
+### Database Operations
+```bash
+# Access PostgreSQL CLI
+docker-compose exec db psql -U dev -d jnetsolution
+
+# Run migrations (when implemented)
+# docker-compose exec <service> <migration-command>
+
+# Backup database
+docker-compose exec db pg_dump -U dev jnetsolution > backup.sql
+
+# Restore database
+docker-compose exec -T db psql -U dev jnetsolution < backup.sql
 ```
 
 ### Testing
 ```bash
-# Run all tests
+# Run all tests across services
 ./scripts/test-all.sh
 
-# Database access
-docker-compose exec db psql -U dev -d jnetsolution
+# Run tests with coverage (per service)
+docker-compose exec frontend npm test -- --coverage
+docker-compose exec auth-service dotnet test /p:CollectCoverage=true
+docker-compose exec user-service pytest --cov=app
+docker-compose exec content-service npm test -- --coverage
 ```
 
 ### Deployment
 ```bash
-# Deploy to Google Cloud Run
+# Deploy all services to Google Cloud Run
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID
 
 # Deploy to specific region
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID us-west1
+
+# Deploy single service
+cd services/auth-service
+gcloud run deploy auth-service --source .
 ```
 
 ## Architecture Overview
 
-### Microservices Communication
-- Frontend communicates with backend services via REST APIs
-- Services run on different ports in development:
-  - Frontend: 3000
-  - Auth Service: 5001 (internal: 5000)
-  - User Service: 8001 (internal: 8000)
-  - Content Service: 3001 (internal: 3000)
-- All services share a PostgreSQL database in development
-- JWT tokens from Auth Service are used for authentication across services
+### Microservices Structure
+```
+Frontend (Next.js) :3110 (Docker) / :3100 (Local dev)
+    ├── calls → Auth Service (.NET) :5001 (internal :5000)
+    ├── calls → User Service (Python) :8001 (internal :8000)
+    └── calls → Content Service (Node.js) :3001 (internal :3000)
+                        ↓
+                  PostgreSQL :5432
+```
 
 ### Service Responsibilities
-- **Frontend**: Server-side rendered React application, handles UI/UX
-- **Auth Service**: Issues JWT tokens, validates credentials, manages sessions
-- **User Service**: Manages user profiles, preferences, and user-related data
-- **Content Service**: Handles blog posts, portfolio items, and content management
+- **Frontend**: Next.js 15.4 with React 19, TypeScript, Tailwind CSS v4
+  - Server-side rendering for SEO
+  - API routes proxy to backend services
+  - JWT token management in cookies/localStorage
+  
+- **Auth Service**: ASP.NET Core 8
+  - JWT token generation and validation
+  - User authentication endpoints
+  - Password hashing with BCrypt
+  
+- **User Service**: Python FastAPI
+  - User profile CRUD operations
+  - User preferences management
+  - Profile image handling
+  
+- **Content Service**: Node.js Express
+  - Blog post CRUD operations
+  - Portfolio items management
+  - Markdown processing
+
+### Key Patterns
+
+**Authentication Flow**
+1. Frontend sends credentials to Auth Service `/api/auth/login`
+2. Auth Service validates and returns JWT token
+3. Frontend includes JWT in Authorization header for subsequent requests
+4. Backend services validate JWT using shared secret
+
+**API Conventions**
+- All backend APIs under `/api/*`
+- Health checks at `/health` 
+- RESTful endpoints: `GET /api/users`, `POST /api/posts`, etc.
+- Consistent error responses: `{ error: string, details?: any }`
+
+**Environment Variables**
+```bash
+# Frontend
+API_BASE_URL=http://localhost:8000  # Points to backend services
+
+# Auth Service
+JWT_SECRET=your-development-secret-key-min-32-characters-long
+DATABASE_URL=Server=db;Database=jnetsolution;User=dev;Password=devpass;
+
+# User/Content Services
+DATABASE_URL=postgresql://dev:devpass@db:5432/jnetsolution
+```
 
 ### Docker Development Setup
-- Each service has two Dockerfiles:
-  - `Dockerfile`: Production build (optimized, multi-stage)
-  - `Dockerfile.dev`: Development with hot-reloading
-- Volume mounts enable code changes without rebuilding
-- Node modules and build artifacts are excluded from volume mounts
+- **Hot Reloading**: All services use volume mounts for code changes
+- **Separate Dockerfiles**: `Dockerfile.dev` for development, `Dockerfile` for production
+- **Excluded Mounts**: `node_modules`, `.next`, `bin`, `obj` directories
+- **Network**: All services on same Docker network, use service names for internal communication
 
-### Database Schema
-- PostgreSQL 15 is used for all services
-- Connection strings use service names (e.g., `db`) in Docker network
-- Development credentials are in docker-compose.yml
-- Production uses environment variables
+### Production Deployment (Google Cloud Run)
+- Each service deploys as separate Cloud Run service
+- Frontend: Public access (`--allow-unauthenticated`)
+- Backend services: Require authentication
+- Environment variables set via Cloud Run UI or gcloud CLI
+- Cloud SQL for production database
+- Images pushed to Docker Hub as `<username>/jnet-<service>:<version>`
 
-### API Patterns
-- All services expose health check endpoints at `/health` or `/`
-- API routes follow RESTful conventions under `/api/*`
-- CORS is configured to allow all origins in development
+### Common Development Tasks
 
-### Environment Variables
-- Copy `.env.example` to `.env.local` for local development
-- Service-specific variables:
-  - `JWT_SECRET`: Used by Auth Service (minimum 32 characters)
-  - `DATABASE_URL`: PostgreSQL connection string
-  - `API_BASE_URL`: Frontend uses this to reach backend services
+**Adding a New API Endpoint**
+1. Define route in appropriate service
+2. Add validation middleware
+3. Implement business logic
+4. Add tests
+5. Update frontend API client
 
-### Google Cloud Run Deployment
-- Each service deploys as a separate Cloud Run service
-- Frontend is publicly accessible (`--allow-unauthenticated`)
-- Backend services require authentication
-- Images are pushed to Google Container Registry
-- Services need manual configuration for:
-  - Cloud SQL connection
-  - Environment variables
-  - Custom domains
+**Debugging a Service**
+```bash
+# Attach to running container
+docker-compose exec <service-name> bash
+
+# View real-time logs
+docker-compose logs -f <service-name>
+
+# Check service health
+curl http://localhost:<port>/health
+```
+
+**Database Schema Changes**
+1. Update models in service code
+2. Create migration (method varies by service)
+3. Run migration in development
+4. Test thoroughly
+5. Include migration in deployment
+
+### Performance Considerations
+- Frontend uses Next.js Turbopack for fast development builds
+- Static assets served from `/public` directory
+- API responses should be paginated for large datasets
+- Consider caching strategies for frequently accessed data
+- Database indexes on commonly queried fields
+
+## GitHub Actions CI/CD
+
+### Workflows
+- **ci.yml**: Runs tests on push/PR to main and develop branches
+- **develop.yml**: Builds and pushes Docker images for develop branch
+- **release.yml**: Handles versioning, tagging, and production deployment
+- **deploy-manual.yml**: Manual deployment to staging/production
+
+### Versioning Strategy
+Commit message conventions for automatic versioning:
+- `feat:` or `feature:` → Minor version bump (1.0.0 → 1.1.0)
+- `fix:` or `patch:` → Patch version bump (1.0.0 → 1.0.1)
+- `breaking change:` or `major:` → Major version bump (1.0.0 → 2.0.0)
+
+### Required GitHub Secrets
+- `GCP_PROJECT_ID`: Your Google Cloud project ID
+- `GCP_SA_KEY`: Service account JSON key for Cloud Run deployment
+- `DOCKER_HUB_TOKEN`: Docker Hub access token for image push
+- `DOCKER_USERNAME` (optional): Docker Hub username (defaults to 'stevenjiangnz')

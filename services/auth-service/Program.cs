@@ -47,4 +47,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Health check endpoint
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "healthy",
+    service = "auth-service",
+    version = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(
+        File.ReadAllText("version.json"))["version"],
+    timestamp = DateTime.UtcNow
+}));
+
 app.Run();

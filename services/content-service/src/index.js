@@ -17,7 +17,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy' });
+  const packageJson = require('../package.json');
+  res.json({ 
+    status: 'healthy',
+    service: 'content-service',
+    version: packageJson.version || '0.1.0',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Blog posts routes
