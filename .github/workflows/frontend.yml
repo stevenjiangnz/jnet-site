@@ -121,6 +121,46 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: [version, build-and-push]
+    environment:
+      name: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        
+      - name: Deploy Frontend to Cloud Run
+        run: |
+          gcloud run deploy frontend \
+            --image docker.io/${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.semVer }} \
+            --region us-central1 \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars="NODE_ENV=production,VERSION=${{ needs.version.outputs.semVer }}"
+            
+      - name: Get Service URL
+        run: |
+          SERVICE_URL=$(gcloud run services describe frontend \
+            --region us-central1 \
+            --format 'value(status.url)')
+          echo "Frontend deployed to: $SERVICE_URL"
+          echo "### Deployment Complete! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "Frontend service deployed to: $SERVICE_URL" >> $GITHUB_STEP_SUMMARY
+          echo "Version: ${{ needs.version.outputs.semVer }}" >> $GITHUB_STEP_SUMMARY
+
   build-develop:
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     runs-on: ubuntu-latest
