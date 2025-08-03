@@ -109,7 +109,7 @@ jobs:
     
     - name: Build Docker images
       run: |
-        docker compose build frontend
-        docker compose build auth-service
-        docker compose build user-service
-        docker compose build content-service
+        docker-compose build frontend
+        docker-compose build auth-service
+        docker-compose build user-service
+        docker-compose build content-service
