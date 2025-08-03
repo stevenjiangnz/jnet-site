@@ -38,7 +38,7 @@ jobs:
       - name: Run tests
         working-directory: ${{ env.SERVICE_PATH }}
         run: |
-          pytest tests/ -v --cov=app
+          python -m pytest tests/ -v --cov=app
 
   version:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
