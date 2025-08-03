@@ -1,0 +1,122 @@
+name: Manual Deploy to Cloud Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Service to deploy'
+        required: true
+        type: choice
+        options:
+          - frontend
+          - auth-service
+          - user-service
+          - content-service
+          - all
+      version:
+        description: 'Version tag to deploy (leave empty for latest)'
+        required: false
+        type: string
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GAR_LOCATION: us-central1
+  GAR_REPOSITORY: jnet-site
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      
+    - name: Set environment suffix
+      id: env
+      run: |
+        if [[ "${{ github.event.inputs.environment }}" == "production" ]]; then
+          echo "suffix=" >> $GITHUB_OUTPUT
+          echo "ENV_NAME=production" >> $GITHUB_OUTPUT
+        else
+          echo "suffix=-staging" >> $GITHUB_OUTPUT
+          echo "ENV_NAME=staging" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Deploy Frontend
+      if: github.event.inputs.service == 'frontend' || github.event.inputs.service == 'all'
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        if [[ -z "$VERSION" ]]; then
+          VERSION="latest"
+        fi
+        
+        gcloud run deploy frontend${{ steps.env.outputs.suffix }} \
+          --image ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/frontend:${VERSION} \
+          --region ${GAR_LOCATION} \
+          --platform managed \
+          --allow-unauthenticated \
+          --set-env-vars="NODE_ENV=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"
+          
+    - name: Deploy Auth Service
+      if: github.event.inputs.service == 'auth-service' || github.event.inputs.service == 'all'
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        if [[ -z "$VERSION" ]]; then
+          VERSION="latest"
+        fi
+        
+        gcloud run deploy auth-service${{ steps.env.outputs.suffix }} \
+          --image ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/auth-service:${VERSION} \
+          --region ${GAR_LOCATION} \
+          --platform managed \
+          --no-allow-unauthenticated \
+          --set-env-vars="ASPNETCORE_ENVIRONMENT=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"
+          
+    - name: Deploy User Service
+      if: github.event.inputs.service == 'user-service' || github.event.inputs.service == 'all'
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        if [[ -z "$VERSION" ]]; then
+          VERSION="latest"
+        fi
+        
+        gcloud run deploy user-service${{ steps.env.outputs.suffix }} \
+          --image ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/user-service:${VERSION} \
+          --region ${GAR_LOCATION} \
+          --platform managed \
+          --no-allow-unauthenticated \
+          --set-env-vars="ENVIRONMENT=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"
+          
+    - name: Deploy Content Service
+      if: github.event.inputs.service == 'content-service' || github.event.inputs.service == 'all'
+      run: |
+        VERSION="${{ github.event.inputs.version }}"
+        if [[ -z "$VERSION" ]]; then
+          VERSION="latest"
+        fi
+        
+        gcloud run deploy content-service${{ steps.env.outputs.suffix }} \
+          --image ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/content-service:${VERSION} \
+          --region ${GAR_LOCATION} \
+          --platform managed \
+          --no-allow-unauthenticated \
+          --set-env-vars="NODE_ENV=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"

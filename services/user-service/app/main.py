@@ -39,7 +39,23 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy"}
+    import json
+    from datetime import datetime
+    
+    # Read version from version.json
+    try:
+        with open("version.json", "r") as f:
+            version_data = json.load(f)
+            version = version_data.get("version", "0.1.0")
+    except:
+        version = "0.1.0"
+    
+    return {
+        "status": "healthy",
+        "service": "user-service",
+        "version": version,
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 @app.get("/api/users/{user_id}")
 def get_user(user_id: int):
