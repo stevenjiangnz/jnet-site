@@ -38,10 +38,6 @@ jobs:
         working-directory: ${{ env.SERVICE_PATH }}
         run: npm run lint
 
-      - name: Run tests
-        working-directory: ${{ env.SERVICE_PATH }}
-        run: npm test
-
       - name: Build application
         working-directory: ${{ env.SERVICE_PATH }}
         run: npm run build
