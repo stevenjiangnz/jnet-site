@@ -50,15 +50,11 @@ jobs:
       working-directory: services/auth-service
       
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -c Release
       working-directory: services/auth-service
       
-    - name: Build Tests
-      run: dotnet build --no-restore
-      working-directory: services/auth-service/Tests
-      
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --verbosity normal
       working-directory: services/auth-service/Tests
 
   user-service-tests:
