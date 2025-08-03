@@ -11,8 +11,11 @@ RUN npm ci --force
 FROM base AS builder
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
+COPY package.json package-lock.json* ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Rebuild native modules to ensure they work in this stage
+RUN npm rebuild
 RUN npm run build
 
 # Runner
