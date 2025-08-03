@@ -76,6 +76,8 @@ jobs:
     - name: Run tests
       run: pytest tests/ --cov=app
       working-directory: services/user-service
+      env:
+        PYTHONPATH: ${{ github.workspace }}/services/user-service
 
   content-service-tests:
     runs-on: ubuntu-latest
