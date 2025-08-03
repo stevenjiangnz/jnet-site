@@ -1,0 +1,57 @@
+name: General CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - 'frontend/**'
+      - 'services/auth-service/**'
+      - 'services/user-service/**'
+      - 'services/content-service/**'
+      - '.github/workflows/frontend.yml'
+      - '.github/workflows/auth-service.yml'
+      - '.github/workflows/user-service.yml'
+      - '.github/workflows/content-service.yml'
+  pull_request:
+    branches: [main, develop]
+    paths-ignore:
+      - 'frontend/**'
+      - 'services/auth-service/**'
+      - 'services/user-service/**'
+      - 'services/content-service/**'
+      - '.github/workflows/frontend.yml'
+      - '.github/workflows/auth-service.yml'
+      - '.github/workflows/user-service.yml'
+      - '.github/workflows/content-service.yml'
+
+jobs:
+  docker-compose-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yml
+        run: docker compose config
+
+      - name: Check Docker build context
+        run: |
+          echo "Checking if all Dockerfiles exist..."
+          test -f frontend/Dockerfile
+          test -f services/auth-service/Dockerfile
+          test -f services/user-service/Dockerfile
+          test -f services/content-service/Dockerfile
+
+  script-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/*.sh
+
+      - name: Validate scripts syntax
+        run: |
+          for script in scripts/*.sh; do
+            bash -n "$script"
+          done

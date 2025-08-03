@@ -1,0 +1,176 @@
+name: User Service CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'services/user-service/**'
+      - '.github/workflows/user-service.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'services/user-service/**'
+      - '.github/workflows/user-service.yml'
+
+env:
+  SERVICE_NAME: user-service
+  SERVICE_PATH: ./services/user-service
+  IMAGE_NAME: jnet-user-service
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: ${{ env.SERVICE_PATH }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Run tests
+        working-directory: ${{ env.SERVICE_PATH }}
+        run: |
+          python -m pytest tests/ -v
+
+  version:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get current version
+        id: current_version
+        run: echo "version=$(cat ${{ env.SERVICE_PATH }}/VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Determine version bump
+        id: version_bump
+        run: |
+          commit_message="${{ github.event.head_commit.message }}"
+          if [[ "$commit_message" =~ ^(breaking\ change:|major:) ]]; then
+            echo "bump=major" >> $GITHUB_OUTPUT
+          elif [[ "$commit_message" =~ ^(feat:|feature:) ]]; then
+            echo "bump=minor" >> $GITHUB_OUTPUT
+          else
+            echo "bump=patch" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Calculate new version
+        id: version
+        run: |
+          current_version="${{ steps.current_version.outputs.version }}"
+          IFS='.' read -ra VERSION_PARTS <<< "$current_version"
+          major=${VERSION_PARTS[0]}
+          minor=${VERSION_PARTS[1]}
+          patch=${VERSION_PARTS[2]}
+          
+          case "${{ steps.version_bump.outputs.bump }}" in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+          esac
+          
+          new_version="${major}.${minor}.${patch}"
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+
+      - name: Update version file
+        run: |
+          echo "${{ steps.version.outputs.new_version }}" > ${{ env.SERVICE_PATH }}/VERSION
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add ${{ env.SERVICE_PATH }}/VERSION
+          git commit -m "chore: bump ${{ env.SERVICE_NAME }} version to ${{ steps.version.outputs.new_version }}"
+          git push
+
+  build-and-push:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: version
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.SERVICE_PATH }}
+          file: ${{ env.SERVICE_PATH }}/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:latest
+            ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.new_version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.SERVICE_NAME }}-v${{ needs.version.outputs.new_version }}
+          release_name: ${{ env.SERVICE_NAME }} v${{ needs.version.outputs.new_version }}
+          body: |
+            User Service Release v${{ needs.version.outputs.new_version }}
+            
+            Docker image: `${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.new_version }}`
+          draft: false
+          prerelease: false
+
+  build-develop:
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.SERVICE_PATH }}
+          file: ${{ env.SERVICE_PATH }}/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:develop
+            ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
