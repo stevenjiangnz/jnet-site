@@ -75,6 +75,8 @@ Add the following secrets to your GitHub repository:
 
 1. **GCP_PROJECT_ID**: Your Google Cloud project ID
 2. **GCP_SA_KEY**: Contents of the `key.json` file (the entire JSON)
+3. **DOCKER_HUB_TOKEN**: Your Docker Hub access token
+4. **DOCKER_USERNAME** (optional): Your Docker Hub username (defaults to 'stevenjiangnz' if not set)
 
 ### Adding Secrets
 1. Go to Settings → Secrets and variables → Actions
@@ -162,7 +164,10 @@ gcloud run services logs read SERVICE_NAME --region=us-central1
 
 ### View Container Images
 ```bash
-gcloud artifacts docker images list us-central1-docker.pkg.dev/YOUR_PROJECT_ID/jnet-site
+# Images are stored on Docker Hub
+# View at: https://hub.docker.com/u/YOUR_DOCKER_USERNAME
+# Or use Docker CLI:
+docker search YOUR_DOCKER_USERNAME/jnet
 ```
 
 ## Troubleshooting

@@ -111,9 +111,10 @@ function generateChangelog(service, version, previousTag) {
   }
   
   // Add Docker image information
+  const dockerUsername = process.env.DOCKER_USERNAME || 'stevenjiangnz';
   changelog += '### 🐳 Docker Images\n\n';
-  changelog += `- \`gcr.io/$GCP_PROJECT_ID/${service}:${version}\`\n`;
-  changelog += `- \`gcr.io/$GCP_PROJECT_ID/${service}:latest\`\n`;
+  changelog += `- \`${dockerUsername}/jnet-${service}:${version}\`\n`;
+  changelog += `- \`${dockerUsername}/jnet-${service}:latest\`\n`;
   
   return changelog;
 }

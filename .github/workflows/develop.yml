@@ -6,9 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GAR_LOCATION: us-central1
-  GAR_REPOSITORY: jnet-site
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}  # Fallback to your username if not set
 
 jobs:
   detect-changes:
@@ -112,64 +110,73 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
-      id-token: 'write'
+      packages: 'write'
       
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
-        
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
       
-    - name: Configure Docker for Artifact Registry
-      run: |
-        gcloud auth configure-docker ${GAR_LOCATION}-docker.pkg.dev
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_TOKEN }}
     
     # Build and push Frontend
     - name: Build and push Frontend Docker image
       if: needs.detect-changes.outputs.frontend-changed == 'true'
-      run: |
-        docker build -t ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/frontend:develop \
-                     -t ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/frontend:sha-${{ github.sha }} \
-                     -f frontend/Dockerfile \
-                     frontend/
-        docker push ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/frontend:develop
-        docker push ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/frontend:sha-${{ github.sha }}
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        file: ./frontend/Dockerfile
+        push: true
+        tags: |
+          ${{ env.DOCKER_USERNAME }}/jnet-frontend:develop
+          ${{ env.DOCKER_USERNAME }}/jnet-frontend:sha-${{ github.sha }}
+        cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/jnet-frontend:buildcache
+        cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/jnet-frontend:buildcache,mode=max
     
     # Build and push Auth Service
     - name: Build and push Auth Service Docker image
       if: needs.detect-changes.outputs.auth-service-changed == 'true'
-      run: |
-        docker build -t ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/auth-service:develop \
-                     -t ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/auth-service:sha-${{ github.sha }} \
-                     -f services/auth-service/Dockerfile \
-                     services/auth-service/
-        docker push ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/auth-service:develop
-        docker push ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/auth-service:sha-${{ github.sha }}
+      uses: docker/build-push-action@v5
+      with:
+        context: ./services/auth-service
+        file: ./services/auth-service/Dockerfile
+        push: true
+        tags: |
+          ${{ env.DOCKER_USERNAME }}/jnet-auth-service:develop
+          ${{ env.DOCKER_USERNAME }}/jnet-auth-service:sha-${{ github.sha }}
+        cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/jnet-auth-service:buildcache
+        cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/jnet-auth-service:buildcache,mode=max
     
     # Build and push User Service
     - name: Build and push User Service Docker image
       if: needs.detect-changes.outputs.user-service-changed == 'true'
-      run: |
-        docker build -t ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/user-service:develop \
-                     -t ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/user-service:sha-${{ github.sha }} \
-                     -f services/user-service/Dockerfile \
-                     services/user-service/
-        docker push ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/user-service:develop
-        docker push ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/user-service:sha-${{ github.sha }}
+      uses: docker/build-push-action@v5
+      with:
+        context: ./services/user-service
+        file: ./services/user-service/Dockerfile
+        push: true
+        tags: |
+          ${{ env.DOCKER_USERNAME }}/jnet-user-service:develop
+          ${{ env.DOCKER_USERNAME }}/jnet-user-service:sha-${{ github.sha }}
+        cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/jnet-user-service:buildcache
+        cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/jnet-user-service:buildcache,mode=max
     
     # Build and push Content Service
     - name: Build and push Content Service Docker image
       if: needs.detect-changes.outputs.content-service-changed == 'true'
-      run: |
-        docker build -t ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/content-service:develop \
-                     -t ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/content-service:sha-${{ github.sha }} \
-                     -f services/content-service/Dockerfile \
-                     services/content-service/
-        docker push ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/content-service:develop
-        docker push ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/content-service:sha-${{ github.sha }}
+      uses: docker/build-push-action@v5
+      with:
+        context: ./services/content-service
+        file: ./services/content-service/Dockerfile
+        push: true
+        tags: |
+          ${{ env.DOCKER_USERNAME }}/jnet-content-service:develop
+          ${{ env.DOCKER_USERNAME }}/jnet-content-service:sha-${{ github.sha }}
+        cache-from: type=registry,ref=${{ env.DOCKER_USERNAME }}/jnet-content-service:buildcache
+        cache-to: type=registry,ref=${{ env.DOCKER_USERNAME }}/jnet-content-service:buildcache,mode=max

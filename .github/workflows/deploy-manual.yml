@@ -27,9 +27,8 @@ on:
         default: staging
 
 env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}  # Fallback to your username if not set
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GAR_LOCATION: us-central1
-  GAR_REPOSITORY: jnet-site
 
 jobs:
   deploy:
@@ -70,8 +69,8 @@ jobs:
         fi
         
         gcloud run deploy frontend${{ steps.env.outputs.suffix }} \
-          --image ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/frontend:${VERSION} \
-          --region ${GAR_LOCATION} \
+          --image docker.io/${DOCKER_USERNAME}/jnet-frontend:${VERSION} \
+          --region us-central1 \
           --platform managed \
           --allow-unauthenticated \
           --set-env-vars="NODE_ENV=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"
@@ -85,8 +84,8 @@ jobs:
         fi
         
         gcloud run deploy auth-service${{ steps.env.outputs.suffix }} \
-          --image ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/auth-service:${VERSION} \
-          --region ${GAR_LOCATION} \
+          --image docker.io/${DOCKER_USERNAME}/jnet-auth-service:${VERSION} \
+          --region us-central1 \
           --platform managed \
           --no-allow-unauthenticated \
           --set-env-vars="ASPNETCORE_ENVIRONMENT=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"
@@ -100,8 +99,8 @@ jobs:
         fi
         
         gcloud run deploy user-service${{ steps.env.outputs.suffix }} \
-          --image ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/user-service:${VERSION} \
-          --region ${GAR_LOCATION} \
+          --image docker.io/${DOCKER_USERNAME}/jnet-user-service:${VERSION} \
+          --region us-central1 \
           --platform managed \
           --no-allow-unauthenticated \
           --set-env-vars="ENVIRONMENT=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"
@@ -115,8 +114,8 @@ jobs:
         fi
         
         gcloud run deploy content-service${{ steps.env.outputs.suffix }} \
-          --image ${GAR_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GAR_REPOSITORY}/content-service:${VERSION} \
-          --region ${GAR_LOCATION} \
+          --image docker.io/${DOCKER_USERNAME}/jnet-content-service:${VERSION} \
+          --region us-central1 \
           --platform managed \
           --no-allow-unauthenticated \
           --set-env-vars="NODE_ENV=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"
