@@ -1,7 +1,6 @@
-import pytest
 import os
 import json
-from datetime import date, datetime
+from datetime import date
 from app.core.storage_manager import StorageManager
 from app.models.stock import StockDataPoint
 

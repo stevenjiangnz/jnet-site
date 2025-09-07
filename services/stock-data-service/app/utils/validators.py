@@ -1,6 +1,6 @@
 import re
 from typing import Optional
-from datetime import date, datetime
+from datetime import date
 
 
 def validate_symbol(symbol: str) -> bool:

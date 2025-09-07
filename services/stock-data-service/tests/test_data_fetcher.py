@@ -1,8 +1,8 @@
 import pytest
-from datetime import date, timedelta
+from datetime import date
 from unittest.mock import patch, MagicMock
 from app.core.data_fetcher import DataFetcher
-from app.core.exceptions import SymbolNotFoundError, DataFetchError
+from app.core.exceptions import SymbolNotFoundError
 
 
 def test_data_fetcher_initialization():

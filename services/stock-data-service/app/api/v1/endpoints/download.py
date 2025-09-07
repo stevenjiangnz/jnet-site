@@ -2,8 +2,8 @@ import logging
 from datetime import date, datetime
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
-from app.models.stock import StockDownloadRequest, BulkDownloadRequest
-from app.models.responses import DownloadResponse, BulkDownloadResponse, ErrorResponse
+from app.models.stock import BulkDownloadRequest
+from app.models.responses import DownloadResponse, BulkDownloadResponse
 from app.core.data_fetcher import data_fetcher
 from app.core.storage_manager import StorageManager
 from app.core.exceptions import SymbolNotFoundError, DataFetchError

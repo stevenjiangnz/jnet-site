@@ -1,10 +1,9 @@
 import logging
 import time
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 from typing import Optional, List, Dict
 import yfinance as yf
-import pandas as pd
-from app.core.exceptions import DataFetchError, SymbolNotFoundError, RateLimitError
+from app.core.exceptions import DataFetchError, SymbolNotFoundError
 from app.models.stock import StockDataPoint
 from app.config import settings
 

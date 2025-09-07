@@ -3,7 +3,7 @@ import os
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
-from app.models.responses import SymbolListResponse, ErrorResponse
+from app.models.responses import SymbolListResponse
 from app.core.storage_manager import StorageManager
 from app.utils.validators import validate_symbol
 
