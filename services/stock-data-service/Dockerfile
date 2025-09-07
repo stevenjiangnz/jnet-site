@@ -8,9 +8,14 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:${PATH}"
+# Create non-root user early
+RUN useradd -m -u 1000 appuser
+
+# Install uv system-wide
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --no-modify-path
+RUN mv /root/.cargo/bin/uv /usr/local/bin/uv && \
+    mv /root/.cargo/bin/uvx /usr/local/bin/uvx && \
+    chmod +x /usr/local/bin/uv /usr/local/bin/uvx
 
 # Copy pyproject.toml and uv.lock for dependency caching
 COPY pyproject.toml uv.lock* ./
@@ -24,8 +29,8 @@ COPY ./app ./app
 # Create data directory
 RUN mkdir -p /app/data
 
-# Create non-root user
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+# Change ownership to appuser
+RUN chown -R appuser:appuser /app
 USER appuser
 
 # Expose port
