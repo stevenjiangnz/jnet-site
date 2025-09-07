@@ -90,7 +90,7 @@ class DataFetcher:
             data_points = []
             for idx, row in df.iterrows():
                 data_point = StockDataPoint(
-                    date=idx.date(),
+                    date=idx.date() if hasattr(idx, "date") else idx,
                     open=round(row["Open"], 2),
                     high=round(row["High"], 2),
                     low=round(row["Low"], 2),
