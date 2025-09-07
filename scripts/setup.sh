@@ -16,11 +16,11 @@ fi
 
 # Build Docker images
 echo "🔨 Building Docker images..."
-docker-compose build
+./scripts/docker-build.sh
 
 # Start services
 echo "🎯 Starting development environment..."
-docker-compose up -d
+./scripts/docker-up.sh
 
 # Wait for services to be ready
 echo "⏳ Waiting for services to start..."
@@ -28,7 +28,7 @@ sleep 10
 
 # Check service health
 echo "🏥 Checking service health..."
-services=("frontend:3000" "auth-service:5001" "user-service:8001" "content-service:3001")
+services=("frontend:3110" "auth-service:5001" "user-service:8001" "content-service:3001")
 for service in "${services[@]}"; do
     IFS=':' read -r name port <<< "$service"
     if curl -s "http://localhost:$port/health" > /dev/null 2>&1 || curl -s "http://localhost:$port/" > /dev/null 2>&1; then
@@ -42,14 +42,14 @@ echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "🌐 Access your services at:"
-echo "   Frontend: http://localhost:3000"
+echo "   Frontend: http://localhost:3110"
 echo "   Auth Service: http://localhost:5001"
 echo "   User Service: http://localhost:8001"
 echo "   Content Service: http://localhost:3001"
 echo "   Database: localhost:5432"
 echo ""
 echo "📝 Useful commands:"
-echo "   docker-compose logs -f        # View logs"
-echo "   docker-compose down          # Stop all services"
-echo "   docker-compose restart       # Restart all services"
-echo "   ./scripts/test-all.sh       # Run all tests"
+echo "   ./scripts/docker-logs.sh     # View logs"
+echo "   ./scripts/docker-down.sh     # Stop all services"
+echo "   ./scripts/docker-restart.sh  # Restart all services"
+echo "   ./scripts/test-all.sh        # Run all tests"
