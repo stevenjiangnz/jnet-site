@@ -8,7 +8,7 @@ Personal public site with microservices architecture, built with modern web tech
 - **Auth Service**: ASP.NET Core 8 with JWT authentication
 - **User Service**: Python FastAPI for user management
 - **Content Service**: Node.js Express for blog and portfolio content
-- **Stock Data Service**: Python FastAPI for stock/ETF data downloading
+- **Stock Data Service**: Python FastAPI with uv for stock/ETF EOD data downloading
 - **Database**: PostgreSQL 15
 
 ## 🚀 Quick Start
@@ -18,7 +18,8 @@ Personal public site with microservices architecture, built with modern web tech
 - Docker and Docker Compose
 - Node.js 22+ (for local development)
 - .NET SDK 8.0+ (for Auth Service development)
-- Python 3.11+ (for User Service development)
+- Python 3.11+ (for Python services development)
+- uv (for Stock Data Service development)
 
 ### Setup
 
@@ -135,6 +136,7 @@ Deploy to Google Cloud Run:
 - [ ] Contact form with email integration
 - [ ] User authentication (optional)
 - [ ] Admin panel for content management
+- [x] Stock/ETF EOD data downloading service
 - [ ] Mobile-responsive design
 - [ ] SEO optimized
 - [ ] Fast loading (< 3s)
@@ -145,6 +147,7 @@ Deploy to Google Cloud Run:
 - **Frontend**: Next.js 15.4, React 19, TypeScript, Tailwind CSS v4
 - **Backend**: .NET 8, Python FastAPI, Node.js Express
 - **Database**: PostgreSQL 15
+- **Package Management**: npm, dotnet, pip, uv
 - **Containerization**: Docker
 - **Deployment**: Google Cloud Run
 - **CI/CD**: GitHub Actions with automatic semantic versioning
