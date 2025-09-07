@@ -13,8 +13,8 @@ RUN useradd -m -u 1000 appuser
 
 # Install uv system-wide
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --no-modify-path
-RUN mv /root/.cargo/bin/uv /usr/local/bin/uv && \
-    mv /root/.cargo/bin/uvx /usr/local/bin/uvx && \
+RUN mv /root/.local/bin/uv /usr/local/bin/uv && \
+    mv /root/.local/bin/uvx /usr/local/bin/uvx && \
     chmod +x /usr/local/bin/uv /usr/local/bin/uvx
 
 # Copy pyproject.toml and uv.lock for dependency caching
