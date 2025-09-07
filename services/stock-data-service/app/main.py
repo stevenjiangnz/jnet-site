@@ -19,11 +19,7 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Stock Data Service...")
 
 
-app = FastAPI(
-    title="Stock Data Service",
-    version=VERSION,
-    lifespan=lifespan
-)
+app = FastAPI(title="Stock Data Service", version=VERSION, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,8 +34,4 @@ app.include_router(api_router, prefix=settings.api_v1_prefix)
 
 @app.get("/health")
 async def health_check():
-    return {
-        "status": "healthy",
-        "version": VERSION,
-        "service": "stock-data-service"
-    }
+    return {"status": "healthy", "version": VERSION, "service": "stock-data-service"}

@@ -21,17 +21,17 @@ def test_save_stock_data_json(temp_data_dir):
             low=99.0,
             close=103.0,
             adj_close=103.0,
-            volume=1000000
+            volume=1000000,
         )
     ]
-    
+
     file_path = StorageManager.save_stock_data("AAPL", data_points, "json")
-    
+
     assert os.path.exists(file_path)
     assert file_path.endswith(".json")
-    
+
     # Verify content
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         data = json.load(f)
         assert data["symbol"] == "AAPL"
         assert data["total_records"] == 1
@@ -47,12 +47,12 @@ def test_save_stock_data_csv(temp_data_dir):
             low=99.0,
             close=103.0,
             adj_close=103.0,
-            volume=1000000
+            volume=1000000,
         )
     ]
-    
+
     file_path = StorageManager.save_stock_data("AAPL", data_points, "csv")
-    
+
     assert os.path.exists(file_path)
     assert file_path.endswith(".csv")
 
@@ -77,13 +77,13 @@ def test_list_available_symbols_with_data(temp_data_dir):
             low=99.0,
             close=103.0,
             adj_close=103.0,
-            volume=1000000
+            volume=1000000,
         )
     ]
-    
+
     StorageManager.save_stock_data("AAPL", data_points)
     StorageManager.save_stock_data("GOOGL", data_points)
-    
+
     symbols = StorageManager.list_available_symbols()
     assert len(symbols) == 2
     assert "AAPL" in symbols
@@ -100,19 +100,19 @@ def test_delete_symbol_data(temp_data_dir):
             low=99.0,
             close=103.0,
             adj_close=103.0,
-            volume=1000000
+            volume=1000000,
         )
     ]
-    
+
     StorageManager.save_stock_data("AAPL", data_points)
-    
+
     # Verify it exists
     assert "AAPL" in StorageManager.list_available_symbols()
-    
+
     # Delete
     success = StorageManager.delete_symbol_data("AAPL")
     assert success is True
-    
+
     # Verify it's gone
     assert "AAPL" not in StorageManager.list_available_symbols()
 

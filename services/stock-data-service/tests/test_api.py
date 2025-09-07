@@ -20,26 +20,29 @@ def test_api_health_check(client):
     assert "storage" in data
 
 
-@patch('app.core.data_fetcher.yf.Ticker')
+@patch("app.core.data_fetcher.yf.Ticker")
 def test_download_symbol(mock_ticker, client, temp_data_dir):
     # Mock yfinance response
     mock_history = MagicMock()
     mock_history.empty = False
     mock_history.iterrows.return_value = [
-        (date(2024, 1, 1), {
-            'Open': 100.0,
-            'High': 105.0,
-            'Low': 99.0,
-            'Close': 103.0,
-            'Adj Close': 103.0,
-            'Volume': 1000000
-        })
+        (
+            date(2024, 1, 1),
+            {
+                "Open": 100.0,
+                "High": 105.0,
+                "Low": 99.0,
+                "Close": 103.0,
+                "Adj Close": 103.0,
+                "Volume": 1000000,
+            },
+        )
     ]
-    
+
     mock_ticker_instance = MagicMock()
     mock_ticker_instance.history.return_value = mock_history
     mock_ticker.return_value = mock_ticker_instance
-    
+
     response = client.get("/api/v1/download/AAPL")
     assert response.status_code == 200
     data = response.json()
@@ -75,16 +78,13 @@ def test_delete_data_not_found(client):
 
 
 def test_bulk_download(client, temp_data_dir):
-    with patch('app.core.data_fetcher.data_fetcher.fetch_bulk_data') as mock_fetch:
-        mock_fetch.return_value = {
-            "AAPL": [],
-            "GOOGL": []
-        }
-        
-        response = client.post("/api/v1/bulk-download", json={
-            "symbols": ["AAPL", "GOOGL"]
-        })
-        
+    with patch("app.core.data_fetcher.data_fetcher.fetch_bulk_data") as mock_fetch:
+        mock_fetch.return_value = {"AAPL": [], "GOOGL": []}
+
+        response = client.post(
+            "/api/v1/bulk-download", json={"symbols": ["AAPL", "GOOGL"]}
+        )
+
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "completed"

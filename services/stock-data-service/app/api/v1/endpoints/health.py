@@ -12,5 +12,5 @@ async def health_check():
         "status": "healthy",
         "version": VERSION,
         "service": "stock-data-service",
-        "storage": StorageManager.get_storage_stats()
+        "storage": StorageManager.get_storage_stats(),
     }

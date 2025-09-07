@@ -17,9 +17,9 @@ def temp_data_dir():
     temp_dir = tempfile.mkdtemp()
     original_dir = settings.data_directory
     settings.data_directory = temp_dir
-    
+
     yield temp_dir
-    
+
     # Cleanup
     shutil.rmtree(temp_dir)
     settings.data_directory = original_dir
