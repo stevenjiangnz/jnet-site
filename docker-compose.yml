@@ -66,6 +66,29 @@ services:
     depends_on:
       - db
 
+  stock-data-service:
+    build:
+      context: ./services/stock-data-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "9001:9000"
+    volumes:
+      - ./services/stock-data-service:/app
+      - stock-data:/app/data
+      - /app/.venv
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+      - DATA_DIRECTORY=/app/data
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   db:
     image: postgres:15
     ports:
@@ -79,3 +102,4 @@ services:
 
 volumes:
   postgres_data:
+  stock-data:

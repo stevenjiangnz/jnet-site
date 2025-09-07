@@ -44,6 +44,7 @@ cp frontend/.env.local.example frontend/.env.local
 ./scripts/local-start-auth.sh         # Auth service on port 5000
 ./scripts/local-start-user.sh         # User service on port 8000
 ./scripts/local-start-content.sh      # Content service on port 3000
+./scripts/local-start-stock-data.sh   # Stock Data service on port 9000
 
 # Build all services locally
 ./scripts/local-build-all.sh
@@ -134,6 +135,29 @@ npm run dev
 docker-compose exec content-service npm install <package-name>
 ```
 
+**Stock Data Service (Python FastAPI)**
+```bash
+# Run tests
+docker-compose exec stock-data-service uv run pytest
+
+# Run specific test
+docker-compose exec stock-data-service uv run pytest tests/test_api.py::test_download_symbol
+
+# Access container
+docker-compose exec stock-data-service bash
+
+# Run locally without Docker
+cd services/stock-data-service
+uv sync
+uv run uvicorn app.main:app --reload --port 9000
+
+# Install new package
+docker-compose exec stock-data-service uv add <package-name>
+
+# Access API documentation
+# http://localhost:9001/docs (Docker) or http://localhost:9000/docs (Local)
+```
+
 ### Database Operations
 ```bash
 # Access PostgreSQL CLI
@@ -159,6 +183,7 @@ docker-compose exec frontend npm test -- --coverage
 docker-compose exec auth-service dotnet test /p:CollectCoverage=true
 docker-compose exec user-service pytest --cov=app
 docker-compose exec content-service npm test -- --coverage
+docker-compose exec stock-data-service uv run pytest --cov=app
 ```
 
 ### Deployment
@@ -181,7 +206,8 @@ gcloud run deploy auth-service --source .
 Frontend (Next.js) :3110 (Docker) / :3100 (Local dev)
     ├── calls → Auth Service (.NET) :5001 (internal :5000)
     ├── calls → User Service (Python) :8001 (internal :8000)
-    └── calls → Content Service (Node.js) :3001 (internal :3000)
+    ├── calls → Content Service (Node.js) :3001 (internal :3000)
+    └── calls → Stock Data Service (Python) :9001 (internal :9000)
                         ↓
                   PostgreSQL :5432
 ```
@@ -206,6 +232,12 @@ Frontend (Next.js) :3110 (Docker) / :3100 (Local dev)
   - Blog post CRUD operations
   - Portfolio items management
   - Markdown processing
+
+- **Stock Data Service**: Python FastAPI with uv
+  - Stock/ETF EOD data download from Yahoo Finance
+  - Local file storage (JSON/CSV)
+  - Bulk download support
+  - Rate limiting for API compliance
 
 ### Key Patterns
 
