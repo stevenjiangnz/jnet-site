@@ -288,3 +288,9 @@ Commit message conventions for automatic versioning:
 - `GCP_SA_KEY`: Service account JSON key for Cloud Run deployment
 - `DOCKER_HUB_TOKEN`: Docker Hub access token for image push
 - `DOCKER_USERNAME` (optional): Docker Hub username (defaults to 'stevenjiangnz')
+```
+
+## Deployment Environments
+
+### Cloud Environments
+- **Frontend Public Access**: https://frontend-506487697841.us-central1.run.app/

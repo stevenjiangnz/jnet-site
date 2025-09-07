@@ -48,9 +48,6 @@ Commit message conventions:
 
 ## Scripts
 
-### `bump-version.js`
-Updates version numbers based on commit messages for each service.
-
 ### `generate-changelog.js`
 Generates release notes from commit history for each service.
 
