@@ -28,7 +28,7 @@ gcloud services enable cloudbuild.googleapis.com
 
 # Build and push images
 echo "🔨 Building and pushing Docker images..."
-services=("frontend" "auth-service" "user-service" "content-service")
+services=("frontend" "auth-service" "user-service" "content-service" "stock-data-service")
 
 for service in "${services[@]}"; do
     echo "📦 Building $service..."
@@ -76,6 +76,16 @@ gcloud run deploy jnetsolution-frontend \
     --region $REGION \
     --allow-unauthenticated \
     --set-env-vars "NODE_ENV=production"
+
+# Deploy stock-data-service
+gcloud run deploy jnetsolution-stock-data \
+    --image gcr.io/$PROJECT_ID/jnetsolution-stock-data-service \
+    --platform managed \
+    --region $REGION \
+    --no-allow-unauthenticated \
+    --set-env-vars "ENVIRONMENT=production,LOG_LEVEL=INFO" \
+    --memory 512Mi \
+    --cpu 1
 
 echo ""
 echo "✅ Deployment complete!"

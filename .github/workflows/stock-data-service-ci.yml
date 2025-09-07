@@ -1,0 +1,51 @@
+name: Stock Data Service CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'services/stock-data-service/**'
+      - '.github/workflows/stock-data-service-*.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'services/stock-data-service/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 'latest'
+      
+      - name: Install dependencies
+        working-directory: ./services/stock-data-service
+        run: |
+          uv sync
+      
+      - name: Run linting
+        working-directory: ./services/stock-data-service
+        run: |
+          uv run black --check .
+          uv run flake8 .
+          uv run mypy app/ --ignore-missing-imports
+      
+      - name: Run tests
+        working-directory: ./services/stock-data-service
+        run: |
+          uv run pytest tests/ -v --cov=app --cov-report=xml
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./services/stock-data-service/coverage.xml
+          flags: stock-data-service

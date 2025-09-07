@@ -31,5 +31,11 @@ echo "📦 Testing content service..."
 cd services/content-service && npm test -- --passWithNoTests
 cd ../..
 
+# Test stock-data service
+echo ""
+echo "📦 Testing stock-data service..."
+cd services/stock-data-service && uv run pytest tests/
+cd ../..
+
 echo ""
 echo "✅ All tests complete!"

@@ -8,6 +8,7 @@ Personal public site with microservices architecture, built with modern web tech
 - **Auth Service**: ASP.NET Core 8 with JWT authentication
 - **User Service**: Python FastAPI for user management
 - **Content Service**: Node.js Express for blog and portfolio content
+- **Stock Data Service**: Python FastAPI for stock/ETF data downloading
 - **Database**: PostgreSQL 15
 
 ## 🚀 Quick Start
@@ -43,20 +44,23 @@ Personal public site with microservices architecture, built with modern web tech
    - Auth Service: http://localhost:5001
    - User Service: http://localhost:8001
    - Content Service: http://localhost:3001
+   - Stock Data Service: http://localhost:9001
 
 ## 📁 Project Structure
 
 ```
 jnet-site/
-├── frontend/               # Next.js 15 frontend application
-├── services/              # Backend microservices
-│   ├── auth-service/     # .NET 8 authentication service
-│   ├── user-service/     # Python FastAPI user management
-│   └── content-service/  # Node.js Express content management
-├── prd/                  # Product requirements and documentation
-├── scripts/             # Development and deployment scripts
-├── .github/             # GitHub Actions workflows
-└── docker-compose.yml   # Local development orchestration
+├── frontend/                  # Next.js 15 frontend application
+├── services/                  # Backend microservices
+│   ├── auth-service/         # .NET 8 authentication service
+│   ├── user-service/         # Python FastAPI user management
+│   ├── content-service/      # Node.js Express content management
+│   └── stock-data-service/   # Python FastAPI stock/ETF data downloader
+├── prd/                      # Product requirements and documentation
+├── plan/                     # Implementation plans
+├── scripts/                  # Development and deployment scripts
+├── .github/                  # GitHub Actions workflows
+└── docker-compose.yml        # Local development orchestration
 ```
 
 ## 🛠️ Development
@@ -97,6 +101,7 @@ jnet-site/
 ./scripts/local-start-auth.sh         # Auth service on port 5000
 ./scripts/local-start-user.sh         # User service on port 8000
 ./scripts/local-start-content.sh      # Content service on port 3000
+./scripts/local-start-stock-data.sh   # Stock Data service on port 9000
 
 # Build all services locally
 ./scripts/local-build-all.sh
