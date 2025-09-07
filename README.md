@@ -15,7 +15,7 @@ Personal public site with microservices architecture, built with modern web tech
 ### Prerequisites
 
 - Docker and Docker Compose
-- Node.js 18+ (for local development)
+- Node.js 22+ (for local development)
 - .NET SDK 8.0+ (for Auth Service development)
 - Python 3.11+ (for User Service development)
 
@@ -24,7 +24,7 @@ Personal public site with microservices architecture, built with modern web tech
 1. Clone the repository:
    ```bash
    git clone <your-repo-url>
-   cd jnetsolution
+   cd jnet-site
    ```
 
 2. Run the setup script:
@@ -34,12 +34,12 @@ Personal public site with microservices architecture, built with modern web tech
 
 3. Update environment variables:
    ```bash
-   cp .env.example .env.local
+   cp frontend/.env.local.example frontend/.env.local
    # Edit .env.local with your configuration
    ```
 
 4. Access the services:
-   - Frontend: http://localhost:3000
+   - Frontend: http://localhost:3110
    - Auth Service: http://localhost:5001
    - User Service: http://localhost:8001
    - Content Service: http://localhost:3001
@@ -47,37 +47,72 @@ Personal public site with microservices architecture, built with modern web tech
 ## 📁 Project Structure
 
 ```
-jnetsolution/
-├── frontend/                # Next.js frontend application
-├── services/               # Backend microservices
-│   ├── auth-service/      # .NET authentication service
-│   ├── user-service/      # Python user management service
-│   └── content-service/   # Node.js content management service
-├── prd/                   # Product requirements and documentation
-├── .claude/               # Claude Code configuration
-├── scripts/              # Utility scripts
-└── docker-compose.yml    # Local development orchestration
+jnet-site/
+├── frontend/               # Next.js 15 frontend application
+├── services/              # Backend microservices
+│   ├── auth-service/     # .NET 8 authentication service
+│   ├── user-service/     # Python FastAPI user management
+│   └── content-service/  # Node.js Express content management
+├── prd/                  # Product requirements and documentation
+├── scripts/             # Development and deployment scripts
+├── .github/             # GitHub Actions workflows
+└── docker-compose.yml   # Local development orchestration
 ```
 
 ## 🛠️ Development
 
-### Running Services
+### Docker Development
 
 ```bash
+# Quick start - builds and starts all services
+./scripts/setup.sh
+
 # Start all services
-docker-compose up -d
+./scripts/docker-up.sh
+
+# Stop all services
+./scripts/docker-down.sh
 
 # View logs
-docker-compose logs -f
+./scripts/docker-logs.sh              # All services
+./scripts/docker-logs.sh frontend     # Specific service
 
-# Stop services
-docker-compose down
+# Build services
+./scripts/docker-build.sh             # All services
+./scripts/docker-build.sh frontend    # Specific service
+
+# Restart services
+./scripts/docker-restart.sh           # All services
+./scripts/docker-restart.sh frontend  # Specific service
+
+# Clean up Docker resources
+./scripts/docker-clean.sh
+```
+
+### Local Development (without Docker)
+
+```bash
+# Start services locally
+./scripts/local-start-frontend.sh     # Frontend on port 3100
+./scripts/local-start-auth.sh         # Auth service on port 5000
+./scripts/local-start-user.sh         # User service on port 8000
+./scripts/local-start-content.sh      # Content service on port 3000
+
+# Build all services locally
+./scripts/local-build-all.sh
+
+# Run tests locally
+./scripts/local-test-all.sh
 ```
 
 ### Running Tests
 
 ```bash
+# Docker environment
 ./scripts/test-all.sh
+
+# Local environment
+./scripts/local-test-all.sh
 ```
 
 ## 🚢 Deployment
@@ -102,12 +137,12 @@ Deploy to Google Cloud Run:
 
 ## 🔧 Technology Stack
 
-- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
-- **Backend**: .NET Core, Python FastAPI, Node.js Express
-- **Database**: PostgreSQL
+- **Frontend**: Next.js 15.4, React 19, TypeScript, Tailwind CSS v4
+- **Backend**: .NET 8, Python FastAPI, Node.js Express
+- **Database**: PostgreSQL 15
 - **Containerization**: Docker
 - **Deployment**: Google Cloud Run
-- **CI/CD**: GitHub Actions (to be configured)
+- **CI/CD**: GitHub Actions with automatic semantic versioning
 
 ## 📄 License
 

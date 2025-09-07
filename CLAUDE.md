@@ -13,29 +13,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 cp frontend/.env.local.example frontend/.env.local
 ```
 
-### Development Workflow
+### Docker Development Workflow
 ```bash
 # Start all services
-docker-compose up -d
-
-# View logs (all services or specific)
-docker-compose logs -f
-docker-compose logs -f frontend
-docker-compose logs -f auth-service
-docker-compose logs -f user-service
-docker-compose logs -f content-service
-
-# Restart specific service after code changes
-docker-compose restart frontend
+./scripts/docker-up.sh
 
 # Stop all services
-docker-compose down
+./scripts/docker-down.sh
 
-# Rebuild and restart a specific service
-docker-compose build frontend && docker-compose up -d frontend
+# View logs (all services or specific)
+./scripts/docker-logs.sh              # All services
+./scripts/docker-logs.sh frontend     # Specific service
 
-# Remove all containers and volumes (clean slate)
-docker-compose down -v
+# Build images
+./scripts/docker-build.sh             # All services
+./scripts/docker-build.sh frontend    # Specific service
+
+# Restart services
+./scripts/docker-restart.sh           # All services
+./scripts/docker-restart.sh frontend  # Specific service
+
+# Clean up Docker resources
+./scripts/docker-clean.sh             # Removes containers, volumes, and dangling images
+```
+
+### Local Development Workflow
+```bash
+# Start services locally (without Docker)
+./scripts/local-start-frontend.sh     # Frontend on port 3100
+./scripts/local-start-auth.sh         # Auth service on port 5000
+./scripts/local-start-user.sh         # User service on port 8000
+./scripts/local-start-content.sh      # Content service on port 3000
+
+# Build all services locally
+./scripts/local-build-all.sh
+
+# Run tests locally
+./scripts/local-test-all.sh
 ```
 
 ### Service-Specific Commands
