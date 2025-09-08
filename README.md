@@ -92,7 +92,19 @@ jnet-site/
 
 # Clean up Docker resources
 ./scripts/docker-clean.sh
+
+# Setup stock-data service with persistent volume
+./scripts/docker-setup-stock-data.sh
 ```
+
+### Stock Data Service
+
+The stock-data service downloads EOD (End of Day) stock and ETF data from Yahoo Finance:
+
+- **Persistent Storage**: Downloaded files are stored in `services/stock-data-service/data/downloads/`
+- **Data Formats**: Supports JSON and CSV output formats
+- **API Documentation**: Available at http://localhost:9001/docs
+- **Volume Mount**: Uses Docker external volume to persist data across container restarts
 
 ### Local Development (without Docker)
 
@@ -122,6 +134,29 @@ jnet-site/
 ```
 
 ## 🚢 Deployment
+
+### CI/CD with GitHub Actions
+
+The project uses GitHub Actions for continuous integration and deployment:
+
+#### Develop Branch
+- Triggers on push to `develop` branch when service files are changed
+- Runs tests for the affected service
+- Builds and pushes Docker images with tags:
+  - `develop`
+  - `develop-{git-sha}`
+
+#### Main Branch (Production)
+- Triggers on push to `main` branch when service files are changed
+- Runs tests for the affected service
+- Calculates semantic version based on git tags
+- Builds and pushes Docker images with tags:
+  - `latest`
+  - Semantic version (e.g., `1.2.3`)
+- Creates a GitHub release
+- Deploys to Google Cloud Run (if configured)
+
+#### Manual Deployment
 
 Deploy to Google Cloud Run:
 

@@ -35,6 +35,9 @@ cp frontend/.env.local.example frontend/.env.local
 
 # Clean up Docker resources
 ./scripts/docker-clean.sh             # Removes containers, volumes, and dangling images
+
+# Setup stock-data service with persistent volume
+./scripts/docker-setup-stock-data.sh  # Creates data directories and starts service
 ```
 
 ### Local Development Workflow
