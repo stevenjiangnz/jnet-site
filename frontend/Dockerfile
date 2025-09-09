@@ -19,6 +19,11 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+
+# Build-time environment variables for Supabase
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+
 COPY package.json package-lock.json* ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

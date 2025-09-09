@@ -4,12 +4,14 @@ Personal public site with microservices architecture, built with modern web tech
 
 ## 🏗️ Architecture
 
-- **Frontend**: Next.js 14+ with React, TypeScript, and Tailwind CSS
-- **Auth Service**: ASP.NET Core 8 with JWT authentication
+- **Frontend**: Next.js 15+ with React, TypeScript, and Tailwind CSS
+- **Authentication**: Supabase Auth (Email/Password and Google OAuth)
+- **Database**: Supabase (PostgreSQL)
+- **Auth Service**: ASP.NET Core 8 with JWT authentication (Legacy - being migrated)
 - **User Service**: Python FastAPI for user management
 - **Content Service**: Node.js Express for blog and portfolio content
 - **Stock Data Service**: Python FastAPI with uv for stock/ETF EOD data downloading
-- **Database**: PostgreSQL 15
+- **Local Database**: PostgreSQL 15 (for non-auth services)
 
 ## 🚀 Quick Start
 
@@ -20,6 +22,7 @@ Personal public site with microservices architecture, built with modern web tech
 - .NET SDK 8.0+ (for Auth Service development)
 - Python 3.11+ (for Python services development)
 - uv (for Stock Data Service development)
+- Supabase account (for authentication)
 
 ### Setup
 
@@ -40,7 +43,12 @@ Personal public site with microservices architecture, built with modern web tech
    # Edit .env.local with your configuration
    ```
 
-4. Access the services:
+4. Configure Supabase authentication:
+   - Follow the instructions in `SUPABASE_SETUP.md`
+   - Set up Google OAuth provider in Supabase dashboard
+   - Add redirect URLs for local and production environments
+
+5. Access the services:
    - Frontend: http://localhost:3110
    - Auth Service: http://localhost:5001
    - User Service: http://localhost:8001
@@ -52,8 +60,12 @@ Personal public site with microservices architecture, built with modern web tech
 ```
 jnet-site/
 ├── frontend/                  # Next.js 15 frontend application
+│   └── src/
+│       ├── app/              # App router pages and API routes
+│       ├── providers/        # React contexts (Auth)
+│       └── utils/            # Utilities (Supabase clients)
 ├── services/                  # Backend microservices
-│   ├── auth-service/         # .NET 8 authentication service
+│   ├── auth-service/         # .NET 8 authentication service (Legacy)
 │   ├── user-service/         # Python FastAPI user management
 │   ├── content-service/      # Node.js Express content management
 │   └── stock-data-service/   # Python FastAPI stock/ETF data downloader
@@ -61,6 +73,7 @@ jnet-site/
 ├── plan/                     # Implementation plans
 ├── scripts/                  # Development and deployment scripts
 ├── .github/                  # GitHub Actions workflows
+├── SUPABASE_SETUP.md         # Supabase configuration guide
 └── docker-compose.yml        # Local development orchestration
 ```
 
@@ -169,7 +182,7 @@ Deploy to Google Cloud Run:
 - [ ] Landing page with portfolio showcase
 - [ ] Blog section with markdown support
 - [ ] Contact form with email integration
-- [ ] User authentication (optional)
+- [x] User authentication (Supabase - Email/Password and Google OAuth)
 - [ ] Admin panel for content management
 - [x] Stock/ETF EOD data downloading service
 - [ ] Mobile-responsive design
@@ -180,8 +193,9 @@ Deploy to Google Cloud Run:
 ## 🔧 Technology Stack
 
 - **Frontend**: Next.js 15.4, React 19, TypeScript, Tailwind CSS v4
+- **Authentication**: Supabase Auth (Email/Password, Google OAuth)
 - **Backend**: .NET 8, Python FastAPI, Node.js Express
-- **Database**: PostgreSQL 15
+- **Database**: Supabase (PostgreSQL) for auth/users, PostgreSQL 15 for local services
 - **Package Management**: npm, dotnet, pip, uv
 - **Containerization**: Docker
 - **Deployment**: Google Cloud Run

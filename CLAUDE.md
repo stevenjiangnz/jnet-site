@@ -11,6 +11,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # If .env.local doesn't exist, copy from example
 cp frontend/.env.local.example frontend/.env.local
+
+# Configure Supabase authentication
+# 1. Follow SUPABASE_SETUP.md for detailed instructions
+# 2. Enable Google OAuth in Supabase dashboard
+# 3. Add redirect URLs for localhost and production
 ```
 
 ### Docker Development Workflow
@@ -76,6 +81,12 @@ docker-compose exec frontend sh
 
 # Install new package
 docker-compose exec frontend npm install <package-name>
+
+# Authentication-related pages
+# /login - Login/signup page with email and Google OAuth
+# /dashboard - Protected page example (requires authentication)
+# /auth/callback - OAuth callback handler
+# /auth/auth-code-error - Authentication error page
 ```
 
 **Auth Service (.NET 8)**
@@ -189,6 +200,15 @@ docker-compose exec -T db psql -U dev jnetsolution < backup.sql
 # - Generate TypeScript types: mcp__supabase__generate_typescript_types
 # - Get project details: mcp__supabase__get_project_url, mcp__supabase__get_anon_key
 
+# Authentication Setup:
+# 1. Configure OAuth providers in Supabase Dashboard
+# 2. Set redirect URLs for local/production in Authentication → URL Configuration
+# 3. Frontend auth files:
+#    - src/utils/supabase/client.ts - Browser client
+#    - src/utils/supabase/server.ts - Server component client
+#    - src/utils/supabase/middleware.ts - Session middleware
+#    - src/providers/auth-provider.tsx - React context for auth
+
 # Note: Supabase temporary files and local configurations are excluded in .gitignore
 ```
 
@@ -234,10 +254,11 @@ Frontend (Next.js) :3110 (Docker) / :3100 (Local dev)
 ### Service Responsibilities
 - **Frontend**: Next.js 15.4 with React 19, TypeScript, Tailwind CSS v4
   - Server-side rendering for SEO
-  - API routes proxy to backend services
-  - JWT token management in cookies/localStorage
+  - Supabase authentication integration (Email/Password, Google OAuth)
+  - Protected routes with middleware
+  - Auth context provider for client components
   
-- **Auth Service**: ASP.NET Core 8
+- **Auth Service**: ASP.NET Core 8 (Legacy - being migrated to Supabase)
   - JWT token generation and validation
   - User authentication endpoints
   - Password hashing with BCrypt
@@ -260,7 +281,14 @@ Frontend (Next.js) :3110 (Docker) / :3100 (Local dev)
 
 ### Key Patterns
 
-**Authentication Flow**
+**Authentication Flow (Supabase)**
+1. Frontend uses Supabase client for authentication
+2. Email/Password: Direct sign-in/sign-up via Supabase Auth
+3. Google OAuth: Redirects to Google, then to `/auth/callback`
+4. Session managed by Supabase with automatic refresh
+5. Middleware validates session on each request
+
+**Legacy Authentication Flow (Being Migrated)**
 1. Frontend sends credentials to Auth Service `/api/auth/login`
 2. Auth Service validates and returns JWT token
 3. Frontend includes JWT in Authorization header for subsequent requests
@@ -276,8 +304,10 @@ Frontend (Next.js) :3110 (Docker) / :3100 (Local dev)
 ```bash
 # Frontend
 API_BASE_URL=http://localhost:8000  # Points to backend services
+NEXT_PUBLIC_SUPABASE_URL=https://lwksceirjogxlhohbkcs.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-# Auth Service
+# Auth Service (Legacy)
 JWT_SECRET=your-development-secret-key-min-32-characters-long
 DATABASE_URL=Server=db;Database=jnetsolution;User=dev;Password=devpass;
 
