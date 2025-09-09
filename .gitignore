@@ -69,3 +69,9 @@ postgres_data/
 # Logs
 logs/
 *.log
+
+# Supabase
+supabase/.temp/
+supabase/.branches/
+supabase/functions/*/node_modules/
+.supabase/

@@ -74,12 +74,15 @@ services:
       - "9001:9000"
     volumes:
       - ./services/stock-data-service:/app
-      - stock-data:/app/data
-      - /app/.venv
+      - stock-data-downloads:/app/data/downloads
+      - stock-data-uv-cache:/uv-cache
     environment:
       - ENVIRONMENT=development
       - LOG_LEVEL=DEBUG
-      - DATA_DIRECTORY=/app/data
+      - DATA_DIRECTORY=/app/data/downloads
+      - UV_CACHE_DIR=/uv-cache
+      - UV_PROJECT_ENVIRONMENT=/opt/venv
+      - PYTHONUNBUFFERED=1
     networks:
       - default
     healthcheck:
@@ -102,4 +105,11 @@ services:
 
 volumes:
   postgres_data:
-  stock-data:
+  stock-data-downloads:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/services/stock-data-service/data/downloads
+      o: bind
+  stock-data-uv-cache:
+    driver: local

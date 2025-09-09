@@ -35,6 +35,9 @@ cp frontend/.env.local.example frontend/.env.local
 
 # Clean up Docker resources
 ./scripts/docker-clean.sh             # Removes containers, volumes, and dangling images
+
+# Setup stock-data service with persistent volume
+./scripts/docker-setup-stock-data.sh  # Creates data directories and starts service
 ```
 
 ### Local Development Workflow
@@ -171,6 +174,22 @@ docker-compose exec db pg_dump -U dev jnetsolution > backup.sql
 
 # Restore database
 docker-compose exec -T db psql -U dev jnetsolution < backup.sql
+```
+
+### Supabase Integration
+```bash
+# Supabase CLI is integrated via MCP (Model Context Protocol)
+# The Supabase MCP server is configured in the project
+
+# Common Supabase operations via MCP:
+# - List tables: mcp__supabase__list_tables
+# - Execute SQL: mcp__supabase__execute_sql
+# - Apply migrations: mcp__supabase__apply_migration
+# - List/deploy Edge Functions: mcp__supabase__list_edge_functions, mcp__supabase__deploy_edge_function
+# - Generate TypeScript types: mcp__supabase__generate_typescript_types
+# - Get project details: mcp__supabase__get_project_url, mcp__supabase__get_anon_key
+
+# Note: Supabase temporary files and local configurations are excluded in .gitignore
 ```
 
 ### Testing
