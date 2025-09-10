@@ -2,6 +2,9 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  console.log(`[Middleware] Processing request for: ${pathname}`)
+  
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -10,9 +13,13 @@ export async function updateSession(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
   
+  console.log(`[Middleware] Supabase URL: ${supabaseUrl?.substring(0, 30)}...`)
+  console.log(`[Middleware] Has Anon Key: ${!!supabaseAnonKey && supabaseAnonKey !== 'placeholder-key'}`)
+  
   // Skip during build or if not configured
   if (supabaseUrl === 'https://placeholder.supabase.co') {
-    console.warn('Supabase not configured in middleware - missing NEXT_PUBLIC_SUPABASE_URL')
+    console.error('[Middleware] CRITICAL: Supabase not configured - using placeholder URL')
+    console.error('[Middleware] Available env vars:', Object.keys(process.env).filter(k => k.includes('SUPABASE')))
     return supabaseResponse
   }
 
@@ -43,21 +50,31 @@ export async function updateSession(request: NextRequest) {
   // supabase.auth.getUser(). A simple mistake could make your app
   // vulnerable to CSRF attacks.
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data, error } = await supabase.auth.getUser()
+    user = data?.user
+    if (error) {
+      console.error('[Middleware] Error getting user:', error.message)
+    } else {
+      console.log(`[Middleware] User authenticated: ${!!user}, email: ${user?.email || 'none'}`)
+    }
+  } catch (e) {
+    console.error('[Middleware] Exception getting user:', e)
+  }
 
   // Skip allowlist check for certain paths
-  const pathname = request.nextUrl.pathname
   if (pathname === '/unauthorized' || 
       pathname.startsWith('/auth/') || 
       pathname === '/login' ||
       pathname === '/') {
+    console.log(`[Middleware] Skipping allowlist check for path: ${pathname}`)
     return supabaseResponse
   }
 
   // If user is authenticated, check allowlist
   if (user?.email) {
+    console.log(`[Middleware] Checking allowlist for user: ${user.email}`)
     try {
       // Check if user is in allowlist
       const { data: allowedUser, error } = await supabase
@@ -66,8 +83,11 @@ export async function updateSession(request: NextRequest) {
         .eq('email', user.email)
         .maybeSingle()
 
+      console.log(`[Middleware] Allowlist query result - data: ${JSON.stringify(allowedUser)}, error: ${error?.message || 'none'}`)
+
       // If user is NOT in allowlist
       if (!allowedUser || error) {
+        console.log(`[Middleware] User ${user.email} NOT in allowlist, redirecting to unauthorized`)
         // Clear the session
         await supabase.auth.signOut()
         
@@ -77,12 +97,22 @@ export async function updateSession(request: NextRequest) {
         url.searchParams.set('reason', 'not-allowlisted')
         
         return NextResponse.redirect(url)
+      } else {
+        console.log(`[Middleware] User ${user.email} IS in allowlist, allowing access`)
       }
-    } catch (error) {
+    } catch (error: any) {
       // Log error but allow access to prevent lockout (fail-open)
-      console.error('Allowlist check failed:', error)
+      console.error('[Middleware] Allowlist check exception:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        stack: error?.stack?.split('\n').slice(0, 3).join('\n')
+      })
       // In production, you might want to send this to a monitoring service
     }
+  } else {
+    console.log('[Middleware] No authenticated user, skipping allowlist check')
   }
 
   if (
