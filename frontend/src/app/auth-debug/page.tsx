@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
 
 export default function AuthDebugPage() {
   const [debugInfo, setDebugInfo] = useState<{
@@ -12,7 +11,6 @@ export default function AuthDebugPage() {
   } | null>(null)
 
   useEffect(() => {
-    const supabase = createClient()
     const origin = window.location.origin
     
     setDebugInfo({

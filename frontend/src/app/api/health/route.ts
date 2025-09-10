@@ -1,9 +1,34 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
+interface Diagnostics {
+  status: string;
+  service: string;
+  version: string;
+  timestamp: string;
+  environment: {
+    NODE_ENV: string | undefined;
+    runtime: string;
+    availableEnvVars?: string[];
+  };
+  supabase: {
+    url: string;
+    hasAnonKey: boolean;
+    configured: boolean;
+    urlLength?: number;
+    keyLength?: number;
+  };
+  checks: Record<string, unknown>;
+  responseTime?: string;
+  error?: {
+    message: string;
+    stack?: string;
+  };
+}
+
 export async function GET() {
   const startTime = Date.now();
-  const diagnostics: any = {
+  const diagnostics: Diagnostics = {
     status: 'checking',
     service: 'frontend',
     version: process.env.VERSION || 'unknown',
@@ -51,9 +76,9 @@ export async function GET() {
           hasSession: !!session,
           error: error?.message || null,
         };
-      } catch (e: any) {
+      } catch (e) {
         diagnostics.checks.session = {
-          error: e.message || 'Unknown error getting session',
+          error: e instanceof Error ? e.message : 'Unknown error getting session',
         };
       }
 
@@ -73,23 +98,23 @@ export async function GET() {
             hint: error.hint,
           } : null,
         };
-      } catch (e: any) {
+      } catch (e) {
         diagnostics.checks.allowedUsersTable = {
-          error: e.message || 'Unknown error querying allowed_users',
+          error: e instanceof Error ? e.message : 'Unknown error querying allowed_users',
         };
       }
-    } catch (e: any) {
-      diagnostics.checks.supabaseClient = `failed: ${e.message}`;
+    } catch (e) {
+      diagnostics.checks.supabaseClient = `failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
     }
 
     diagnostics.status = 'completed';
     diagnostics.responseTime = `${Date.now() - startTime}ms`;
 
-  } catch (error: any) {
+  } catch (error) {
     diagnostics.status = 'error';
     diagnostics.error = {
-      message: error.message,
-      stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack?.split('\n').slice(0, 3).join('\n') : undefined,
     };
   }
 

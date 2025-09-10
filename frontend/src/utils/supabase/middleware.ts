@@ -100,15 +100,22 @@ export async function updateSession(request: NextRequest) {
       } else {
         console.log(`[Middleware] User ${user.email} IS in allowlist, allowing access`)
       }
-    } catch (error: any) {
+    } catch (error) {
       // Log error but allow access to prevent lockout (fail-open)
-      console.error('[Middleware] Allowlist check exception:', {
-        message: error?.message,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint,
-        stack: error?.stack?.split('\n').slice(0, 3).join('\n')
-      })
+      const errorDetails: Record<string, unknown> = {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack?.split('\n').slice(0, 3).join('\n') : undefined
+      };
+      
+      // Add additional error details if available
+      if (error && typeof error === 'object') {
+        const err = error as Record<string, unknown>;
+        if ('code' in err) errorDetails.code = err.code;
+        if ('details' in err) errorDetails.details = err.details;
+        if ('hint' in err) errorDetails.hint = err.hint;
+      }
+      
+      console.error('[Middleware] Allowlist check exception:', errorDetails)
       // In production, you might want to send this to a monitoring service
     }
   } else {
