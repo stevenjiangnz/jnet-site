@@ -33,7 +33,10 @@ services=("frontend" "auth-service" "user-service" "content-service" "stock-data
 for service in "${services[@]}"; do
     echo "📦 Building $service..."
     if [ "$service" == "frontend" ]; then
-        docker build -t gcr.io/$PROJECT_ID/jnetsolution-$service ./frontend
+        docker build -t gcr.io/$PROJECT_ID/jnetsolution-$service \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=https://lwksceirjogxlhohbkcs.supabase.co \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3a3NjZWlyam9neGxob2hia2NzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MDk1MzgsImV4cCI6MjA3Mjk4NTUzOH0.c1W743KiBjCyTCmYUS9Xa2aWVRqqw3eg4oR5ZvA6SB8 \
+            ./frontend
     else
         docker build -t gcr.io/$PROJECT_ID/jnetsolution-$service ./services/$service
     fi
@@ -75,7 +78,7 @@ gcloud run deploy jnetsolution-frontend \
     --platform managed \
     --region $REGION \
     --allow-unauthenticated \
-    --set-env-vars "NODE_ENV=production"
+    --set-env-vars "NODE_ENV=production,NEXT_PUBLIC_SUPABASE_URL=https://lwksceirjogxlhohbkcs.supabase.co,NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3a3NjZWlyam9neGxob2hia2NzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MDk1MzgsImV4cCI6MjA3Mjk4NTUzOH0.c1W743KiBjCyTCmYUS9Xa2aWVRqqw3eg4oR5ZvA6SB8"
 
 # Deploy stock-data-service
 gcloud run deploy jnetsolution-stock-data \
