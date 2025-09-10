@@ -13,7 +13,7 @@ export interface AuthError {
 export interface AuthState {
   isAuthenticated: boolean;
   isAuthorized: boolean;
-  user: any | null;
+  user: { email?: string; id?: string } | null;
   loading: boolean;
   error: AuthError | null;
 }
