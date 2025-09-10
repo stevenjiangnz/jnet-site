@@ -48,7 +48,10 @@ export async function updateSession(request: NextRequest) {
 
   // Skip allowlist check for certain paths
   const pathname = request.nextUrl.pathname
-  if (pathname === '/unauthorized' || pathname.startsWith('/auth/')) {
+  if (pathname === '/unauthorized' || 
+      pathname.startsWith('/auth/') || 
+      pathname === '/login' ||
+      pathname === '/') {
     return supabaseResponse
   }
 

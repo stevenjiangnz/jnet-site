@@ -245,8 +245,14 @@ query: "SELECT * FROM public.allowed_users WHERE email = 'user@company.com';"
 mcp__supabase__execute_sql
 query: "SELECT COUNT(*) as total_users FROM public.allowed_users;"
 
-# Note: Users not in the allowlist will be redirected to /unauthorized
-# The middleware checks allowlist on every request for authenticated users
+# Implementation Details:
+# - Table: public.allowed_users (email, created_at, updated_at, added_by)
+# - RLS policies allow anon users to read (required for middleware checks)
+# - Middleware checks allowlist on every request for authenticated users
+# - Users not in allowlist are redirected to /unauthorized
+# - Excluded paths: /login, /auth/*, /unauthorized, / (root)
+# - TypeScript types defined in frontend/src/types/auth.ts
+# - Unauthorized page supports Suspense for Next.js 15 compatibility
 ```
 
 ### Testing
