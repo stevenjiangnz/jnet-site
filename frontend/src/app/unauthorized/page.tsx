@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
-export default function UnauthorizedPage() {
+function UnauthorizedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [reason, setReason] = useState('');
@@ -47,5 +47,17 @@ export default function UnauthorizedPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function UnauthorizedPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">Loading...</div>
+      </div>
+    }>
+      <UnauthorizedContent />
+    </Suspense>
   );
 }
