@@ -76,6 +76,13 @@ If OAuth callbacks are redirecting to localhost:3000 instead of your production 
 - Clear browser cache and cookies
 - Ensure the auth provider uses dynamic redirect URLs
 
+**Issue**: OAuth redirects from port 3110 to 3100 (Docker issue)
+**Solution**: 
+- This is due to Docker port mapping (3110:3100)
+- The app inside container runs on 3100 but you access it on 3110
+- For now, manually change the URL from 3100 to 3110 after redirect
+- See `docs/DOCKER_PORT_OAUTH_FIX.md` for detailed solutions
+
 **Issue**: "Redirect URL not allowed" error
 **Solution**: 
 - Add the exact URL (including /auth/callback) to Supabase Dashboard
