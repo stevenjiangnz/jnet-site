@@ -9,6 +9,11 @@ export async function updateSession(request: NextRequest) {
   // Provide fallback values during build time
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+  
+  // Skip during build
+  if (supabaseUrl === 'https://placeholder.supabase.co') {
+    return supabaseResponse
+  }
 
   const supabase = createServerClient(
     supabaseUrl,
@@ -40,6 +45,41 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // Skip allowlist check for certain paths
+  const pathname = request.nextUrl.pathname
+  if (pathname === '/unauthorized' || pathname.startsWith('/auth/')) {
+    return supabaseResponse
+  }
+
+  // If user is authenticated, check allowlist
+  if (user?.email) {
+    try {
+      // Check if user is in allowlist
+      const { data: allowedUser, error } = await supabase
+        .from('allowed_users')
+        .select('email')
+        .eq('email', user.email)
+        .maybeSingle()
+
+      // If user is NOT in allowlist
+      if (!allowedUser || error) {
+        // Clear the session
+        await supabase.auth.signOut()
+        
+        // Redirect to unauthorized page
+        const url = request.nextUrl.clone()
+        url.pathname = '/unauthorized'
+        url.searchParams.set('reason', 'not-allowlisted')
+        
+        return NextResponse.redirect(url)
+      }
+    } catch (error) {
+      // Log error but allow access to prevent lockout (fail-open)
+      console.error('Allowlist check failed:', error)
+      // In production, you might want to send this to a monitoring service
+    }
+  }
 
   if (
     !user &&
