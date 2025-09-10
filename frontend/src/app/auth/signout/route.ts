@@ -11,11 +11,23 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getSession()
 
   if (session) {
-    await supabase.auth.signOut()
+    // Sign out with explicit redirect to avoid cached URLs
+    const { error } = await supabase.auth.signOut({
+      scope: 'global' // This ensures the session is cleared globally
+    })
+    
+    if (error) {
+      console.error('Signout error:', error)
+    }
   }
 
   revalidatePath('/', 'layout')
-  return NextResponse.redirect(new URL('/login', request.url), {
+  
+  // Use the request URL to ensure we redirect to the correct domain
+  const redirectUrl = new URL('/login', request.url)
+  console.log('Redirecting after signout to:', redirectUrl.toString())
+  
+  return NextResponse.redirect(redirectUrl, {
     status: 302,
   })
 }
