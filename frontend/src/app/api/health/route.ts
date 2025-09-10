@@ -1,10 +1,126 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@/utils/supabase/server';
+
+interface Diagnostics {
+  status: string;
+  service: string;
+  version: string;
+  timestamp: string;
+  environment: {
+    NODE_ENV: string | undefined;
+    runtime: string;
+    availableEnvVars?: string[];
+  };
+  supabase: {
+    url: string;
+    hasAnonKey: boolean;
+    configured: boolean;
+    urlLength?: number;
+    keyLength?: number;
+  };
+  checks: Record<string, unknown>;
+  responseTime?: string;
+  error?: {
+    message: string;
+    stack?: string;
+  };
+}
 
 export async function GET() {
-  return NextResponse.json({
-    status: 'healthy',
+  const startTime = Date.now();
+  const diagnostics: Diagnostics = {
+    status: 'checking',
     service: 'frontend',
-    version: process.env.VERSION || '0.1.0',
-    timestamp: new Date().toISOString()
+    version: process.env.VERSION || 'unknown',
+    timestamp: new Date().toISOString(),
+    environment: {
+      NODE_ENV: process.env.NODE_ENV,
+      runtime: 'edge' in globalThis ? 'edge' : 'nodejs',
+    },
+    supabase: {
+      url: 'NOT_SET',
+      hasAnonKey: false,
+      configured: false,
+    },
+    checks: {}
+  };
+
+  try {
+    // Check environment variables
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    diagnostics.supabase = {
+      url: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'NOT_SET',
+      hasAnonKey: !!supabaseAnonKey && supabaseAnonKey !== 'placeholder-key',
+      configured: !!supabaseUrl && supabaseUrl !== 'https://placeholder.supabase.co',
+      urlLength: supabaseUrl?.length || 0,
+      keyLength: supabaseAnonKey?.length || 0,
+    };
+
+    // Check available env vars (without exposing sensitive data)
+    diagnostics.environment.availableEnvVars = Object.keys(process.env)
+      .filter(k => k.includes('SUPABASE') || k.includes('NEXT_PUBLIC'))
+      .map(k => k);
+
+    // Try to create Supabase client
+    try {
+      diagnostics.checks.supabaseClient = 'attempting';
+      const supabase = await createClient();
+      diagnostics.checks.supabaseClient = 'created';
+
+      // Try to get current session
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        diagnostics.checks.session = {
+          hasSession: !!session,
+          error: error?.message || null,
+        };
+      } catch (e) {
+        diagnostics.checks.session = {
+          error: e instanceof Error ? e.message : 'Unknown error getting session',
+        };
+      }
+
+      // Try to query allowed_users table
+      try {
+        const { count, error } = await supabase
+          .from('allowed_users')
+          .select('*', { count: 'exact', head: true });
+        
+        diagnostics.checks.allowedUsersTable = {
+          exists: !error,
+          count: count || 0,
+          error: error ? {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+          } : null,
+        };
+      } catch (e) {
+        diagnostics.checks.allowedUsersTable = {
+          error: e instanceof Error ? e.message : 'Unknown error querying allowed_users',
+        };
+      }
+    } catch (e) {
+      diagnostics.checks.supabaseClient = `failed: ${e instanceof Error ? e.message : 'Unknown error'}`;
+    }
+
+    diagnostics.status = 'completed';
+    diagnostics.responseTime = `${Date.now() - startTime}ms`;
+
+  } catch (error) {
+    diagnostics.status = 'error';
+    diagnostics.error = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack?.split('\n').slice(0, 3).join('\n') : undefined,
+    };
+  }
+
+  return NextResponse.json(diagnostics, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+    },
   });
 }
