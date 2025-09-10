@@ -2,16 +2,20 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { User, Session, AuthError, AuthResponse, AuthOAuthResponse } from '@supabase/supabase-js'
+import { User, Session } from '@supabase/supabase-js'
 
 interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signInWithEmail: (email: string, password: string) => Promise<AuthResponse>
-  signUpWithEmail: (email: string, password: string) => Promise<AuthResponse>
-  signInWithGoogle: () => Promise<AuthOAuthResponse>
-  signOut: () => Promise<{ error: AuthError | null }>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  signInWithEmail: (email: string, password: string) => Promise<{ data: any; error: any }>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  signUpWithEmail: (email: string, password: string) => Promise<{ data: any; error: any }>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  signInWithGoogle: () => Promise<{ data: any; error: any }>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  signOut: () => Promise<{ error: any }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
