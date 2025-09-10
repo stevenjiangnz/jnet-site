@@ -76,12 +76,11 @@ If OAuth callbacks are redirecting to localhost:3000 instead of your production 
 - Clear browser cache and cookies
 - Ensure the auth provider uses dynamic redirect URLs
 
-**Issue**: OAuth redirects from port 3110 to 3100 (Docker issue)
+**Issue**: OAuth redirects from port 3110 to 3100 (Docker issue) - **FIXED**
 **Solution**: 
-- This is due to Docker port mapping (3110:3100)
-- The app inside container runs on 3100 but you access it on 3110
-- For now, manually change the URL from 3100 to 3110 after redirect
-- See `docs/DOCKER_PORT_OAUTH_FIX.md` for detailed solutions
+- Changed Docker configuration to use same port internally and externally (3110:3110)
+- OAuth now correctly redirects to the same port you're accessing from
+- See `docs/DOCKER_PORT_OAUTH_FIX.md` for implementation details
 
 **Issue**: "Redirect URL not allowed" error
 **Solution**: 

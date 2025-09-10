@@ -1,50 +1,48 @@
-# Docker Port Mapping OAuth Issue
+# Docker Port Mapping OAuth Issue (RESOLVED)
 
-## Problem
+## Problem (Fixed)
 
-When using Docker with port mapping (3110:3100), OAuth callbacks redirect to port 3100 instead of 3110 because:
-- Docker maps external port 3110 to internal port 3100
-- Next.js app inside container sees itself running on port 3100
-- OAuth callback uses the internal port, not the external one
+When using Docker with port mapping (3110:3100), OAuth callbacks were redirecting to port 3100 instead of 3110 because:
+- Docker mapped external port 3110 to internal port 3100
+- Next.js app inside container saw itself running on port 3100
+- OAuth callback used the internal port, not the external one
 
-## Solutions
+## Solution Implemented
 
-### Option 1: Use Same Port (Recommended)
+We implemented Option 1 - aligning internal and external ports to use the same port (3110):
 
-Change docker-compose.yml to use the same internal and external port:
+### Changes Made:
 
+1. **Updated docker-compose.yml**:
 ```yaml
 frontend:
   ports:
     - "3110:3110"  # Same port inside and outside
 ```
 
-Then update the Dockerfile.dev to run Next.js on port 3110:
-
+2. **Updated Dockerfile.dev**:
 ```dockerfile
+# Expose port
+EXPOSE 3110
+
+# Start development server with port 3110
 CMD ["npm", "run", "dev", "--", "-p", "3110"]
 ```
 
-### Option 2: Add Port Detection Logic
+### Result
 
-Add logic to detect the actual port being used from the browser's perspective. This is more complex and may not work reliably.
+✅ OAuth now correctly redirects to http://localhost:3110/auth/callback when accessing the Docker environment
 
-### Option 3: Use Separate Environments
+## Current Port Configuration
 
-- Local development: Always use port 3100
-- Docker development: Always use Docker Compose with proper port mapping
-- Production: Use Cloud Run URL
+- **Local development**: Port 3100 (`npm run dev`)
+- **Docker development**: Port 3110 (internal and external)
+- **Production**: Cloud Run URL (https://frontend-506487697841.us-central1.run.app)
 
-## Quick Fix for Testing
+## No Image Rebuild Required
 
-For now, when testing with Docker:
-1. Access the app at http://localhost:3110
-2. After OAuth redirect to port 3100, manually change the URL to port 3110
-3. You'll still be authenticated due to shared cookies on localhost
+The fix only required:
+1. Rebuilding the frontend image once: `./scripts/docker-build.sh frontend`
+2. Restarting containers: `./scripts/docker-down.sh && ./scripts/docker-up.sh`
 
-## Long-term Solution
-
-The best approach is to ensure consistency:
-- If using Docker locally, always access through Docker (port 3110)
-- If developing locally without Docker, always use port 3100
-- Don't mix the two approaches in the same session
+Future changes to docker-compose.yml port mappings don't require rebuilding images.
