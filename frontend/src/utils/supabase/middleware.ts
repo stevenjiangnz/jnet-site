@@ -10,8 +10,9 @@ export async function updateSession(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
   
-  // Skip during build
+  // Skip during build or if not configured
   if (supabaseUrl === 'https://placeholder.supabase.co') {
+    console.warn('Supabase not configured in middleware - missing NEXT_PUBLIC_SUPABASE_URL')
     return supabaseResponse
   }
 
