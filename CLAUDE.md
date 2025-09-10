@@ -212,6 +212,43 @@ docker-compose exec -T db psql -U dev jnetsolution < backup.sql
 # Note: Supabase temporary files and local configurations are excluded in .gitignore
 ```
 
+### Email Allowlist Management
+```bash
+# The application uses an email allowlist for access control
+# Only users with emails in the allowed_users table can access the application
+
+# View all allowed users
+mcp__supabase__execute_sql
+query: "SELECT email, created_at FROM public.allowed_users ORDER BY created_at DESC;"
+
+# Add a single user
+mcp__supabase__execute_sql
+query: "INSERT INTO public.allowed_users (email) VALUES ('newuser@company.com') ON CONFLICT (email) DO NOTHING;"
+
+# Add multiple users
+mcp__supabase__execute_sql
+query: "INSERT INTO public.allowed_users (email) VALUES 
+  ('user1@company.com'),
+  ('user2@company.com'),
+  ('user3@company.com')
+ON CONFLICT (email) DO NOTHING;"
+
+# Remove a user (they will be logged out on next navigation)
+mcp__supabase__execute_sql
+query: "DELETE FROM public.allowed_users WHERE email = 'user@company.com';"
+
+# Check if a specific user is allowed
+mcp__supabase__execute_sql
+query: "SELECT * FROM public.allowed_users WHERE email = 'user@company.com';"
+
+# Count total allowed users
+mcp__supabase__execute_sql
+query: "SELECT COUNT(*) as total_users FROM public.allowed_users;"
+
+# Note: Users not in the allowlist will be redirected to /unauthorized
+# The middleware checks allowlist on every request for authenticated users
+```
+
 ### Testing
 ```bash
 # Run all tests across services

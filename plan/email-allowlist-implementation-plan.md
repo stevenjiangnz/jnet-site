@@ -41,6 +41,11 @@ ALTER TABLE public.allowed_users ENABLE ROW LEVEL SECURITY;
 -- Create policy for service role access
 CREATE POLICY "Service role can manage allowed_users" ON public.allowed_users
   FOR ALL USING (auth.jwt()->>'role' = 'service_role');
+
+-- IMPORTANT: Create policy for anon users to read the allowlist
+-- This is required for the middleware to check if users are allowed
+CREATE POLICY "Anon users can read allowed_users" ON public.allowed_users
+  FOR SELECT USING (true);
 ```
 
 **Implementation Steps:**

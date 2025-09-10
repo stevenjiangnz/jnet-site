@@ -419,6 +419,11 @@ ALTER TABLE public.allowed_users ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Service role can manage allowed_users" ON public.allowed_users
   FOR ALL USING (auth.jwt()->>'role' = 'service_role');
 
+-- IMPORTANT: Create policy for anon users to read the allowlist
+-- This is required for the middleware to check if users are allowed
+CREATE POLICY "Anon users can read allowed_users" ON public.allowed_users
+  FOR SELECT USING (true);
+
 -- Insert initial admin users (update with your actual admin emails)
 INSERT INTO public.allowed_users (email) VALUES 
   ('admin@jnetsolution.com'),
