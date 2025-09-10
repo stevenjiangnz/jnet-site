@@ -19,7 +19,7 @@ RUN npm install --force
 COPY . .
 
 # Expose port
-EXPOSE 3100
+EXPOSE 3110
 
-# Start development server
-CMD ["npm", "run", "dev"]
+# Start development server with port 3110
+CMD ["npm", "run", "dev", "--", "-p", "3110"]
