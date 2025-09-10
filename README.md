@@ -44,9 +44,10 @@ Personal public site with microservices architecture, built with modern web tech
    ```
 
 4. Configure Supabase authentication:
-   - Follow the instructions in `SUPABASE_SETUP.md`
+   - Follow the instructions in `docs/SUPABASE_SETUP.md`
    - Set up Google OAuth provider in Supabase dashboard
-   - Add redirect URLs for local and production environments
+   - **Important**: Update Site URL in Supabase Dashboard from `http://localhost:3000` to your production URL
+   - Add redirect URLs for all environments (local, Docker, and production)
 
 5. Access the services:
    - Frontend: http://localhost:3110
@@ -73,7 +74,9 @@ jnet-site/
 ├── plan/                     # Implementation plans
 ├── scripts/                  # Development and deployment scripts
 ├── .github/                  # GitHub Actions workflows
-├── SUPABASE_SETUP.md         # Supabase configuration guide
+├── docs/                     # Documentation
+│   ├── SUPABASE_SETUP.md    # Supabase configuration guide
+│   └── SUPABASE_MULTI_ENV_SETUP.md  # Multi-environment setup guide
 └── docker-compose.yml        # Local development orchestration
 ```
 
@@ -147,6 +150,16 @@ The stock-data service downloads EOD (End of Day) stock and ETF data from Yahoo 
 ```
 
 ## 🚢 Deployment
+
+### Required GitHub Secrets
+
+Add these secrets to your GitHub repository for CI/CD:
+- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+- `GCP_PROJECT_ID`: Your Google Cloud project ID
+- `GCP_SA_KEY`: Service account JSON key for Cloud Run deployment
+- `DOCKER_HUB_TOKEN`: Docker Hub access token
+- `DOCKER_USERNAME`: Docker Hub username (optional, defaults to 'stevenjiangnz')
 
 ### CI/CD with GitHub Actions
 

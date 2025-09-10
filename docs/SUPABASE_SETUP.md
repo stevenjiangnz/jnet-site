@@ -8,10 +8,14 @@ When using OAuth providers (like Google) with Supabase, you must configure the r
 
 1. Go to your Supabase project dashboard
 2. Navigate to **Authentication** → **URL Configuration**
-3. Add the following URLs to the **Redirect URLs** list:
+3. **Update Site URL**:
+   - Change from `http://localhost:3000` to `https://frontend-506487697841.us-central1.run.app`
+   - This is your primary production URL used in email templates
+4. **Add to Redirect URLs** list (click "Add URL" for each):
    - `http://localhost:3100/auth/callback` (for local development)
    - `http://localhost:3110/auth/callback` (for Docker development)
    - `https://frontend-506487697841.us-central1.run.app/auth/callback` (for production)
+5. Click "Save changes" after adding all URLs
 
 **Important**: You must add ALL URLs that your application might use for OAuth callbacks.
 
