@@ -3,7 +3,16 @@ import Link from 'next/link'
 
 export default async function Home() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  
+  // Handle build-time rendering gracefully
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data?.user || null
+  } catch {
+    // During build, auth might not be available
+    console.log('Auth not available during build')
+  }
 
   return (
     <div className="min-h-screen">
