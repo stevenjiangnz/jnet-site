@@ -43,17 +43,16 @@ Benefits:
 - Faster if you have slow upload speeds
 - No need for Container Registry setup
 
-### Other Deployment Scripts
+### Deployment Scripts Overview
+
+See `DEPLOYMENT_SCRIPTS_COMPARISON.md` for detailed comparison of all frontend deployment scripts.
 
 #### Full deployment (all services)
 ```bash
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID
 ```
 
-#### Frontend only (older method)
-```bash
-./scripts/deploy-frontend-cloud-run.sh
-```
+Note: The older `deploy-frontend-cloud-run.sh` has been superseded by `deploy-frontend-quick.sh`.
 
 ### Testing Local Docker Image
 

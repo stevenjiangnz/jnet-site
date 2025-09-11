@@ -411,6 +411,7 @@ Commit message conventions for automatic versioning:
 ## Documentation
 
 - **Quick Deployment**: See `docs/QUICK_DEPLOYMENT.md`
+- **Deployment Scripts Comparison**: See `docs/DEPLOYMENT_SCRIPTS_COMPARISON.md`
 - **Email Allowlist**: See `docs/EMAIL_ALLOWLIST.md`
 - **Cloud Run Deployment**: See `docs/CLOUD_RUN_DEPLOYMENT.md`
 - **Supabase Setup**: See `SUPABASE_SETUP.md`

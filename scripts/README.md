@@ -90,7 +90,25 @@ Initial setup script that:
 ### `test-all.sh`
 Runs tests for all services in Docker containers.
 
-### `deploy.sh <GCP_PROJECT_ID> [REGION]`
+### Deployment Scripts
+
+#### `deploy-frontend-local-image.sh`
+Deploys frontend using locally built Docker image (recommended for consistency).
+- Builds Docker image locally
+- Optionally tests image before deployment
+- Pushes to Container Registry
+- Ensures debugging consistency
+
+#### `deploy-frontend-quick.sh`
+Deploys frontend using Cloud Build (faster uploads).
+- Auto-loads .env.local
+- Uses Cloud Build for Docker image
+- Includes post-deployment checklist
+
+#### `deploy-frontend-cloud-run.sh`
+**[DEPRECATED]** - Use `deploy-frontend-quick.sh` instead.
+
+#### `deploy.sh <GCP_PROJECT_ID> [REGION]`
 Deploys all services to Google Cloud Run.
 ```bash
 ./scripts/deploy.sh YOUR_PROJECT_ID              # Default: us-central1
@@ -106,3 +124,4 @@ Sets up Google Cloud service account for deployment (if needed).
 - Scripts are idempotent (safe to run multiple times)
 - Docker scripts assume docker-compose is installed
 - Local scripts check for required runtimes before executing
+- For detailed deployment scripts comparison, see `../docs/DEPLOYMENT_SCRIPTS_COMPARISON.md`
