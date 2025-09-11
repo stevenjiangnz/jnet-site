@@ -213,46 +213,18 @@ docker-compose exec -T db psql -U dev jnetsolution < backup.sql
 ```
 
 ### Email Allowlist Management
-```bash
-# The application uses an email allowlist for access control
-# Only users with emails in the allowed_users table can access the application
+The application uses an email allowlist for access control. See `docs/EMAIL_ALLOWLIST.md` for detailed documentation.
 
-# View all allowed users
-mcp__supabase__execute_sql
-query: "SELECT email, created_at FROM public.allowed_users ORDER BY created_at DESC;"
+Quick commands:
+```sql
+-- Add user
+INSERT INTO public.allowed_users (email) VALUES ('user@company.com') ON CONFLICT (email) DO NOTHING;
 
-# Add a single user
-mcp__supabase__execute_sql
-query: "INSERT INTO public.allowed_users (email) VALUES ('newuser@company.com') ON CONFLICT (email) DO NOTHING;"
+-- Remove user
+DELETE FROM public.allowed_users WHERE email = 'user@company.com';
 
-# Add multiple users
-mcp__supabase__execute_sql
-query: "INSERT INTO public.allowed_users (email) VALUES 
-  ('user1@company.com'),
-  ('user2@company.com'),
-  ('user3@company.com')
-ON CONFLICT (email) DO NOTHING;"
-
-# Remove a user (they will be logged out on next navigation)
-mcp__supabase__execute_sql
-query: "DELETE FROM public.allowed_users WHERE email = 'user@company.com';"
-
-# Check if a specific user is allowed
-mcp__supabase__execute_sql
-query: "SELECT * FROM public.allowed_users WHERE email = 'user@company.com';"
-
-# Count total allowed users
-mcp__supabase__execute_sql
-query: "SELECT COUNT(*) as total_users FROM public.allowed_users;"
-
-# Implementation Details:
-# - Table: public.allowed_users (email, created_at, updated_at, added_by)
-# - RLS policies allow anon users to read (required for middleware checks)
-# - Middleware checks allowlist on every request for authenticated users
-# - Users not in allowlist are redirected to /unauthorized
-# - Excluded paths: /login, /auth/*, /unauthorized, / (root)
-# - TypeScript types defined in frontend/src/types/auth.ts
-# - Unauthorized page supports Suspense for Next.js 15 compatibility
+-- List all users
+SELECT email, created_at FROM public.allowed_users ORDER BY created_at DESC;
 ```
 
 ### Testing
@@ -428,7 +400,11 @@ Commit message conventions for automatic versioning:
 - `DOCKER_USERNAME` (optional): Docker Hub username (defaults to 'stevenjiangnz')
 ```
 
-## Deployment Environments
+## Documentation
 
-### Cloud Environments
-- **Frontend Public Access**: https://frontend-506487697841.us-central1.run.app/
+- **Email Allowlist**: See `docs/EMAIL_ALLOWLIST.md`
+- **Cloud Run Deployment**: See `docs/CLOUD_RUN_DEPLOYMENT.md`
+- **Supabase Setup**: See `SUPABASE_SETUP.md`
+
+## Cloud Environments
+- **Production Frontend**: https://frontend-506487697841.us-central1.run.app/
