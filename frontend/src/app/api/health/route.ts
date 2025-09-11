@@ -24,10 +24,29 @@ interface Diagnostics {
     message: string;
     stack?: string;
   };
+  request?: {
+    url: string;
+    headers: Record<string, string>;
+    host: string | null;
+    xForwardedHost: string | null;
+    xForwardedProto: string | null;
+  };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const startTime = Date.now();
+  
+  // Capture request headers to debug URL construction
+  const headers: Record<string, string> = {};
+  request.headers.forEach((value, key) => {
+    if (key.toLowerCase().includes('host') || 
+        key.toLowerCase().includes('forward') || 
+        key.toLowerCase().includes('origin') ||
+        key.toLowerCase().includes('referer')) {
+      headers[key] = value;
+    }
+  });
+  
   const diagnostics: Diagnostics = {
     status: 'checking',
     service: 'frontend',
@@ -42,7 +61,14 @@ export async function GET() {
       hasAnonKey: false,
       configured: false,
     },
-    checks: {}
+    checks: {},
+    request: {
+      url: request.url,
+      headers,
+      host: request.headers.get('host'),
+      xForwardedHost: request.headers.get('x-forwarded-host'),
+      xForwardedProto: request.headers.get('x-forwarded-proto'),
+    }
   };
 
   try {

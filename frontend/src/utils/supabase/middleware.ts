@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getPublicUrl } from '../url-helper'
 
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
@@ -91,12 +92,14 @@ export async function updateSession(request: NextRequest) {
         // Clear the session
         await supabase.auth.signOut()
         
-        // Redirect to unauthorized page
-        const url = request.nextUrl.clone()
-        url.pathname = '/unauthorized'
-        url.searchParams.set('reason', 'not-allowlisted')
+        // Get the public URL to ensure we don't redirect to localhost in production
+        const publicUrl = getPublicUrl(request)
+        const redirectUrl = publicUrl 
+          ? `${publicUrl}/unauthorized?reason=not-allowlisted`
+          : '/unauthorized?reason=not-allowlisted'
         
-        return NextResponse.redirect(url)
+        console.log(`[Middleware] Redirecting to: ${redirectUrl}`)
+        return NextResponse.redirect(redirectUrl)
       } else {
         console.log(`[Middleware] User ${user.email} IS in allowlist, allowing access`)
       }
