@@ -70,6 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get the current origin, ensuring we don't use localhost:3000 in production
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
     
+    console.log('[Auth] SignIn with Google - redirectTo:', `${origin}/auth/callback`)
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

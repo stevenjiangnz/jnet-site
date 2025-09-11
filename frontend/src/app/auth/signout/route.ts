@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
+import { getPublicUrl } from '@/utils/url-helper'
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
@@ -23,9 +24,11 @@ export async function POST(request: NextRequest) {
 
   revalidatePath('/', 'layout')
   
-  // Use the request URL to ensure we redirect to the correct domain
-  const redirectUrl = new URL('/login', request.url)
-  console.log('Redirecting after signout to:', redirectUrl.toString())
+  // Use the URL helper to get the correct public URL
+  const publicUrl = getPublicUrl(request)
+  const redirectUrl = publicUrl ? `${publicUrl}/login` : '/login'
+  console.log('[Signout] Public URL:', publicUrl)
+  console.log('[Signout] Redirecting after signout to:', redirectUrl)
   
   return NextResponse.redirect(redirectUrl, {
     status: 302,
