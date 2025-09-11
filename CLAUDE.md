@@ -242,6 +242,9 @@ docker-compose exec stock-data-service uv run pytest --cov=app
 
 ### Deployment
 ```bash
+# Quick frontend deployment (recommended for development)
+./scripts/deploy-frontend-quick.sh
+
 # Deploy all services to Google Cloud Run
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID
 
@@ -252,6 +255,8 @@ docker-compose exec stock-data-service uv run pytest --cov=app
 cd services/auth-service
 gcloud run deploy auth-service --source .
 ```
+
+See `docs/QUICK_DEPLOYMENT.md` for detailed deployment options.
 
 ## Architecture Overview
 
@@ -402,6 +407,7 @@ Commit message conventions for automatic versioning:
 
 ## Documentation
 
+- **Quick Deployment**: See `docs/QUICK_DEPLOYMENT.md`
 - **Email Allowlist**: See `docs/EMAIL_ALLOWLIST.md`
 - **Cloud Run Deployment**: See `docs/CLOUD_RUN_DEPLOYMENT.md`
 - **Supabase Setup**: See `SUPABASE_SETUP.md`
