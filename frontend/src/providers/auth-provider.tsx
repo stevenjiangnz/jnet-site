@@ -68,17 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     // Get the current origin, ensuring we don't use localhost:3000 in production
-    let origin = typeof window !== 'undefined' ? window.location.origin : ''
-    
-    // In production, ensure we never use localhost URLs
-    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
-      const host = window.location.host
-      // Force HTTPS in production and ensure no localhost URLs
-      if (origin.includes('localhost') || origin.includes('0.0.0.0') || origin.includes('127.0.0.1')) {
-        origin = `https://${host}`
-        console.warn('[Auth] Corrected origin from localhost to:', origin)
-      }
-    }
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
     
     console.log('[Auth] SignIn with Google - redirectTo:', `${origin}/auth/callback`)
     
@@ -90,8 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           access_type: 'offline',
           prompt: 'consent',
         },
-        // Force skip the intermediate Supabase page
-        skipBrowserRedirect: false,
       },
     })
     return { data, error }
