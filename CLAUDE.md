@@ -242,24 +242,17 @@ docker-compose exec stock-data-service uv run pytest --cov=app
 
 ### Deployment
 ```bash
-# Deploy frontend using local Docker image (recommended - ensures consistency)
-./scripts/deploy-frontend-local-image.sh
-
-# Deploy frontend using Cloud Build (faster upload)
-./scripts/deploy-frontend-quick.sh
+# Deploy frontend to Cloud Run (builds Docker image locally)
+./scripts/deploy-frontend.sh
 
 # Deploy all services to Google Cloud Run
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID
 
 # Deploy to specific region
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID us-west1
-
-# Deploy single service
-cd services/auth-service
-gcloud run deploy auth-service --source .
 ```
 
-See `docs/QUICK_DEPLOYMENT.md` for detailed deployment options.
+**Important**: We always build Docker images locally to ensure consistency between development and production. Never use `--source` flag with gcloud (Cloud Build).
 
 ## Architecture Overview
 
@@ -411,7 +404,7 @@ Commit message conventions for automatic versioning:
 ## Documentation
 
 - **Quick Deployment**: See `docs/QUICK_DEPLOYMENT.md`
-- **Deployment Scripts Comparison**: See `docs/DEPLOYMENT_SCRIPTS_COMPARISON.md`
+- **Deployment Policy**: See `docs/DEPLOYMENT_POLICY.md`
 - **Email Allowlist**: See `docs/EMAIL_ALLOWLIST.md`
 - **Cloud Run Deployment**: See `docs/CLOUD_RUN_DEPLOYMENT.md`
 - **Supabase Setup**: See `SUPABASE_SETUP.md`

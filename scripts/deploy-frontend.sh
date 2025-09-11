@@ -2,7 +2,7 @@
 
 # Deploy frontend to Cloud Run using locally built Docker image
 # This ensures consistency between local testing and production
-# Usage: ./scripts/deploy-frontend-local-image.sh
+# Usage: ./scripts/deploy-frontend.sh
 
 set -e
 

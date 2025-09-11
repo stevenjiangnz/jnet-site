@@ -8,11 +8,10 @@
 3. Active Google Cloud project
 4. `.env.local` file with Supabase credentials
 
-### Deployment Options
+### Deploy Frontend
 
-#### Option 1: Local Docker Build (Recommended for consistency)
 ```bash
-./scripts/deploy-frontend-local-image.sh
+./scripts/deploy-frontend.sh
 ```
 
 This script:
@@ -22,41 +21,26 @@ This script:
 - Deploys the exact same image to Cloud Run
 - Ensures consistency between local testing and production
 
-Benefits:
-- **Consistency**: Same image runs locally and in production
-- **Debugging**: Can test exact production image locally
-- **Control**: See exactly what's being deployed
-- **Versioning**: Image stored in Container Registry
+### Full Stack Deployment
 
-#### Option 2: Cloud Build (Faster uploads)
-```bash
-./scripts/deploy-frontend-quick.sh
-```
-
-This script:
-- Uploads source code to Cloud Build
-- Cloud Build creates Docker image
-- Deploys directly to Cloud Run
-
-Benefits:
-- No need to build Docker image locally
-- Faster if you have slow upload speeds
-- No need for Container Registry setup
-
-### Deployment Scripts Overview
-
-See `DEPLOYMENT_SCRIPTS_COMPARISON.md` for detailed comparison of all frontend deployment scripts.
-
-#### Full deployment (all services)
+Deploy all services:
 ```bash
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID
 ```
 
-Note: The older `deploy-frontend-cloud-run.sh` has been superseded by `deploy-frontend-quick.sh`.
+### Why Local Docker Build Only?
+
+We **only** use locally built Docker images for deployment to ensure:
+- **Consistency**: Same image runs locally and in production
+- **Debugging**: Can test exact production image locally
+- **Control**: See exactly what's being deployed
+- **No surprises**: Cloud Build might behave differently
+
+See `DEPLOYMENT_POLICY.md` for our deployment policy.
 
 ### Testing Local Docker Image
 
-After building with `deploy-frontend-local-image.sh`, you can test the exact production image:
+After building with `deploy-frontend.sh`, you can test the exact production image:
 
 ```bash
 docker run --rm -p 8080:8080 \

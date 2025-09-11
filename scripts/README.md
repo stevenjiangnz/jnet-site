@@ -92,21 +92,12 @@ Runs tests for all services in Docker containers.
 
 ### Deployment Scripts
 
-#### `deploy-frontend-local-image.sh`
-Deploys frontend using locally built Docker image (recommended for consistency).
+#### `deploy-frontend.sh`
+Deploys frontend using locally built Docker image (ONLY supported method).
 - Builds Docker image locally
 - Optionally tests image before deployment
 - Pushes to Container Registry
-- Ensures debugging consistency
-
-#### `deploy-frontend-quick.sh`
-Deploys frontend using Cloud Build (faster uploads).
-- Auto-loads .env.local
-- Uses Cloud Build for Docker image
-- Includes post-deployment checklist
-
-#### `deploy-frontend-cloud-run.sh`
-**[DEPRECATED]** - Use `deploy-frontend-quick.sh` instead.
+- Ensures debugging consistency between local and production
 
 #### `deploy.sh <GCP_PROJECT_ID> [REGION]`
 Deploys all services to Google Cloud Run.
@@ -124,4 +115,5 @@ Sets up Google Cloud service account for deployment (if needed).
 - Scripts are idempotent (safe to run multiple times)
 - Docker scripts assume docker-compose is installed
 - Local scripts check for required runtimes before executing
-- For detailed deployment scripts comparison, see `../docs/DEPLOYMENT_SCRIPTS_COMPARISON.md`
+- **IMPORTANT**: We only use locally built Docker images for deployment (never Cloud Build)
+- See `../docs/DEPLOYMENT_POLICY.md` for deployment policy
