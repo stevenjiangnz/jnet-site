@@ -242,7 +242,10 @@ docker-compose exec stock-data-service uv run pytest --cov=app
 
 ### Deployment
 ```bash
-# Quick frontend deployment (recommended for development)
+# Deploy frontend using local Docker image (recommended - ensures consistency)
+./scripts/deploy-frontend-local-image.sh
+
+# Deploy frontend using Cloud Build (faster upload)
 ./scripts/deploy-frontend-quick.sh
 
 # Deploy all services to Google Cloud Run
