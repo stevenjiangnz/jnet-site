@@ -62,8 +62,9 @@ echo -e "${BLUE}📦 Project: $PROJECT_ID${NC}"
 echo -e "${BLUE}🌍 Region: us-central1${NC}"
 echo ""
 
-# Define image name
-IMAGE_NAME="gcr.io/$PROJECT_ID/frontend"
+# Docker Hub configuration
+DOCKER_USERNAME=${DOCKER_USERNAME:-stevenjiangnz}
+IMAGE_NAME="$DOCKER_USERNAME/jnet-frontend"
 IMAGE_TAG="latest"
 FULL_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
 
@@ -89,25 +90,28 @@ echo ""
 read -p "Test the image locally before deploying? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo -e "${YELLOW}🧪 Starting container locally on http://localhost:8080${NC}"
+    echo -e "${YELLOW}🧪 Starting container locally on http://localhost:9090${NC}"
     echo "Press Ctrl+C to stop and continue deployment..."
-    docker run --rm -p 8080:8080 \
+    docker run --rm -p 9090:8080 \
         -e NEXT_PUBLIC_SUPABASE_URL="$NEXT_PUBLIC_SUPABASE_URL" \
         -e NEXT_PUBLIC_SUPABASE_ANON_KEY="$NEXT_PUBLIC_SUPABASE_ANON_KEY" \
         "$FULL_IMAGE"
 fi
 
 echo ""
-echo -e "${BLUE}📤 Pushing image to Container Registry...${NC}"
+echo -e "${BLUE}📤 Pushing image to Docker Hub...${NC}"
 
-# Configure docker to use gcloud credentials
-gcloud auth configure-docker
+# Login to Docker Hub if not already logged in
+if ! docker info 2>/dev/null | grep -q "Username"; then
+    echo -e "${YELLOW}🔐 Please log in to Docker Hub${NC}"
+    docker login -u "$DOCKER_USERNAME"
+fi
 
 # Push the image
 docker push "$FULL_IMAGE"
 
 echo ""
-echo -e "${GREEN}✅ Image pushed successfully!${NC}"
+echo -e "${GREEN}✅ Image pushed to Docker Hub successfully!${NC}"
 
 echo ""
 echo -e "${BLUE}☁️  Deploying to Cloud Run...${NC}"
@@ -146,7 +150,9 @@ echo "  3. Verify authentication works"
 echo "  4. Monitor logs: gcloud run logs read frontend --region us-central1 --limit 50"
 echo ""
 echo "💡 To run the same image locally:"
-echo "  docker run --rm -p 8080:8080 -e NEXT_PUBLIC_SUPABASE_URL='$NEXT_PUBLIC_SUPABASE_URL' -e NEXT_PUBLIC_SUPABASE_ANON_KEY='$NEXT_PUBLIC_SUPABASE_ANON_KEY' $FULL_IMAGE"
+echo "  docker run --rm -p 9090:8080 -e NEXT_PUBLIC_SUPABASE_URL='$NEXT_PUBLIC_SUPABASE_URL' -e NEXT_PUBLIC_SUPABASE_ANON_KEY='$NEXT_PUBLIC_SUPABASE_ANON_KEY' $FULL_IMAGE"
+echo ""
+echo "🐳 Docker Hub image: $FULL_IMAGE"
 echo ""
 
 # Optional: Open the URL in browser

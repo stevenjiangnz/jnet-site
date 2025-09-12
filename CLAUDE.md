@@ -242,17 +242,21 @@ docker-compose exec stock-data-service uv run pytest --cov=app
 
 ### Deployment
 ```bash
-# Deploy frontend to Cloud Run (builds Docker image locally)
+# Deploy frontend to Cloud Run (builds locally, pushes to Docker Hub)
 ./scripts/deploy-frontend.sh
 
-# Deploy all services to Google Cloud Run
+# Deploy all services to Google Cloud Run (uses Docker Hub)
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID
 
 # Deploy to specific region
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID us-west1
 ```
 
-**Important**: We always build Docker images locally to ensure consistency between development and production. Never use `--source` flag with gcloud (Cloud Build).
+**Important**: 
+- We build Docker images locally and push to Docker Hub (free)
+- Images are stored at `stevenjiangnz/jnet-<service>:latest`
+- Never use `--source` flag with gcloud (Cloud Build)
+- Docker Hub login required before deployment
 
 ## Architecture Overview
 
