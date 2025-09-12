@@ -10,7 +10,7 @@ from app.models.stock_data import (
     StockDataFile, 
     StockDataPoint, 
     DataRange, 
-    DataMetadata
+    StockMetadata
 )
 from app.services.gcs_storage import GCSStorageManager
 from app.services.storage_paths import StoragePaths
@@ -203,11 +203,10 @@ class StockDataDownloader:
         data_points.sort(key=lambda x: x.date)
         
         # Create metadata
-        metadata = DataMetadata(
+        metadata = StockMetadata(
             total_records=len(data_points),
-            missing_dates=[],  # TODO: Implement gap detection
-            data_source="yahoo_finance",
-            version="1.0"
+            trading_days=len(data_points),
+            source="yahoo_finance"
         )
         
         # Create data range

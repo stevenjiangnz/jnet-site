@@ -6,13 +6,7 @@ from typing import Optional
 import redis
 from redis.exceptions import ConnectionError, TimeoutError
 
-from app.config.redis_config import (
-    UPSTASH_REDIS_URL,
-    UPSTASH_REDIS_TOKEN,
-    CACHE_ENABLED,
-    REDIS_SOCKET_CONNECT_TIMEOUT,
-    REDIS_DECODE_RESPONSES
-)
+from app.config import RedisConfig
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +16,8 @@ class SimpleCache:
     
     def __init__(self):
         """Initialize cache service."""
-        self.enabled = CACHE_ENABLED
+        self._config = RedisConfig()
+        self.enabled = self._config.cache_enabled
         self.client = None
         
         if self.enabled:
@@ -30,7 +25,7 @@ class SimpleCache:
     
     def _connect(self):
         """Connect to Upstash Redis."""
-        if not UPSTASH_REDIS_URL or not UPSTASH_REDIS_TOKEN:
+        if not self._config.upstash_redis_url or not self._config.upstash_redis_token:
             logger.warning("Redis credentials not configured, cache disabled")
             self.enabled = False
             return
@@ -38,10 +33,10 @@ class SimpleCache:
         try:
             # Parse Upstash URL and create connection
             self.client = redis.Redis.from_url(
-                UPSTASH_REDIS_URL,
-                decode_responses=REDIS_DECODE_RESPONSES,
-                socket_connect_timeout=REDIS_SOCKET_CONNECT_TIMEOUT,
-                password=UPSTASH_REDIS_TOKEN
+                self._config.upstash_redis_url,
+                decode_responses=self._config.redis_decode_responses,
+                socket_connect_timeout=self._config.redis_socket_connect_timeout,
+                password=self._config.upstash_redis_token
             )
             
             # Test connection

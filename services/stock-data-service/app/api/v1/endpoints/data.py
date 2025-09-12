@@ -8,15 +8,14 @@ from app.models.responses import SymbolListResponse
 from app.services.download import StockDataDownloader
 from app.services.simple_cache import get_cache
 from app.services.cache_keys import CacheKeys
-from app.config.redis_config import (
-    CACHE_TTL_LATEST_PRICE,
-    CACHE_TTL_RECENT_DATA,
-    CACHE_TTL_SYMBOL_LIST
-)
+from app.config import RedisConfig
 from app.utils.validators import validate_symbol
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Initialize Redis config for TTL values
+redis_config = RedisConfig()
 
 
 @router.get("/data/{symbol}")
@@ -68,7 +67,7 @@ async def get_symbol_data(
     # Cache the full data if no date range specified
     if not start_date and not end_date:
         cache_key = CacheKeys.daily_data(symbol)
-        await cache.set_json(cache_key, response_data, CACHE_TTL_RECENT_DATA)
+        await cache.set_json(cache_key, response_data, redis_config.cache_ttl_recent_data)
     
     return JSONResponse(content=response_data)
 
@@ -93,7 +92,7 @@ async def list_symbols():
     symbols = await downloader.list_available_symbols()
     
     # Cache the list
-    await cache.set_json(cache_key, symbols, CACHE_TTL_SYMBOL_LIST)
+    await cache.set_json(cache_key, symbols, redis_config.cache_ttl_symbol_list)
 
     return SymbolListResponse(symbols=symbols, count=len(symbols))
 
@@ -143,7 +142,7 @@ async def get_latest_price(
     }
     
     # Cache with short TTL
-    await cache.set_json(cache_key, latest_price, CACHE_TTL_LATEST_PRICE)
+    await cache.set_json(cache_key, latest_price, redis_config.cache_ttl_latest_price)
     
     return JSONResponse(content=latest_price)
 
@@ -193,6 +192,6 @@ async def get_recent_data(
     }
     
     # Cache with medium TTL
-    await cache.set_json(cache_key, response, CACHE_TTL_RECENT_DATA)
+    await cache.set_json(cache_key, response, redis_config.cache_ttl_recent_data)
     
     return JSONResponse(content=response)

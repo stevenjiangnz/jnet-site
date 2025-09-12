@@ -5,7 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings, VERSION
 from app.api.v1.router import api_router
-from app.core.storage_manager import StorageManager
+from app.services.gcs_storage import GCSStorageManager
+from app.services.simple_cache import SimpleCache
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
@@ -14,7 +15,19 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting Stock Data Service...")
-    StorageManager.ensure_directories()
+    logger.info(f"GCS Bucket: {settings.gcs_bucket_name}")
+    logger.info(f"Cache Enabled: {settings.cache_enabled}")
+    
+    # Initialize GCS storage
+    if settings.gcs_bucket_name:
+        storage = GCSStorageManager()
+        logger.info("GCS Storage initialized")
+    
+    # Initialize cache if enabled
+    if settings.cache_enabled and settings.upstash_redis_url:
+        cache = SimpleCache()
+        logger.info("Redis cache initialized")
+    
     yield
     logger.info("Shutting down Stock Data Service...")
 

@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class StockDataPoint(BaseModel):
@@ -15,64 +15,75 @@ class StockDataPoint(BaseModel):
     adj_close: float = Field(gt=0, description="Adjusted closing price")
     volume: int = Field(ge=0, description="Trading volume")
     
-    @validator('high')
-    def high_must_be_highest(cls, v, values):
+    @field_validator('high')
+    @classmethod
+    def high_must_be_highest(cls, v: float, info) -> float:
         """Validate that high is >= open and close."""
+        values = info.data
         if 'open' in values and v < values['open']:
             raise ValueError('High must be >= open')
         if 'close' in values and v < values['close']:
             raise ValueError('High must be >= close')
         return v
     
-    @validator('low')
-    def low_must_be_lowest(cls, v, values):
+    @field_validator('low')
+    @classmethod
+    def low_must_be_lowest(cls, v: float, info) -> float:
         """Validate that low is <= open and close."""
+        values = info.data
         if 'open' in values and v > values['open']:
             raise ValueError('Low must be <= open')
         if 'close' in values and v > values['close']:
             raise ValueError('Low must be <= close')
-        if 'high' in values and v > values['high']:
-            raise ValueError('Low must be <= high')
         return v
+    
+    class Config:
+        json_encoders = {
+            date: lambda v: v.isoformat(),
+            datetime: lambda v: v.isoformat()
+        }
 
 
 class DataRange(BaseModel):
-    """Model for date range information."""
+    """Model for date range of stock data."""
     start: date
     end: date
     
-    @validator('end')
-    def end_after_start(cls, v, values):
-        """Validate that end date is after or equal to start date."""
+    @field_validator('end')
+    @classmethod
+    def end_after_start(cls, v: date, info) -> date:
+        """Validate that end date is after start date."""
+        values = info.data
         if 'start' in values and v < values['start']:
-            raise ValueError('End date must be >= start date')
+            raise ValueError('End date must be after start date')
         return v
 
 
-class DataMetadata(BaseModel):
-    """Model for stock data metadata."""
+class StockMetadata(BaseModel):
+    """Metadata for stock data file."""
     total_records: int = Field(ge=0)
-    missing_dates: List[date] = Field(default_factory=list)
-    data_source: str = "yahoo_finance"
-    version: str = "1.0"
-
-
-class StockDataFile(BaseModel):
-    """Model for complete stock data file stored in GCS."""
-    symbol: str
-    data_type: str = "daily"
-    last_updated: datetime
-    data_range: DataRange
-    data_points: List[StockDataPoint]
-    metadata: DataMetadata
+    trading_days: int = Field(ge=0)
+    source: str = "yahoo_finance"
     
-    @validator('symbol')
-    def symbol_uppercase(cls, v):
+    
+class StockDataFile(BaseModel):
+    """Complete stock data file structure."""
+    symbol: str = Field(min_length=1, max_length=10)
+    data_points: List[StockDataPoint]
+    data_range: DataRange
+    metadata: StockMetadata
+    last_updated: datetime = Field(default_factory=datetime.utcnow)
+    data_type: str = "daily"
+    
+    @field_validator('symbol')
+    @classmethod
+    def symbol_uppercase(cls, v: str) -> str:
         """Ensure symbol is uppercase."""
         return v.upper()
     
-    @validator('data_type')
-    def valid_data_type(cls, v):
+    @field_validator('data_type')
+    @classmethod
+    def valid_data_type(cls, v: str) -> str:
         """Validate data type."""
         valid_types = ["daily", "weekly"]
         if v not in valid_types:
@@ -81,7 +92,7 @@ class StockDataFile(BaseModel):
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
-        return self.dict(mode='json')
+        return self.model_dump(mode='json')
 
 
 class WeeklyDataPoint(BaseModel):
@@ -96,29 +107,34 @@ class WeeklyDataPoint(BaseModel):
     volume: int = Field(ge=0)
     trading_days: int = Field(ge=1, le=5, description="Number of trading days in the week")
     
-    @validator('week_ending')
-    def validate_week_ending(cls, v, values):
-        """Validate that week_ending is after week_start."""
-        if 'week_start' in values:
-            expected_diff = (v - values['week_start']).days
-            if expected_diff < 0 or expected_diff > 6:
-                raise ValueError('Week ending must be 0-6 days after week start')
+    @field_validator('week_ending')
+    @classmethod
+    def week_ending_is_friday(cls, v: date) -> date:
+        """Validate that week ending is a Friday."""
+        if v.weekday() != 4:  # Friday = 4
+            raise ValueError('Week ending must be a Friday')
+        return v
+    
+    @field_validator('week_start')
+    @classmethod
+    def week_start_is_monday(cls, v: date) -> date:
+        """Validate that week start is a Monday."""
+        if v.weekday() != 0:  # Monday = 0
+            raise ValueError('Week start must be a Monday')
         return v
 
 
-class WeeklyMetadata(BaseModel):
-    """Model for weekly data metadata."""
-    total_records: int = Field(ge=0)
-    aggregation_method: str = "ohlcv"
-    source_data: str = "daily"
-    version: str = "1.0"
-
-
 class WeeklyDataFile(BaseModel):
-    """Model for weekly stock data file."""
-    symbol: str
-    data_type: str = "weekly"
-    last_updated: datetime
-    data_range: DataRange
+    """Complete weekly aggregated stock data file."""
+    symbol: str = Field(min_length=1, max_length=10)
     data_points: List[WeeklyDataPoint]
-    metadata: WeeklyMetadata
+    data_range: DataRange
+    metadata: StockMetadata
+    last_updated: datetime = Field(default_factory=datetime.utcnow)
+    data_type: str = "weekly"
+    
+    @field_validator('symbol')
+    @classmethod
+    def symbol_uppercase(cls, v: str) -> str:
+        """Ensure symbol is uppercase."""
+        return v.upper()

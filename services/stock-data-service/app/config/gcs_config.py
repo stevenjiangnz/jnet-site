@@ -1,23 +1,30 @@
 import os
 from pathlib import Path
+from dataclasses import dataclass, field
+from dotenv import load_dotenv
 
-GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "jnet-stock-data")
-GCS_PROJECT_ID = os.getenv("GCS_PROJECT_ID")
-GCS_CREDENTIALS_PATH = os.getenv("GCS_CREDENTIALS_PATH")
+# Load environment variables
+load_dotenv()
 
-# If credentials path is provided but relative, make it absolute
-if GCS_CREDENTIALS_PATH and not Path(GCS_CREDENTIALS_PATH).is_absolute():
-    GCS_CREDENTIALS_PATH = str(Path.cwd() / GCS_CREDENTIALS_PATH)
 
-# Storage configuration
-GCS_TIMEOUT = 60  # seconds
-GCS_RETRY_ATTEMPTS = 3
-GCS_RETRY_DELAY = 1  # seconds
-
-# Validate required settings in production
-ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
-if ENVIRONMENT == "production":
-    if not GCS_PROJECT_ID:
-        raise ValueError("GCS_PROJECT_ID must be set in production")
-    if not GCS_CREDENTIALS_PATH or not Path(GCS_CREDENTIALS_PATH).exists():
-        raise ValueError("Valid GCS_CREDENTIALS_PATH must be set in production")
+@dataclass
+class GCSConfig:
+    bucket_name: str = field(default_factory=lambda: os.getenv("GCS_BUCKET_NAME", "jnet-site-stock-data"))
+    project_id: str = field(default_factory=lambda: os.getenv("GCS_PROJECT_ID", ""))
+    credentials_path: str = field(default_factory=lambda: os.getenv("GCS_CREDENTIALS_PATH", ""))
+    timeout: int = 60  # seconds
+    retry_attempts: int = 3
+    retry_delay: int = 1  # seconds
+    
+    def __post_init__(self):
+        # If credentials path is provided but relative, make it absolute
+        if self.credentials_path and not Path(self.credentials_path).is_absolute():
+            self.credentials_path = str(Path.cwd() / self.credentials_path)
+        
+        # Validate required settings in production
+        environment = os.getenv("ENVIRONMENT", "development")
+        if environment == "production":
+            if not self.project_id:
+                raise ValueError("GCS_PROJECT_ID must be set in production")
+            if not self.credentials_path or not Path(self.credentials_path).exists():
+                raise ValueError("Valid GCS_CREDENTIALS_PATH must be set in production")

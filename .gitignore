@@ -74,4 +74,4 @@ logs/
 supabase/.temp/
 supabase/.branches/
 supabase/functions/*/node_modules/
-.supabase/
+.supabase/github-actions-key.json

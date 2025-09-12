@@ -7,14 +7,7 @@ from google.cloud.exceptions import NotFound, Conflict
 from google.api_core import retry
 import google.auth.exceptions
 
-from app.config.gcs_config import (
-    GCS_BUCKET_NAME,
-    GCS_PROJECT_ID,
-    GCS_CREDENTIALS_PATH,
-    GCS_TIMEOUT,
-    GCS_RETRY_ATTEMPTS,
-    GCS_RETRY_DELAY,
-)
+from app.config import GCSConfig
 
 logger = logging.getLogger(__name__)
 
@@ -26,26 +19,27 @@ class GCSStorageManager:
         """Initialize GCS client and bucket reference."""
         self._client = None
         self._bucket = None
+        self._config = GCSConfig()
         self._initialize_client()
     
     def _initialize_client(self):
         """Initialize the GCS client with credentials."""
         try:
-            if GCS_CREDENTIALS_PATH:
+            if self._config.credentials_path:
                 # Use service account credentials
                 self._client = storage.Client.from_service_account_json(
-                    json_credentials_path=GCS_CREDENTIALS_PATH,
-                    project=GCS_PROJECT_ID
+                    json_credentials_path=self._config.credentials_path,
+                    project=self._config.project_id
                 )
             else:
                 # Use default credentials (e.g., from environment)
-                self._client = storage.Client(project=GCS_PROJECT_ID)
+                self._client = storage.Client(project=self._config.project_id)
             
-            self._bucket = self._client.bucket(GCS_BUCKET_NAME)
+            self._bucket = self._client.bucket(self._config.bucket_name)
             
             # Test connection
-            self._bucket.reload(timeout=GCS_TIMEOUT)
-            logger.info(f"Successfully connected to GCS bucket: {GCS_BUCKET_NAME}")
+            self._bucket.reload(timeout=self._config.timeout)
+            logger.info(f"Successfully connected to GCS bucket: {self._config.bucket_name}")
             
         except google.auth.exceptions.DefaultCredentialsError:
             logger.error("No GCS credentials found. Please set GCS_CREDENTIALS_PATH or configure default credentials.")
@@ -56,10 +50,10 @@ class GCSStorageManager:
     
     @retry.Retry(
         predicate=retry.if_exception_type(Exception),
-        initial=GCS_RETRY_DELAY,
+        initial=1,  # GCSConfig default retry_delay
         maximum=10.0,
         multiplier=2.0,
-        timeout=GCS_TIMEOUT
+        timeout=60  # GCSConfig default timeout
     )
     async def upload_json(self, blob_name: str, data: Dict[str, Any]) -> bool:
         """
@@ -82,7 +76,7 @@ class GCSStorageManager:
             blob.upload_from_string(
                 json_data,
                 content_type='application/json',
-                timeout=GCS_TIMEOUT
+                timeout=self._config.timeout
             )
             
             logger.info(f"Successfully uploaded {blob_name} to GCS")
@@ -94,10 +88,10 @@ class GCSStorageManager:
     
     @retry.Retry(
         predicate=retry.if_exception_type(Exception),
-        initial=GCS_RETRY_DELAY,
+        initial=1,  # GCSConfig default retry_delay
         maximum=10.0,
         multiplier=2.0,
-        timeout=GCS_TIMEOUT
+        timeout=60  # GCSConfig default timeout
     )
     async def download_json(self, blob_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -113,7 +107,7 @@ class GCSStorageManager:
             blob = self._bucket.blob(blob_name)
             
             # Download as string
-            json_string = blob.download_as_text(timeout=GCS_TIMEOUT)
+            json_string = blob.download_as_text(timeout=self._config.timeout)
             
             # Parse JSON
             data = json.loads(json_string)
@@ -146,7 +140,7 @@ class GCSStorageManager:
             blobs = self._bucket.list_blobs(
                 prefix=prefix,
                 delimiter=delimiter,
-                timeout=GCS_TIMEOUT
+                timeout=self._config.timeout
             )
             
             blob_names = [blob.name for blob in blobs]
@@ -174,7 +168,7 @@ class GCSStorageManager:
         """
         try:
             blob = self._bucket.blob(blob_name)
-            return blob.exists(timeout=GCS_TIMEOUT)
+            return blob.exists(timeout=self._config.timeout)
         except Exception as e:
             logger.error(f"Failed to check existence of {blob_name}: {str(e)}")
             return False
@@ -191,7 +185,7 @@ class GCSStorageManager:
         """
         try:
             blob = self._bucket.blob(blob_name)
-            blob.delete(timeout=GCS_TIMEOUT)
+            blob.delete(timeout=self._config.timeout)
             logger.info(f"Successfully deleted {blob_name} from GCS")
             return True
         except NotFound:
@@ -213,7 +207,7 @@ class GCSStorageManager:
         """
         try:
             blob = self._bucket.blob(blob_name)
-            blob.reload(timeout=GCS_TIMEOUT)
+            blob.reload(timeout=self._config.timeout)
             
             return {
                 'name': blob.name,
@@ -258,7 +252,7 @@ class GCSStorageManager:
                 temp_blob, 
                 self._bucket, 
                 new_name=blob_name,
-                timeout=GCS_TIMEOUT
+                timeout=self._config.timeout
             )
             
             # Delete temporary blob
