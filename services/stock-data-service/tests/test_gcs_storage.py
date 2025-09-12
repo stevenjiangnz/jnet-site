@@ -201,14 +201,14 @@ async def test_atomic_write(mock_storage_client):
 
     # Test atomic write
     data = {"symbol": "AAPL", "price": 150.0}
-    
+
     # Create async mocks
     async def mock_upload_json(*args, **kwargs):
         return True
-        
+
     async def mock_delete_blob(*args, **kwargs):
         return True
-    
+
     with patch.object(manager, "upload_json", side_effect=mock_upload_json):
         with patch.object(manager, "delete_blob", side_effect=mock_delete_blob):
             result = await manager.atomic_write("test/data.json", data)
