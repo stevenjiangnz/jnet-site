@@ -1,6 +1,7 @@
 """Tests for Stock Data Downloader."""
 
 import pytest
+import os
 from datetime import date, datetime
 from unittest.mock import Mock, patch, AsyncMock
 import pandas as pd
@@ -53,8 +54,17 @@ async def test_download_symbol_success(
     # Mock storage upload
     mock_gcs_storage.upload_json.return_value = True
 
-    downloader = StockDataDownloader()
-    result = await downloader.download_symbol("AAPL", period="5d")
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "",
+            "GCS_PROJECT_ID": "test-project",
+            "GCS_BUCKET_NAME": "test-bucket",
+        },
+    ):
+        downloader = StockDataDownloader()
+        downloader.storage = mock_gcs_storage
+        result = await downloader.download_symbol("AAPL", period="5d")
 
     assert result is not None
     assert isinstance(result, StockDataFile)
@@ -75,8 +85,17 @@ async def test_download_symbol_empty_data(mock_yfinance, mock_gcs_storage):
     mock_ticker.history.return_value = pd.DataFrame()
     mock_yfinance.Ticker.return_value = mock_ticker
 
-    downloader = StockDataDownloader()
-    result = await downloader.download_symbol("INVALID", period="5d")
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "",
+            "GCS_PROJECT_ID": "test-project",
+            "GCS_BUCKET_NAME": "test-bucket",
+        },
+    ):
+        downloader = StockDataDownloader()
+        downloader.storage = mock_gcs_storage
+        result = await downloader.download_symbol("INVALID", period="5d")
 
     assert result is None
     mock_gcs_storage.upload_json.assert_not_called()
@@ -95,13 +114,22 @@ async def test_download_symbol_with_dates(
     # Mock storage
     mock_gcs_storage.upload_json.return_value = True
 
-    downloader = StockDataDownloader()
-    start_date = date(2024, 1, 1)
-    end_date = date(2024, 1, 5)
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "",
+            "GCS_PROJECT_ID": "test-project",
+            "GCS_BUCKET_NAME": "test-bucket",
+        },
+    ):
+        downloader = StockDataDownloader()
+        downloader.storage = mock_gcs_storage
+        start_date = date(2024, 1, 1)
+        end_date = date(2024, 1, 5)
 
-    result = await downloader.download_symbol(
-        "AAPL", start_date=start_date, end_date=end_date
-    )
+        result = await downloader.download_symbol(
+            "AAPL", start_date=start_date, end_date=end_date
+        )
 
     assert result is not None
     mock_ticker.history.assert_called_with(start=start_date, end=end_date)
@@ -120,10 +148,19 @@ async def test_download_multiple_symbols(
     # Mock storage
     mock_gcs_storage.upload_json.return_value = True
 
-    downloader = StockDataDownloader()
-    symbols = ["AAPL", "GOOGL", "MSFT"]
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "",
+            "GCS_PROJECT_ID": "test-project",
+            "GCS_BUCKET_NAME": "test-bucket",
+        },
+    ):
+        downloader = StockDataDownloader()
+        downloader.storage = mock_gcs_storage
+        symbols = ["AAPL", "GOOGL", "MSFT"]
 
-    results = await downloader.download_multiple(symbols, period="1y")
+        results = await downloader.download_multiple(symbols, period="1y")
 
     assert len(results) == 3
     assert all(success for success in results.values())
@@ -160,8 +197,19 @@ async def test_get_symbol_data_success(mock_gcs_storage):
 
     mock_gcs_storage.download_json.return_value = stored_data
 
-    downloader = StockDataDownloader()
-    result = await downloader.get_symbol_data("AAPL")
+    # Mock environment variables
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "",
+            "GCS_PROJECT_ID": "test-project",
+            "GCS_BUCKET_NAME": "test-bucket",
+        },
+    ):
+        downloader = StockDataDownloader()
+        # Inject the mock storage
+        downloader.storage = mock_gcs_storage
+        result = await downloader.get_symbol_data("AAPL")
 
     assert result is not None
     assert isinstance(result, StockDataFile)
@@ -174,8 +222,17 @@ async def test_get_symbol_data_not_found(mock_gcs_storage):
     """Test retrieving non-existent symbol data."""
     mock_gcs_storage.download_json.return_value = None
 
-    downloader = StockDataDownloader()
-    result = await downloader.get_symbol_data("INVALID")
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "",
+            "GCS_PROJECT_ID": "test-project",
+            "GCS_BUCKET_NAME": "test-bucket",
+        },
+    ):
+        downloader = StockDataDownloader()
+        downloader.storage = mock_gcs_storage
+        result = await downloader.get_symbol_data("INVALID")
 
     assert result is None
 
@@ -190,8 +247,17 @@ async def test_list_available_symbols(mock_gcs_storage):
         "stock-data/daily/MSFT.json",
     ]
 
-    downloader = StockDataDownloader()
-    symbols = await downloader.list_available_symbols()
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "",
+            "GCS_PROJECT_ID": "test-project",
+            "GCS_BUCKET_NAME": "test-bucket",
+        },
+    ):
+        downloader = StockDataDownloader()
+        downloader.storage = mock_gcs_storage
+        symbols = await downloader.list_available_symbols()
 
     assert len(symbols) == 3
     assert "AAPL" in symbols
@@ -203,10 +269,19 @@ async def test_list_available_symbols(mock_gcs_storage):
 @pytest.mark.asyncio
 async def test_convert_to_stock_data(mock_gcs_storage, sample_dataframe):
     """Test DataFrame to StockDataFile conversion."""
-    downloader = StockDataDownloader()
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "",
+            "GCS_PROJECT_ID": "test-project",
+            "GCS_BUCKET_NAME": "test-bucket",
+        },
+    ):
+        downloader = StockDataDownloader()
+        downloader.storage = mock_gcs_storage
 
-    # Test conversion
-    result = await downloader._convert_to_stock_data("AAPL", sample_dataframe)
+        # Test conversion
+        result = await downloader._convert_to_stock_data("AAPL", sample_dataframe)
 
     assert isinstance(result, StockDataFile)
     assert result.symbol == "AAPL"
@@ -240,8 +315,17 @@ async def test_download_latest_for_symbol(
     # Mock storage
     mock_gcs_storage.upload_json.return_value = True
 
-    downloader = StockDataDownloader()
-    result = await downloader.download_latest_for_symbol("AAPL")
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "",
+            "GCS_PROJECT_ID": "test-project",
+            "GCS_BUCKET_NAME": "test-bucket",
+        },
+    ):
+        downloader = StockDataDownloader()
+        downloader.storage = mock_gcs_storage
+        result = await downloader.download_latest_for_symbol("AAPL")
 
     assert result is True
     mock_ticker.history.assert_called_with(period="5d")

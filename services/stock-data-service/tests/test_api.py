@@ -1,5 +1,6 @@
 from datetime import date
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
+import os
 
 
 def test_health_check(client):
@@ -19,8 +20,18 @@ def test_api_health_check(client):
     assert "storage" in data
 
 
+@patch("app.services.download.GCSStorageManager")
 @patch("app.core.data_fetcher.yf.Ticker")
-def test_download_symbol(mock_ticker, client, temp_data_dir):
+def test_download_symbol(mock_ticker, mock_gcs_class, client, temp_data_dir):
+    # Mock GCS storage
+    mock_gcs_instance = AsyncMock()
+    mock_gcs_instance.upload_json.return_value = True
+    mock_gcs_class.return_value = mock_gcs_instance
+
+    # Set environment variables for GCS
+    os.environ["GCS_CREDENTIALS_PATH"] = ""
+    os.environ["GCS_PROJECT_ID"] = "test-project"
+    os.environ["GCS_BUCKET_NAME"] = "test-bucket"
     # Mock yfinance response
     mock_history = MagicMock()
     mock_history.empty = False
@@ -56,7 +67,18 @@ def test_download_invalid_symbol(client):
     assert "Invalid symbol format" in response.json()["detail"]
 
 
-def test_list_symbols_empty(client, temp_data_dir):
+@patch("app.services.download.GCSStorageManager")
+def test_list_symbols_empty(mock_gcs_class, client, temp_data_dir):
+    # Mock GCS storage
+    mock_gcs_instance = AsyncMock()
+    mock_gcs_instance.list_blobs.return_value = []
+    mock_gcs_class.return_value = mock_gcs_instance
+
+    # Set environment variables for GCS
+    os.environ["GCS_CREDENTIALS_PATH"] = ""
+    os.environ["GCS_PROJECT_ID"] = "test-project"
+    os.environ["GCS_BUCKET_NAME"] = "test-bucket"
+
     response = client.get("/api/v1/list")
     assert response.status_code == 200
     data = response.json()
@@ -64,19 +86,41 @@ def test_list_symbols_empty(client, temp_data_dir):
     assert data["count"] == 0
 
 
-def test_get_data_not_found(client):
+@patch("app.services.download.GCSStorageManager")
+def test_get_data_not_found(mock_gcs_class, client):
+    # Mock GCS storage
+    mock_gcs_instance = AsyncMock()
+    mock_gcs_instance.download_json.return_value = None
+    mock_gcs_class.return_value = mock_gcs_instance
+
+    # Set environment variables for GCS
+    os.environ["GCS_CREDENTIALS_PATH"] = ""
+    os.environ["GCS_PROJECT_ID"] = "test-project"
+    os.environ["GCS_BUCKET_NAME"] = "test-bucket"
+
     response = client.get("/api/v1/data/AAPL")
     assert response.status_code == 404
     assert "No data found" in response.json()["detail"]
 
 
-def test_delete_data_not_found(client):
+def test_delete_endpoint_not_implemented(client):
+    """Test that DELETE endpoint is not implemented (returns 405)."""
     response = client.delete("/api/v1/data/AAPL")
-    assert response.status_code == 404
-    assert "No data found" in response.json()["detail"]
+    assert response.status_code == 405  # Method Not Allowed
 
 
-def test_bulk_download(client, temp_data_dir):
+@patch("app.services.download.GCSStorageManager")
+def test_bulk_download(mock_gcs_class, client, temp_data_dir):
+    # Mock GCS storage
+    mock_gcs_instance = AsyncMock()
+    mock_gcs_instance.upload_json.return_value = True
+    mock_gcs_class.return_value = mock_gcs_instance
+
+    # Set environment variables for GCS
+    os.environ["GCS_CREDENTIALS_PATH"] = ""
+    os.environ["GCS_PROJECT_ID"] = "test-project"
+    os.environ["GCS_BUCKET_NAME"] = "test-bucket"
+
     with patch("app.core.data_fetcher.data_fetcher.fetch_bulk_data") as mock_fetch:
         mock_fetch.return_value = {"AAPL": [], "GOOGL": []}
 
