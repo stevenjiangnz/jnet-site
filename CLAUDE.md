@@ -242,16 +242,21 @@ docker-compose exec stock-data-service uv run pytest --cov=app
 
 ### Deployment
 ```bash
-# Deploy all services to Google Cloud Run
+# Deploy frontend to Cloud Run (builds locally, pushes to Docker Hub)
+./scripts/deploy-frontend.sh
+
+# Deploy all services to Google Cloud Run (uses Docker Hub)
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID
 
 # Deploy to specific region
 ./scripts/deploy.sh YOUR_GCP_PROJECT_ID us-west1
-
-# Deploy single service
-cd services/auth-service
-gcloud run deploy auth-service --source .
 ```
+
+**Important**: 
+- We build Docker images locally and push to Docker Hub (free)
+- Images are stored at `stevenjiangnz/jnet-<service>:latest`
+- Never use `--source` flag with gcloud (Cloud Build)
+- Docker Hub login required before deployment
 
 ## Architecture Overview
 
@@ -402,6 +407,8 @@ Commit message conventions for automatic versioning:
 
 ## Documentation
 
+- **Quick Deployment**: See `docs/QUICK_DEPLOYMENT.md`
+- **Deployment Policy**: See `docs/DEPLOYMENT_POLICY.md`
 - **Email Allowlist**: See `docs/EMAIL_ALLOWLIST.md`
 - **Cloud Run Deployment**: See `docs/CLOUD_RUN_DEPLOYMENT.md`
 - **Supabase Setup**: See `SUPABASE_SETUP.md`
