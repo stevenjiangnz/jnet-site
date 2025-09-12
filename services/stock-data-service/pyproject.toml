@@ -19,6 +19,7 @@ dependencies = [
     "hiredis>=2.2.3",
     "apscheduler>=3.10.4",
     "pandas-market-calendars>=4.3.1",
+    "upstash-redis>=1.4.0",
 ]
 
 [dependency-groups]
