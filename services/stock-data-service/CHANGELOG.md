@@ -5,6 +5,22 @@ All notable changes to the Stock Data Service will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- Fixed date serialization error in `/api/v1/data/{symbol}/recent` endpoint that was causing 500 errors
+- Data points are now properly converted to JSON-serializable format
+
+### Changed
+- Default days parameter in `/api/v1/data/{symbol}/recent` endpoint changed from 30 to 300 days
+- Increased maximum days limit from 365 to 3650 days (10 years)
+
+### Added
+- Added date range support to `/api/v1/data/{symbol}/recent` endpoint
+  - Can now use `start_date` and `end_date` query parameters
+  - Date range takes precedence over `days` parameter when both are provided
+  - Supports flexible date filtering for historical data analysis
+
 ## [1.0.0] - 2024-12-13
 
 ### Added

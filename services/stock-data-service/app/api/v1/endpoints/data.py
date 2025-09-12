@@ -152,10 +152,18 @@ async def get_latest_price(
 @router.get("/data/{symbol}/recent")
 async def get_recent_data(
     symbol: str,
-    days: int = Query(30, ge=1, le=365, description="Number of recent days"),
+    days: int = Query(300, ge=1, le=3650, description="Number of recent days (default: 300)"),
+    start_date: Optional[date] = Query(None, description="Start date for data range"),
+    end_date: Optional[date] = Query(None, description="End date for data range"),
 ):
     """
-    Get recent data for a symbol with caching
+    Get recent data for a symbol with caching.
+    
+    Can be used in two ways:
+    1. With 'days' parameter - returns last N days of data
+    2. With 'start_date' and/or 'end_date' - returns data within date range
+    
+    If both are provided, date range takes precedence.
     """
     # Validate symbol
     if not validate_symbol(symbol):
@@ -164,12 +172,16 @@ async def get_recent_data(
     cache = get_cache()
     downloader = StockDataDownloader()
 
-    # Check cache
-    cache_key = CacheKeys.recent_data(symbol, days)
+    # Determine cache key based on parameters
+    if start_date or end_date:
+        cache_key = f"data:recent:{symbol}:{start_date}:{end_date}"
+    else:
+        cache_key = CacheKeys.recent_data(symbol, days)
+        
     cached_data = await cache.get_json(cache_key)
 
     if cached_data:
-        logger.info(f"Cache hit for {symbol} recent {days} days")
+        logger.info(f"Cache hit for {symbol} recent data")
         return JSONResponse(content=cached_data)
 
     # Get full data from GCS
@@ -180,14 +192,38 @@ async def get_recent_data(
             status_code=404, detail=f"No data found for symbol {symbol}"
         )
 
-    # Filter to recent days
-    cutoff_date = datetime.now().date() - timedelta(days=days)
-    recent_points = [p for p in stock_data.data_points if p.date >= cutoff_date]
+    # Filter data based on parameters
+    if start_date or end_date:
+        # Use date range filtering
+        recent_points = []
+        for p in stock_data.data_points:
+            if start_date and p.date < start_date:
+                continue
+            if end_date and p.date > end_date:
+                continue
+            recent_points.append(p)
+    else:
+        # Use days filtering
+        cutoff_date = datetime.now().date() - timedelta(days=days)
+        recent_points = [p for p in stock_data.data_points if p.date >= cutoff_date]
+
+    # Convert data points to JSON-serializable format
+    data_points_json = []
+    for point in recent_points:
+        data_points_json.append({
+            "date": point.date.isoformat(),
+            "open": point.open,
+            "high": point.high,
+            "low": point.low,
+            "close": point.close,
+            "adj_close": point.adj_close,
+            "volume": point.volume
+        })
 
     response = {
         "symbol": symbol.upper(),
-        "days": days,
-        "data_points": [p.dict() for p in recent_points],
+        "days": days if not (start_date or end_date) else None,
+        "data_points": data_points_json,
         "start_date": recent_points[0].date.isoformat() if recent_points else None,
         "end_date": recent_points[-1].date.isoformat() if recent_points else None,
         "record_count": len(recent_points),
