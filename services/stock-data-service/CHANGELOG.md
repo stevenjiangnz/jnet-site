@@ -1,0 +1,72 @@
+# Changelog
+
+All notable changes to the Stock Data Service will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.0] - 2024-12-13
+
+### Added
+- Google Cloud Storage (GCS) integration for persistent data storage
+  - Atomic write operations to prevent data corruption
+  - Organized storage structure: `stock-data/daily/{symbol}.json`
+  - Support for service account authentication
+  - Comprehensive GCS setup documentation
+
+- Upstash Redis caching layer
+  - REST API-based caching (no TCP connections needed)
+  - Intelligent cache key patterns with different TTLs
+  - 5-minute TTL for latest prices
+  - 1-hour TTL for recent data
+  - 6-hour TTL for symbol lists
+  - Graceful degradation when cache is unavailable
+
+- Enhanced API endpoints
+  - `/api/v1/data/{symbol}/latest` - Get latest price with caching
+  - `/api/v1/data/{symbol}/recent` - Get recent trading days data
+  - Improved error handling and validation
+
+- Comprehensive test coverage
+  - Fixed all CI/CD test failures
+  - Proper mocking for GCS and Redis
+  - Environment variable mocking for tests
+  - Test fixtures for consistent testing
+
+- Documentation improvements
+  - Detailed GCS setup guide
+  - Upstash Redis setup instructions
+  - API endpoint documentation with examples
+  - Troubleshooting guide
+
+### Changed
+- Migrated from local file storage to Google Cloud Storage
+- Updated all storage operations to use async GCS client
+- Refactored download service to use GCS storage manager
+- Updated data models with proper validation
+- Improved error handling across all services
+
+### Fixed
+- CI/CD pipeline test failures
+- Proper async function mocking in tests
+- Environment variable handling in tests
+- Missing required fields in test data
+- Black formatting issues
+
+### Technical Details
+- Python 3.11+ with FastAPI
+- Google Cloud Storage Python client
+- Upstash Redis Python client
+- Pydantic v2 for data validation
+- uv for package management
+- pytest for testing
+- GitHub Actions for CI/CD
+
+## [0.1.0] - 2024-12-10 (Pre-GCS)
+
+### Initial Features
+- Basic stock data download from Yahoo Finance
+- Local file storage
+- RESTful API endpoints
+- Rate limiting
+- Basic test coverage

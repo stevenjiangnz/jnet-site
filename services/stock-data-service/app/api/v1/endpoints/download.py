@@ -1,14 +1,11 @@
 import logging
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
 from app.models.stock import BulkDownloadRequest
 from app.models.responses import DownloadResponse, BulkDownloadResponse
-from app.core.data_fetcher import data_fetcher
-from app.core.storage_manager import StorageManager
-from app.core.exceptions import SymbolNotFoundError, DataFetchError
+from app.services.download import StockDataDownloader
 from app.utils.validators import validate_symbol
-from app.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -17,59 +14,68 @@ router = APIRouter()
 @router.get("/download/{symbol}", response_model=DownloadResponse)
 async def download_symbol(
     symbol: str,
+    period: str = Query(
+        "1y",
+        description="Download period (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)",
+    ),
     start_date: Optional[date] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[date] = Query(None, description="End date (YYYY-MM-DD)"),
 ):
     """
-    Download EOD data for a single stock symbol
+    Download EOD data for a single stock symbol and store in GCS
     """
     # Validate symbol format
     if not validate_symbol(symbol):
         raise HTTPException(status_code=400, detail="Invalid symbol format")
 
+    downloader = StockDataDownloader()
+
     try:
-        # Fetch data
-        data_points = data_fetcher.fetch_stock_data(
-            symbol=symbol, start_date=start_date, end_date=end_date
+        # Download and store data
+        stock_data = await downloader.download_symbol(
+            symbol=symbol, period=period, start_date=start_date, end_date=end_date
         )
 
-        # Save to storage
-        file_path = StorageManager.save_stock_data(
-            symbol=symbol, data_points=data_points, format=settings.default_data_format
-        )
+        if not stock_data:
+            raise HTTPException(
+                status_code=404, detail=f"No data found for symbol {symbol}"
+            )
 
         return DownloadResponse(
             status="success",
-            symbol=symbol.upper(),
-            records=len(data_points),
-            start_date=str(data_points[0].date) if data_points else "",
-            end_date=str(data_points[-1].date) if data_points else "",
-            file_path=file_path,
+            symbol=stock_data.symbol,
+            records=stock_data.metadata.total_records,
+            start_date=str(stock_data.data_range.start),
+            end_date=str(stock_data.data_range.end),
+            file_path=f"gs://{stock_data.symbol}.json",  # Simplified GCS path
         )
 
-    except SymbolNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
-    except DataFetchError as e:
-        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
-        logger.error(f"Unexpected error downloading {symbol}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        logger.error(f"Error downloading {symbol}: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to download data: {str(e)}"
+        )
 
 
 async def download_symbol_task(
-    symbol: str, start_date: Optional[date], end_date: Optional[date], results: dict
+    symbol: str,
+    period: str,
+    start_date: Optional[date],
+    end_date: Optional[date],
+    results: dict,
 ):
     """Background task for downloading a single symbol"""
+    downloader = StockDataDownloader()
+
     try:
-        data_points = data_fetcher.fetch_stock_data(
-            symbol=symbol, start_date=start_date, end_date=end_date
+        stock_data = await downloader.download_symbol(
+            symbol=symbol, period=period, start_date=start_date, end_date=end_date
         )
 
-        StorageManager.save_stock_data(
-            symbol=symbol, data_points=data_points, format=settings.default_data_format
-        )
-
-        results["successful"].append(symbol)
+        if stock_data:
+            results["successful"].append(symbol)
+        else:
+            results["failed"].append({"symbol": symbol, "error": "No data returned"})
 
     except Exception as e:
         logger.error(f"Failed to download {symbol}: {str(e)}")
@@ -77,9 +83,7 @@ async def download_symbol_task(
 
 
 @router.post("/bulk-download", response_model=BulkDownloadResponse)
-async def bulk_download(
-    request: BulkDownloadRequest, background_tasks: BackgroundTasks
-):
+async def bulk_download(request: BulkDownloadRequest):
     """
     Download EOD data for multiple stock symbols
     """
@@ -90,40 +94,28 @@ async def bulk_download(
             status_code=400, detail=f"Invalid symbols: {', '.join(invalid_symbols)}"
         )
 
-    results = {"successful": [], "failed": []}
+    downloader = StockDataDownloader()
 
-    # Fetch data for all symbols
-    bulk_data = data_fetcher.fetch_bulk_data(
-        symbols=request.symbols,
-        start_date=request.start_date,
-        end_date=request.end_date,
+    # Use default period if no dates specified
+    period = "1y" if not (request.start_date and request.end_date) else None
+
+    # Download data for all symbols
+    download_results = await downloader.download_multiple(
+        symbols=request.symbols, period=period
     )
 
-    # Save successful downloads
-    for symbol, data_points in bulk_data.items():
-        try:
-            StorageManager.save_stock_data(
-                symbol=symbol,
-                data_points=data_points,
-                format=settings.default_data_format,
-            )
-            results["successful"].append(symbol)
-        except Exception as e:
-            results["failed"].append({"symbol": symbol, "error": str(e)})
-
-    # Add failed symbols
-    for symbol in request.symbols:
-        if symbol not in bulk_data and symbol not in [
-            f["symbol"] for f in results["failed"]
-        ]:
-            results["failed"].append(
-                {"symbol": symbol, "error": "Failed to fetch data"}
-            )
+    # Separate successful and failed downloads
+    successful = [symbol for symbol, success in download_results.items() if success]
+    failed = [
+        {"symbol": symbol, "error": "Download failed"}
+        for symbol, success in download_results.items()
+        if not success
+    ]
 
     return BulkDownloadResponse(
         status="completed",
         total_symbols=len(request.symbols),
-        successful=results["successful"],
-        failed=results["failed"],
+        successful=successful,
+        failed=failed,
         download_time=datetime.now(),
     )
