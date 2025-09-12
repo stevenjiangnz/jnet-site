@@ -14,6 +14,8 @@ from app.models.stock_data import (
 )
 from app.services.gcs_storage import GCSStorageManager
 from app.services.storage_paths import StoragePaths
+from app.services.simple_cache import get_cache
+from app.services.cache_keys import CacheKeys
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +71,13 @@ class StockDataDownloader:
 
             if success:
                 logger.info(f"Successfully stored {symbol} data to GCS")
+                
+                # Invalidate cache after successful upload
+                cache = get_cache()
+                cache_key = CacheKeys.daily_data(symbol)
+                await cache.delete(cache_key)
+                logger.info(f"Invalidated cache for {symbol}")
+                
                 return stock_data
             else:
                 logger.error(f"Failed to store {symbol} data to GCS")

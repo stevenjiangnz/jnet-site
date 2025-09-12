@@ -7,9 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-09-12
+
+### Added
+- Automatic gap filling for incremental downloads
+  - Seamlessly merges overlapping date ranges
+  - Preserves existing data while filling missing dates
+  - Understands US market holidays (not treated as gaps)
+- Cache invalidation after successful downloads
+  - Ensures fresh data is always retrieved from GCS
+  - Prevents stale cached data from being served
+- Comprehensive gap detection and filling tests
+  - Verifies no gaps in 20+ years of historical data
+  - Tests incremental download scenarios
+  - Validates data continuity across date ranges
+
 ### Fixed
 - Fixed date serialization error in `/api/v1/data/{symbol}/recent` endpoint that was causing 500 errors
 - Data points are now properly converted to JSON-serializable format
+- Cache not being invalidated after new data downloads
+- Data retrieval returning stale cached data instead of updated GCS data
 
 ### Changed
 - Default days parameter in `/api/v1/data/{symbol}/recent` endpoint changed from 30 to 300 days
