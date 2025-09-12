@@ -3,17 +3,17 @@
 import pytest
 import json
 from unittest.mock import Mock, patch
-from redis.exceptions import ConnectionError, TimeoutError
 
 from app.services.simple_cache import SimpleCache, get_cache
+from app.config import RedisConfig
 
 
 @pytest.fixture
 def mock_redis_client():
-    """Mock Redis client."""
-    with patch("app.services.simple_cache.redis.Redis.from_url") as mock_redis:
+    """Mock Upstash Redis client."""
+    with patch("app.services.simple_cache.Redis") as mock_redis_class:
         mock_client = Mock()
-        mock_redis.return_value = mock_client
+        mock_redis_class.return_value = mock_client
         mock_client.ping.return_value = True
         yield mock_client
 
@@ -21,12 +21,15 @@ def mock_redis_client():
 @pytest.mark.asyncio
 async def test_cache_initialization_success(mock_redis_client):
     """Test successful cache initialization."""
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
     assert cache.enabled is True
     assert cache.client is not None
@@ -36,7 +39,7 @@ async def test_cache_initialization_success(mock_redis_client):
 @pytest.mark.asyncio
 async def test_cache_initialization_disabled():
     """Test cache when disabled."""
-    with patch("app.services.simple_cache.CACHE_ENABLED", False):
+    with patch.dict("os.environ", {"CACHE_ENABLED": "false"}):
         cache = SimpleCache()
 
     assert cache.enabled is False
@@ -46,14 +49,17 @@ async def test_cache_initialization_disabled():
 @pytest.mark.asyncio
 async def test_cache_initialization_connection_error(mock_redis_client):
     """Test cache initialization with connection error."""
-    mock_redis_client.ping.side_effect = ConnectionError("Connection failed")
+    mock_redis_client.ping.side_effect = Exception("Connection failed")
 
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
     assert cache.enabled is False
     assert cache.client is None
@@ -64,12 +70,15 @@ async def test_get_success(mock_redis_client):
     """Test successful cache get."""
     mock_redis_client.get.return_value = "test-value"
 
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
     result = await cache.get("test-key")
     assert result == "test-value"
@@ -81,12 +90,15 @@ async def test_get_miss(mock_redis_client):
     """Test cache miss."""
     mock_redis_client.get.return_value = None
 
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
     result = await cache.get("test-key")
     assert result is None
@@ -95,7 +107,7 @@ async def test_get_miss(mock_redis_client):
 @pytest.mark.asyncio
 async def test_get_disabled():
     """Test get when cache is disabled."""
-    with patch("app.services.simple_cache.CACHE_ENABLED", False):
+    with patch.dict("os.environ", {"CACHE_ENABLED": "false"}):
         cache = SimpleCache()
 
     result = await cache.get("test-key")
@@ -105,12 +117,15 @@ async def test_get_disabled():
 @pytest.mark.asyncio
 async def test_set_success(mock_redis_client):
     """Test successful cache set."""
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
     await cache.set("test-key", "test-value", 300)
     mock_redis_client.setex.assert_called_with("test-key", 300, "test-value")
@@ -119,12 +134,15 @@ async def test_set_success(mock_redis_client):
 @pytest.mark.asyncio
 async def test_delete_success(mock_redis_client):
     """Test successful cache delete."""
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
     await cache.delete("test-key")
     mock_redis_client.delete.assert_called_with("test-key")
@@ -132,20 +150,21 @@ async def test_delete_success(mock_redis_client):
 
 @pytest.mark.asyncio
 async def test_clear_pattern(mock_redis_client):
-    """Test clearing keys by pattern."""
-    # Mock scan_iter to return matching keys
-    mock_redis_client.scan_iter.return_value = ["price:AAPL", "price:GOOGL"]
+    """Test clearing keys by pattern - currently not implemented for Upstash."""
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
-
+    # clear_pattern is currently not implemented for Upstash
     await cache.clear_pattern("price:*")
-    mock_redis_client.scan_iter.assert_called_with(match="price:*")
-    mock_redis_client.delete.assert_called_with("price:AAPL", "price:GOOGL")
+    # Should not raise any errors, but also won't delete anything
+    mock_redis_client.delete.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -154,12 +173,15 @@ async def test_get_json_success(mock_redis_client):
     test_data = {"symbol": "AAPL", "price": 150.0}
     mock_redis_client.get.return_value = json.dumps(test_data)
 
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
     result = await cache.get_json("test-key")
     assert result == test_data
@@ -170,12 +192,15 @@ async def test_get_json_invalid(mock_redis_client):
     """Test getting invalid JSON from cache."""
     mock_redis_client.get.return_value = "invalid-json"
 
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
     result = await cache.get_json("test-key")
     assert result is None
@@ -186,12 +211,15 @@ async def test_set_json_success(mock_redis_client):
     """Test setting JSON in cache."""
     test_data = {"symbol": "AAPL", "price": 150.0}
 
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
     await cache.set_json("test-key", test_data, 300)
 
@@ -204,17 +232,20 @@ async def test_set_json_success(mock_redis_client):
 
 def test_is_connected_success(mock_redis_client):
     """Test checking connection status."""
-    with patch("app.services.simple_cache.CACHE_ENABLED", True):
-        with patch(
-            "app.services.simple_cache.UPSTASH_REDIS_URL", "https://test.upstash.io"
-        ):
-            with patch("app.services.simple_cache.UPSTASH_REDIS_TOKEN", "test-token"):
-                cache = SimpleCache()
+    with patch.dict(
+        "os.environ",
+        {
+            "CACHE_ENABLED": "true",
+            "UPSTASH_REDIS_URL": "https://test.upstash.io",
+            "UPSTASH_REDIS_TOKEN": "test-token",
+        },
+    ):
+        cache = SimpleCache()
 
     assert cache.is_connected() is True
 
     # Test disconnected
-    mock_redis_client.ping.side_effect = ConnectionError()
+    mock_redis_client.ping.side_effect = Exception()
     assert cache.is_connected() is False
 
 

@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch, MagicMock
 from google.cloud.exceptions import NotFound
 
 from app.services.gcs_storage import GCSStorageManager
+from app.config import GCSConfig
 
 
 @pytest.fixture
@@ -29,8 +30,15 @@ async def test_upload_json_success(mock_storage_client):
     mock_blob = Mock()
     bucket.blob.return_value = mock_blob
 
-    # Initialize manager
-    with patch("app.services.gcs_storage.GCS_CREDENTIALS_PATH", "test.json"):
+    # Initialize manager with mocked environment
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "test.json",
+            "GCS_BUCKET_NAME": "test-bucket",
+            "GCS_PROJECT_ID": "test-project",
+        },
+    ):
         manager = GCSStorageManager()
 
     # Test upload
@@ -57,8 +65,15 @@ async def test_download_json_success(mock_storage_client):
     test_data = {"symbol": "AAPL", "price": 150.0}
     mock_blob.download_as_text.return_value = json.dumps(test_data)
 
-    # Initialize manager
-    with patch("app.services.gcs_storage.GCS_CREDENTIALS_PATH", "test.json"):
+    # Initialize manager with mocked environment
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "test.json",
+            "GCS_BUCKET_NAME": "test-bucket",
+            "GCS_PROJECT_ID": "test-project",
+        },
+    ):
         manager = GCSStorageManager()
 
     # Test download
@@ -78,8 +93,15 @@ async def test_download_json_not_found(mock_storage_client):
     # Mock not found error
     mock_blob.download_as_text.side_effect = NotFound("Blob not found")
 
-    # Initialize manager
-    with patch("app.services.gcs_storage.GCS_CREDENTIALS_PATH", "test.json"):
+    # Initialize manager with mocked environment
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "test.json",
+            "GCS_BUCKET_NAME": "test-bucket",
+            "GCS_PROJECT_ID": "test-project",
+        },
+    ):
         manager = GCSStorageManager()
 
     # Test download
@@ -101,8 +123,15 @@ async def test_list_blobs(mock_storage_client):
 
     bucket.list_blobs.return_value = [mock_blob1, mock_blob2]
 
-    # Initialize manager
-    with patch("app.services.gcs_storage.GCS_CREDENTIALS_PATH", "test.json"):
+    # Initialize manager with mocked environment
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "test.json",
+            "GCS_BUCKET_NAME": "test-bucket",
+            "GCS_PROJECT_ID": "test-project",
+        },
+    ):
         manager = GCSStorageManager()
 
     # Test list
@@ -123,8 +152,15 @@ async def test_blob_exists(mock_storage_client):
     # Test exists
     mock_blob.exists.return_value = True
 
-    # Initialize manager
-    with patch("app.services.gcs_storage.GCS_CREDENTIALS_PATH", "test.json"):
+    # Initialize manager with mocked environment
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "test.json",
+            "GCS_BUCKET_NAME": "test-bucket",
+            "GCS_PROJECT_ID": "test-project",
+        },
+    ):
         manager = GCSStorageManager()
 
     result = await manager.blob_exists("test/data.json")
@@ -152,14 +188,29 @@ async def test_atomic_write(mock_storage_client):
     bucket.blob.side_effect = blob_side_effect
     bucket.copy_blob.return_value = None
 
-    # Initialize manager
-    with patch("app.services.gcs_storage.GCS_CREDENTIALS_PATH", "test.json"):
+    # Initialize manager with mocked environment
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "test.json",
+            "GCS_BUCKET_NAME": "test-bucket",
+            "GCS_PROJECT_ID": "test-project",
+        },
+    ):
         manager = GCSStorageManager()
 
     # Test atomic write
     data = {"symbol": "AAPL", "price": 150.0}
-    with patch.object(manager, "upload_json", return_value=True):
-        with patch.object(manager, "delete_blob", return_value=True):
+    
+    # Create async mocks
+    async def mock_upload_json(*args, **kwargs):
+        return True
+        
+    async def mock_delete_blob(*args, **kwargs):
+        return True
+    
+    with patch.object(manager, "upload_json", side_effect=mock_upload_json):
+        with patch.object(manager, "delete_blob", side_effect=mock_delete_blob):
             result = await manager.atomic_write("test/data.json", data)
 
     assert result is True
@@ -182,8 +233,15 @@ async def test_get_blob_metadata(mock_storage_client):
     mock_blob.etag = "etag123"
     mock_blob.md5_hash = "md5123"
 
-    # Initialize manager
-    with patch("app.services.gcs_storage.GCS_CREDENTIALS_PATH", "test.json"):
+    # Initialize manager with mocked environment
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "test.json",
+            "GCS_BUCKET_NAME": "test-bucket",
+            "GCS_PROJECT_ID": "test-project",
+        },
+    ):
         manager = GCSStorageManager()
 
     # Test metadata
@@ -197,9 +255,15 @@ async def test_get_blob_metadata(mock_storage_client):
 
 def test_no_credentials():
     """Test initialization without credentials."""
-    with patch("app.services.gcs_storage.GCS_CREDENTIALS_PATH", None):
-        with patch("app.services.gcs_storage.GCS_PROJECT_ID", "test-project"):
-            with patch("app.services.gcs_storage.storage.Client") as mock_client:
-                # Should use default credentials
-                manager = GCSStorageManager()
-                mock_client.assert_called_with(project="test-project")
+    with patch.dict(
+        "os.environ",
+        {
+            "GCS_CREDENTIALS_PATH": "",
+            "GCS_PROJECT_ID": "test-project",
+            "GCS_BUCKET_NAME": "test-bucket",
+        },
+    ):
+        with patch("app.services.gcs_storage.storage.Client") as mock_client:
+            # Should use default credentials
+            manager = GCSStorageManager()
+            mock_client.assert_called_with(project="test-project")
