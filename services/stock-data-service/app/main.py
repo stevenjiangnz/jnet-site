@@ -17,17 +17,17 @@ async def lifespan(app: FastAPI):
     logger.info("Starting Stock Data Service...")
     logger.info(f"GCS Bucket: {settings.gcs_bucket_name}")
     logger.info(f"Cache Enabled: {settings.cache_enabled}")
-    
+
     # Initialize GCS storage
     if settings.gcs_bucket_name:
         storage = GCSStorageManager()
         logger.info("GCS Storage initialized")
-    
+
     # Initialize cache if enabled
     if settings.cache_enabled and settings.upstash_redis_url:
         cache = SimpleCache()
         logger.info("Redis cache initialized")
-    
+
     yield
     logger.info("Shutting down Stock Data Service...")
 

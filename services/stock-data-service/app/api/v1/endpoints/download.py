@@ -14,7 +14,10 @@ router = APIRouter()
 @router.get("/download/{symbol}", response_model=DownloadResponse)
 async def download_symbol(
     symbol: str,
-    period: str = Query("1y", description="Download period (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)"),
+    period: str = Query(
+        "1y",
+        description="Download period (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)",
+    ),
     start_date: Optional[date] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[date] = Query(None, description="End date (YYYY-MM-DD)"),
 ):
@@ -26,18 +29,17 @@ async def download_symbol(
         raise HTTPException(status_code=400, detail="Invalid symbol format")
 
     downloader = StockDataDownloader()
-    
+
     try:
         # Download and store data
         stock_data = await downloader.download_symbol(
-            symbol=symbol,
-            period=period,
-            start_date=start_date,
-            end_date=end_date
+            symbol=symbol, period=period, start_date=start_date, end_date=end_date
         )
-        
+
         if not stock_data:
-            raise HTTPException(status_code=404, detail=f"No data found for symbol {symbol}")
+            raise HTTPException(
+                status_code=404, detail=f"No data found for symbol {symbol}"
+            )
 
         return DownloadResponse(
             status="success",
@@ -50,23 +52,26 @@ async def download_symbol(
 
     except Exception as e:
         logger.error(f"Error downloading {symbol}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to download data: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to download data: {str(e)}"
+        )
 
 
 async def download_symbol_task(
-    symbol: str, period: str, start_date: Optional[date], end_date: Optional[date], results: dict
+    symbol: str,
+    period: str,
+    start_date: Optional[date],
+    end_date: Optional[date],
+    results: dict,
 ):
     """Background task for downloading a single symbol"""
     downloader = StockDataDownloader()
-    
+
     try:
         stock_data = await downloader.download_symbol(
-            symbol=symbol,
-            period=period,
-            start_date=start_date,
-            end_date=end_date
+            symbol=symbol, period=period, start_date=start_date, end_date=end_date
         )
-        
+
         if stock_data:
             results["successful"].append(symbol)
         else:
@@ -78,9 +83,7 @@ async def download_symbol_task(
 
 
 @router.post("/bulk-download", response_model=BulkDownloadResponse)
-async def bulk_download(
-    request: BulkDownloadRequest
-):
+async def bulk_download(request: BulkDownloadRequest):
     """
     Download EOD data for multiple stock symbols
     """
@@ -92,20 +95,22 @@ async def bulk_download(
         )
 
     downloader = StockDataDownloader()
-    
+
     # Use default period if no dates specified
     period = "1y" if not (request.start_date and request.end_date) else None
-    
+
     # Download data for all symbols
     download_results = await downloader.download_multiple(
-        symbols=request.symbols,
-        period=period
+        symbols=request.symbols, period=period
     )
-    
+
     # Separate successful and failed downloads
     successful = [symbol for symbol, success in download_results.items() if success]
-    failed = [{"symbol": symbol, "error": "Download failed"} 
-             for symbol, success in download_results.items() if not success]
+    failed = [
+        {"symbol": symbol, "error": "Download failed"}
+        for symbol, success in download_results.items()
+        if not success
+    ]
 
     return BulkDownloadResponse(
         status="completed",

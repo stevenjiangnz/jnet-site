@@ -7,10 +7,10 @@ import yfinance as yf
 import pandas as pd
 
 from app.models.stock_data import (
-    StockDataFile, 
-    StockDataPoint, 
-    DataRange, 
-    StockMetadata
+    StockDataFile,
+    StockDataPoint,
+    DataRange,
+    StockMetadata,
 )
 from app.services.gcs_storage import GCSStorageManager
 from app.services.storage_paths import StoragePaths
@@ -20,81 +20,79 @@ logger = logging.getLogger(__name__)
 
 class StockDataDownloader:
     """Service for downloading stock data from Yahoo Finance and storing in GCS."""
-    
+
     def __init__(self):
         """Initialize the downloader with GCS storage."""
         self.storage = GCSStorageManager()
-        
+
     async def download_symbol(
         self,
         symbol: str,
         period: str = "max",
         start_date: Optional[date] = None,
-        end_date: Optional[date] = None
+        end_date: Optional[date] = None,
     ) -> Optional[StockDataFile]:
         """
         Download stock data for a symbol and store in GCS.
-        
+
         Args:
             symbol: Stock symbol (e.g., 'AAPL')
             period: Download period ('1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max')
             start_date: Start date for custom range
             end_date: End date for custom range
-            
+
         Returns:
             StockDataFile object if successful, None otherwise
         """
         try:
             logger.info(f"Downloading data for {symbol}")
-            
+
             # Create ticker object
             ticker = yf.Ticker(symbol)
-            
+
             # Download data
             if start_date and end_date:
                 df = ticker.history(start=start_date, end=end_date)
             else:
                 df = ticker.history(period=period)
-            
+
             if df.empty:
                 logger.warning(f"No data returned for {symbol}")
                 return None
-            
+
             # Convert DataFrame to our data model
             stock_data = await self._convert_to_stock_data(symbol, df)
-            
+
             # Store in GCS
             storage_path = StoragePaths.get_daily_path(symbol)
             success = await self.storage.upload_json(storage_path, stock_data.to_dict())
-            
+
             if success:
                 logger.info(f"Successfully stored {symbol} data to GCS")
                 return stock_data
             else:
                 logger.error(f"Failed to store {symbol} data to GCS")
                 return None
-                
+
         except Exception as e:
             logger.error(f"Error downloading {symbol}: {str(e)}")
             return None
-    
+
     async def download_multiple(
-        self,
-        symbols: List[str],
-        period: str = "1y"
+        self, symbols: List[str], period: str = "1y"
     ) -> Dict[str, bool]:
         """
         Download data for multiple symbols.
-        
+
         Args:
             symbols: List of stock symbols
             period: Download period
-            
+
         Returns:
             Dictionary mapping symbol to success status
         """
         results = {}
-        
+
         for symbol in symbols:
             try:
                 stock_data = await self.download_symbol(symbol, period=period)
@@ -102,124 +100,119 @@ class StockDataDownloader:
             except Exception as e:
                 logger.error(f"Failed to download {symbol}: {str(e)}")
                 results[symbol] = False
-        
+
         return results
-    
+
     async def get_symbol_data(self, symbol: str) -> Optional[StockDataFile]:
         """
         Retrieve stored data for a symbol from GCS.
-        
+
         Args:
             symbol: Stock symbol
-            
+
         Returns:
             StockDataFile object or None if not found
         """
         try:
             storage_path = StoragePaths.get_daily_path(symbol)
             data_dict = await self.storage.download_json(storage_path)
-            
+
             if data_dict:
                 # Convert date strings back to date objects
-                for point in data_dict['data_points']:
-                    point['date'] = datetime.fromisoformat(point['date']).date()
-                
-                data_dict['data_range']['start'] = datetime.fromisoformat(
-                    data_dict['data_range']['start']
+                for point in data_dict["data_points"]:
+                    point["date"] = datetime.fromisoformat(point["date"]).date()
+
+                data_dict["data_range"]["start"] = datetime.fromisoformat(
+                    data_dict["data_range"]["start"]
                 ).date()
-                data_dict['data_range']['end'] = datetime.fromisoformat(
-                    data_dict['data_range']['end']
+                data_dict["data_range"]["end"] = datetime.fromisoformat(
+                    data_dict["data_range"]["end"]
                 ).date()
-                
-                data_dict['last_updated'] = datetime.fromisoformat(
-                    data_dict['last_updated']
+
+                data_dict["last_updated"] = datetime.fromisoformat(
+                    data_dict["last_updated"]
                 )
-                
+
                 return StockDataFile(**data_dict)
-            
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Error retrieving data for {symbol}: {str(e)}")
             return None
-    
+
     async def list_available_symbols(self) -> List[str]:
         """
         List all symbols with data in GCS.
-        
+
         Returns:
             List of symbol strings
         """
         try:
             blobs = await self.storage.list_blobs(prefix=StoragePaths.DAILY_PREFIX)
             symbols = []
-            
+
             for blob_name in blobs:
                 symbol = StoragePaths.extract_symbol_from_path(blob_name)
                 if symbol:
                     symbols.append(symbol)
-            
+
             return sorted(symbols)
-            
+
         except Exception as e:
             logger.error(f"Error listing symbols: {str(e)}")
             return []
-    
+
     async def _convert_to_stock_data(
-        self,
-        symbol: str,
-        df: pd.DataFrame
+        self, symbol: str, df: pd.DataFrame
     ) -> StockDataFile:
         """
         Convert pandas DataFrame to StockDataFile model.
-        
+
         Args:
             symbol: Stock symbol
             df: DataFrame from yfinance
-            
+
         Returns:
             StockDataFile object
         """
         # Convert DataFrame to list of data points
         data_points = []
-        
+
         for idx, row in df.iterrows():
             # Skip rows with NaN values
             if row.isna().any():
                 continue
-                
+
             point = StockDataPoint(
                 date=idx.date(),
-                open=round(row['Open'], 2),
-                high=round(row['High'], 2),
-                low=round(row['Low'], 2),
-                close=round(row['Close'], 2),
-                adj_close=round(row.get('Adj Close', row['Close']), 2),
-                volume=int(row['Volume'])
+                open=round(row["Open"], 2),
+                high=round(row["High"], 2),
+                low=round(row["Low"], 2),
+                close=round(row["Close"], 2),
+                adj_close=round(row.get("Adj Close", row["Close"]), 2),
+                volume=int(row["Volume"]),
             )
             data_points.append(point)
-        
+
         # Sort by date
         data_points.sort(key=lambda x: x.date)
-        
+
         # Create metadata
         metadata = StockMetadata(
             total_records=len(data_points),
             trading_days=len(data_points),
-            source="yahoo_finance"
+            source="yahoo_finance",
         )
-        
+
         # Create data range
         if data_points:
-            data_range = DataRange(
-                start=data_points[0].date,
-                end=data_points[-1].date
-            )
+            data_range = DataRange(start=data_points[0].date, end=data_points[-1].date)
         else:
             # Empty data
             today = date.today()
             data_range = DataRange(start=today, end=today)
-        
+
         # Create the complete file object
         return StockDataFile(
             symbol=symbol.upper(),
@@ -227,17 +220,17 @@ class StockDataDownloader:
             last_updated=datetime.utcnow(),
             data_range=data_range,
             data_points=data_points,
-            metadata=metadata
+            metadata=metadata,
         )
-    
+
     async def download_latest_for_symbol(self, symbol: str) -> bool:
         """
         Download only the latest data for a symbol (last 5 days).
         Useful for daily updates.
-        
+
         Args:
             symbol: Stock symbol
-            
+
         Returns:
             True if successful, False otherwise
         """

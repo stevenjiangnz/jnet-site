@@ -8,9 +8,9 @@ from app.services.storage_paths import StoragePaths
 
 __all__ = [
     "StockDataDownloader",
-    "GCSStorageManager", 
+    "GCSStorageManager",
     "SimpleCache",
     "get_cache",
     "CacheKeys",
-    "StoragePaths"
+    "StoragePaths",
 ]
