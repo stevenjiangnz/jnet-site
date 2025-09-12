@@ -152,17 +152,19 @@ async def get_latest_price(
 @router.get("/data/{symbol}/recent")
 async def get_recent_data(
     symbol: str,
-    days: int = Query(300, ge=1, le=3650, description="Number of recent days (default: 300)"),
+    days: int = Query(
+        300, ge=1, le=3650, description="Number of recent days (default: 300)"
+    ),
     start_date: Optional[date] = Query(None, description="Start date for data range"),
     end_date: Optional[date] = Query(None, description="End date for data range"),
 ):
     """
     Get recent data for a symbol with caching.
-    
+
     Can be used in two ways:
     1. With 'days' parameter - returns last N days of data
     2. With 'start_date' and/or 'end_date' - returns data within date range
-    
+
     If both are provided, date range takes precedence.
     """
     # Validate symbol
@@ -177,7 +179,7 @@ async def get_recent_data(
         cache_key = f"data:recent:{symbol}:{start_date}:{end_date}"
     else:
         cache_key = CacheKeys.recent_data(symbol, days)
-        
+
     cached_data = await cache.get_json(cache_key)
 
     if cached_data:
@@ -210,15 +212,17 @@ async def get_recent_data(
     # Convert data points to JSON-serializable format
     data_points_json = []
     for point in recent_points:
-        data_points_json.append({
-            "date": point.date.isoformat(),
-            "open": point.open,
-            "high": point.high,
-            "low": point.low,
-            "close": point.close,
-            "adj_close": point.adj_close,
-            "volume": point.volume
-        })
+        data_points_json.append(
+            {
+                "date": point.date.isoformat(),
+                "open": point.open,
+                "high": point.high,
+                "low": point.low,
+                "close": point.close,
+                "adj_close": point.adj_close,
+                "volume": point.volume,
+            }
+        )
 
     response = {
         "symbol": symbol.upper(),
