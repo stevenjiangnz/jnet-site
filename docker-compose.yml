@@ -78,6 +78,7 @@ services:
       - ./services/stock-data-service:/app
       - stock-data-downloads:/app/data/downloads
       - stock-data-uv-cache:/uv-cache
+      - ./services/stock-data-service/credentials:/app/credentials:ro
     environment:
       - ENVIRONMENT=development
       - LOG_LEVEL=DEBUG
@@ -85,6 +86,12 @@ services:
       - UV_CACHE_DIR=/uv-cache
       - UV_PROJECT_ENVIRONMENT=/opt/venv
       - PYTHONUNBUFFERED=1
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME:-jnet-stock-data-dev}
+      - GCS_PROJECT_ID=${GCS_PROJECT_ID}
+      - GCS_CREDENTIALS_PATH=/app/credentials/gcs-service-account.json
+      - UPSTASH_REDIS_URL=${UPSTASH_REDIS_URL}
+      - UPSTASH_REDIS_TOKEN=${UPSTASH_REDIS_TOKEN}
+      - CACHE_ENABLED=${CACHE_ENABLED:-true}
     networks:
       - default
     healthcheck:

@@ -1,0 +1,16 @@
+import os
+
+UPSTASH_REDIS_URL = os.getenv("UPSTASH_REDIS_URL")
+UPSTASH_REDIS_TOKEN = os.getenv("UPSTASH_REDIS_TOKEN")
+CACHE_ENABLED = os.getenv("CACHE_ENABLED", "true").lower() == "true"
+
+# Cache TTL settings (in seconds)
+CACHE_TTL_LATEST_PRICE = 300  # 5 minutes
+CACHE_TTL_RECENT_DATA = 3600  # 1 hour
+CACHE_TTL_SYMBOL_LIST = 21600  # 6 hours
+CACHE_TTL_SYMBOL_INFO = 3600  # 1 hour
+
+# Redis connection settings
+REDIS_SOCKET_CONNECT_TIMEOUT = 5
+REDIS_SOCKET_KEEPALIVE = True
+REDIS_DECODE_RESPONSES = True
