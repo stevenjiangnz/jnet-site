@@ -16,6 +16,8 @@ class DownloadResponse(BaseModel):
     start_date: str
     end_date: str
     file_path: Optional[str] = None
+    weekly_processed: bool = False
+    weekly_records: Optional[int] = None
 
 
 class BulkDownloadResponse(BaseModel):

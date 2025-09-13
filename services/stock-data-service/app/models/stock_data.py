@@ -130,6 +130,12 @@ class WeeklyDataPoint(BaseModel):
             raise ValueError("Week start must be a Monday")
         return v
 
+    class Config:
+        json_encoders = {
+            date: lambda v: v.isoformat(),
+            datetime: lambda v: v.isoformat(),
+        }
+
 
 class WeeklyDataFile(BaseModel):
     """Complete weekly aggregated stock data file."""
@@ -146,3 +152,7 @@ class WeeklyDataFile(BaseModel):
     def symbol_uppercase(cls, v: str) -> str:
         """Ensure symbol is uppercase."""
         return v.upper()
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for JSON serialization."""
+        return self.model_dump(mode="json")

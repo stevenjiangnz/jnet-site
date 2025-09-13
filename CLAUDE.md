@@ -157,6 +157,9 @@ docker-compose exec stock-data-service uv run pytest
 # Run specific test
 docker-compose exec stock-data-service uv run pytest tests/test_api.py::test_download_symbol
 
+# Test gap filling functionality
+docker-compose exec stock-data-service uv run python tests/test_gap_filling.py
+
 # Access container
 docker-compose exec stock-data-service bash
 
@@ -170,6 +173,11 @@ docker-compose exec stock-data-service uv add <package-name>
 
 # Access API documentation
 # http://localhost:9001/docs (Docker) or http://localhost:9000/docs (Local)
+
+# Key Features:
+# - Automatic gap filling for incremental downloads
+# - GCS storage with cache invalidation
+# - 20+ years of historical data support
 ```
 
 ### Database Operations
