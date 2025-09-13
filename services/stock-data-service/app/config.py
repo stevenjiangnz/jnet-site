@@ -19,6 +19,11 @@ class Settings(BaseSettings):
 
     rate_limit_calls: int = 5
     rate_limit_period: int = 1
+    
+    # Indicator settings
+    ENABLE_INDICATOR_CALCULATION: bool = os.getenv("ENABLE_INDICATOR_CALCULATION", "true").lower() == "true"
+    DEFAULT_INDICATOR_SET: str = os.getenv("DEFAULT_INDICATOR_SET", "default")
+    INDICATOR_PARALLEL_WORKERS: int = int(os.getenv("INDICATOR_PARALLEL_WORKERS", "4"))
 
     class Config:
         env_file = ".env"

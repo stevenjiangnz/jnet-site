@@ -7,6 +7,7 @@ A Python-based microservice for downloading and managing stock/ETF end-of-day (E
 - Download EOD data for individual stocks/ETFs from Yahoo Finance
 - Bulk download support for multiple symbols
 - **Automatic Weekly Data Aggregation** from daily data
+- **Technical Indicators** - Automatic calculation of 11+ indicators including ADX with DI+/DI-
 - **Google Cloud Storage (GCS)** for persistent data storage with atomic writes
 - **Upstash Redis** caching via REST API for high-performance data access
 - RESTful API endpoints with comprehensive documentation
@@ -22,6 +23,7 @@ A Python-based microservice for downloading and managing stock/ETF end-of-day (E
 - **FastAPI** - Modern web framework
 - **yfinance** - Yahoo Finance data source
 - **pandas** - Data processing
+- **ta** - Technical Analysis indicators library
 - **Google Cloud Storage** - Persistent storage
 - **Upstash Redis** - Caching layer
 - **uv** - Fast Python package management
@@ -106,6 +108,33 @@ curl -X POST http://localhost:9000/api/v1/sync/weekly/AAPL
 # Check sync status
 curl http://localhost:9000/api/v1/sync/weekly/status
 ```
+
+### Technical Indicators
+The service automatically calculates technical indicators for all downloaded data:
+- **Default Indicators**: Calculated automatically for every symbol
+  - SMA_20, SMA_50 - Simple Moving Averages
+  - RSI_14 - Relative Strength Index
+  - MACD - Moving Average Convergence Divergence (with signal line and histogram)
+  - ADX_14 - Average Directional Index (with DI+ and DI- components)
+  - VOLUME_SMA_20 - 20-day Volume Moving Average
+- **Additional Indicators**: Available on request
+  - EMA_12, EMA_26 - Exponential Moving Averages
+  - BB_20 - Bollinger Bands (upper, middle, lower)
+  - ATR_14 - Average True Range
+  - STOCH - Stochastic Oscillator (%K, %D)
+  - OBV - On Balance Volume
+  - CMF_20 - Chaikin Money Flow
+  - SMA_200 - 200-day Simple Moving Average
+
+**Indicator Sets**: Pre-configured sets for different use cases
+- `default` - Standard indicators for general analysis
+- `chart_basic` - Essential chart indicators (SMA_20, SMA_50, VOLUME_SMA_20)
+- `chart_advanced` - Extended chart indicators including MACD, RSI, Bollinger Bands
+- `chart_full` - All chart indicators including ADX, ATR, OBV
+- `scan_momentum` - Momentum indicators (RSI, MACD, Stochastic)
+- `scan_trend` - Trend indicators (ADX, SMAs)
+- `scan_volatility` - Volatility indicators (ATR, Bollinger Bands)
+- `scan_volume` - Volume indicators (OBV, Volume SMA, CMF)
 
 ## API Endpoints
 
@@ -206,17 +235,31 @@ curl -X POST http://localhost:9000/api/v1/bulk-download \
 GET /api/v1/data/{symbol}
 ```
 
-Retrieves stored daily data for a symbol from GCS with Redis caching.
+Retrieves stored daily data for a symbol from GCS with Redis caching, including technical indicators.
 
 **Parameters:**
 - `symbol` (path parameter): Stock symbol
 - `start_date` (query parameter, optional): Filter data from this date
 - `end_date` (query parameter, optional): Filter data until this date
+- `indicators` (query parameter, optional): Indicators to include
+  - Omit for default indicators
+  - Use empty string `""` for no indicators
+  - Use predefined sets: `default`, `chart_basic`, `chart_advanced`, `chart_full`, `all`
+  - Use comma-separated list: `ADX_14,RSI_14,MACD`
 
 **Example Requests:**
 ```bash
-# Get all data
+# Get all data with default indicators
 curl http://localhost:9000/api/v1/data/AAPL
+
+# Get data without indicators
+curl "http://localhost:9000/api/v1/data/AAPL?indicators="
+
+# Get data with all indicators
+curl "http://localhost:9000/api/v1/data/AAPL?indicators=all"
+
+# Get data with specific indicators
+curl "http://localhost:9000/api/v1/data/AAPL?indicators=ADX_14,RSI_14,MACD"
 
 # Get data for specific date range
 curl "http://localhost:9000/api/v1/data/AAPL?start_date=2024-01-01&end_date=2024-12-31"
@@ -321,6 +364,160 @@ curl http://localhost:9000/api/v1/list
   "symbols": ["AAPL", "GOOGL", "MSFT", "SPY", "QQQ"],
   "count": 5
 }
+```
+
+#### 5. Get Chart Data
+```
+GET /api/v1/chart/{symbol}
+```
+
+Get data optimized for charting with timestamps and configurable indicators.
+
+**Parameters:**
+- `symbol` (path parameter): Stock symbol
+- `period` (query parameter, optional): Time period - "3mo", "6mo", "1y", "2y", "5y" (default: "1y")
+- `indicators` (query parameter, optional): Indicators to include (default: "chart_basic")
+  - Use predefined sets: `chart_basic`, `chart_advanced`, `chart_full`, `default`
+  - Use `all` for all available indicators
+  - Use comma-separated list: `ADX_14,RSI_14,SMA_20`
+
+**Example Requests:**
+```bash
+# Get 1 year of chart data with basic indicators
+curl http://localhost:9000/api/v1/chart/AAPL
+
+# Get 3 months with full indicators including ADX
+curl "http://localhost:9000/api/v1/chart/AAPL?period=3mo&indicators=chart_full"
+
+# Get 2 years with specific indicators
+curl "http://localhost:9000/api/v1/chart/AAPL?period=2y&indicators=ADX_14,RSI_14,MACD"
+```
+
+**Response Format:**
+```json
+{
+  "symbol": "AAPL",
+  "period": "1y",
+  "ohlc": [[timestamp, open, high, low, close], ...],
+  "volume": [[timestamp, volume], ...],
+  "indicators": {
+    "ADX_14": {
+      "ADX": [[timestamp, value], ...],
+      "DI+": [[timestamp, value], ...],
+      "DI-": [[timestamp, value], ...]
+    },
+    "RSI_14": {
+      "RSI": [[timestamp, value], ...]
+    }
+  }
+}
+```
+
+#### 6. List Available Indicators
+```
+GET /api/v1/indicators
+```
+
+Get all available technical indicators with their metadata and predefined sets.
+
+**Example Request:**
+```bash
+curl http://localhost:9000/api/v1/indicators
+```
+
+**Response:**
+```json
+{
+  "indicators": [
+    {
+      "name": "ADX_14",
+      "category": "trend",
+      "display_name": "Average Directional Index (14)",
+      "description": "14-day ADX measuring trend strength",
+      "outputs": ["ADX", "DI+", "DI-"]
+    },
+    // ... more indicators
+  ],
+  "indicator_sets": {
+    "default": ["SMA_20", "SMA_50", "RSI_14", "MACD", "VOLUME_SMA_20", "ADX_14"],
+    "chart_basic": ["SMA_20", "SMA_50", "VOLUME_SMA_20"],
+    // ... more sets
+  }
+}
+```
+
+### Scanning Endpoints
+
+#### 1. Scan Stocks
+```
+POST /api/v1/scan
+```
+
+Scan multiple stocks based on technical indicator conditions.
+
+**Request Body:**
+```json
+{
+  "symbols": ["AAPL", "GOOGL", "MSFT", "AMZN"],
+  "conditions": [
+    {
+      "indicator": "RSI_14",
+      "operator": "<",
+      "value": 30
+    },
+    {
+      "indicator": "PRICE",
+      "operator": "above",
+      "indicator_ref": "SMA_50"
+    }
+  ],
+  "return_data": ["latest_price", "volume", "RSI_14"],
+  "as_of_date": "2024-12-12"  // optional
+}
+```
+
+**Supported Operators:**
+- Numeric comparisons: `<`, `>`, `<=`, `>=`, `=`, `!=`
+- Indicator comparisons: `above`, `below`
+- Crossovers: `crosses_above`, `crosses_below`
+
+**Example Request:**
+```bash
+# Find oversold stocks (RSI < 30) trading above their 50-day SMA
+curl -X POST http://localhost:9000/api/v1/scan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbols": ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"],
+    "conditions": [
+      {"indicator": "RSI_14", "operator": "<", "value": 30},
+      {"indicator": "PRICE", "operator": "above", "indicator_ref": "SMA_50"}
+    ]
+  }'
+```
+
+**Response:**
+```json
+[
+  {
+    "symbol": "MSFT",
+    "matches": true,
+    "data": {
+      "latest_price": 380.52,
+      "volume": 25432100,
+      "RSI_14": 28.45,
+      "SMA_50": 375.20
+    }
+  },
+  {
+    "symbol": "AAPL",
+    "matches": false,
+    "data": {
+      "latest_price": 195.71,
+      "volume": 48087703,
+      "RSI_14": 45.67
+    }
+  }
+]
 ```
 
 ### Weekly Data Endpoints
@@ -646,6 +843,38 @@ Each JSON file contains:
       "volume": 48087703
     }
   ],
+  "indicators": {
+    "ADX_14": {
+      "name": "ADX_14",
+      "display_name": "Average Directional Index (14)",
+      "category": "trend",
+      "parameters": {"period": 14},
+      "values": [
+        {
+          "date": "2024-12-12",
+          "values": {
+            "ADX": 35.89,
+            "DI+": 29.35,
+            "DI-": 14.96
+          }
+        }
+      ]
+    },
+    "RSI_14": {
+      "name": "RSI_14",
+      "display_name": "Relative Strength Index (14)",
+      "category": "momentum",
+      "parameters": {"period": 14},
+      "values": [
+        {
+          "date": "2024-12-12",
+          "values": {
+            "RSI": 57.36
+          }
+        }
+      ]
+    }
+  },
   "metadata": {
     "total_records": 5248,
     "missing_dates": [],
@@ -729,15 +958,23 @@ gcloud run deploy stock-data-service \
 - ✅ Sync endpoints for existing data
 - ✅ Cache management for weekly data
 
-### Phase 3: Cloud Run Deployment (Next)
+### Phase 3: Technical Indicators (Completed ✅)
+- ✅ Integrated ta library for technical analysis
+- ✅ Automatic calculation of 11+ indicators
+- ✅ ADX with DI+ and DI- components
+- ✅ Chart-optimized API endpoint
+- ✅ Configurable indicator sets
+- ✅ Indicator calculation for both daily and weekly data
+
+### Phase 4: Cloud Run Deployment (Next)
 - Deploy to Google Cloud Run
 - Configure production environment
 - Set up monitoring and alerting
 - Implement health checks
 
-### Phase 4: Advanced Features (Future)
+### Phase 5: Advanced Features (Future)
 - Monthly data aggregation
-- Technical indicators calculation
+- Advanced scanning endpoints
 - Batch processing improvements
 - Data export features
 
