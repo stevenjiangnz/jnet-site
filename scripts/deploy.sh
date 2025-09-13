@@ -89,12 +89,12 @@ gcloud run deploy jnetsolution-frontend \
     --allow-unauthenticated \
     --set-env-vars "NODE_ENV=production,NEXT_PUBLIC_SUPABASE_URL=https://lwksceirjogxlhohbkcs.supabase.co,NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3a3NjZWlyam9neGxob2hia2NzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MDk1MzgsImV4cCI6MjA3Mjk4NTUzOH0.c1W743KiBjCyTCmYUS9Xa2aWVRqqw3eg4oR5ZvA6SB8"
 
-# Deploy stock-data-service
+# Deploy stock-data-service (allow unauthenticated for public API access)
 gcloud run deploy jnetsolution-stock-data \
     --image "$DOCKER_USERNAME/jnet-stock-data-service:latest" \
     --platform managed \
     --region $REGION \
-    --no-allow-unauthenticated \
+    --allow-unauthenticated \
     --set-env-vars "ENVIRONMENT=production,LOG_LEVEL=INFO" \
     --memory 512Mi \
     --cpu 1

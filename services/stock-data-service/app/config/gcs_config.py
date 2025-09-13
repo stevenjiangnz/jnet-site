@@ -30,5 +30,7 @@ class GCSConfig:
         if environment == "production":
             if not self.project_id:
                 raise ValueError("GCS_PROJECT_ID must be set in production")
-            if not self.credentials_path or not Path(self.credentials_path).exists():
-                raise ValueError("Valid GCS_CREDENTIALS_PATH must be set in production")
+            # In Cloud Run, we use default service account credentials
+            # Only validate credentials path if it's provided
+            if self.credentials_path and not Path(self.credentials_path).exists():
+                raise ValueError("GCS_CREDENTIALS_PATH is set but file does not exist")
