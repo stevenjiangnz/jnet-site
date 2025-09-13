@@ -19,6 +19,9 @@ from app.services.storage_paths import StoragePaths
 from app.services.simple_cache import get_cache
 from app.services.cache_keys import CacheKeys
 from app.services.weekly_aggregator import WeeklyAggregator
+from app.indicators.calculator import IndicatorCalculator
+from app.indicators.config import DEFAULT_INDICATORS
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +33,11 @@ class StockDataDownloader:
         """Initialize the downloader with GCS storage."""
         self.storage = GCSStorageManager()
         self.weekly_aggregator = WeeklyAggregator()
+        self.indicator_calculator = IndicatorCalculator()
+        self.calculate_indicators_enabled = getattr(
+            settings, "ENABLE_INDICATOR_CALCULATION", True
+        )
+        self.default_indicators = DEFAULT_INDICATORS
 
     async def download_symbol(
         self,
@@ -68,6 +76,19 @@ class StockDataDownloader:
 
             # Convert DataFrame to our data model
             stock_data = await self._convert_to_stock_data(symbol, df)
+
+            # Calculate indicators if enabled
+            if self.calculate_indicators_enabled:
+                logger.info(f"Calculating indicators for {symbol}")
+                indicators = await self.indicator_calculator.calculate_for_data(
+                    stock_data, self.default_indicators
+                )
+                # Convert indicator models to dict for storage
+                stock_data.indicators = {
+                    name: indicator_data.model_dump(mode="json")
+                    for name, indicator_data in indicators.items()
+                }
+                logger.info(f"Calculated {len(indicators)} indicators for {symbol}")
 
             # Store in GCS
             storage_path = StoragePaths.get_daily_path(symbol)
@@ -155,6 +176,49 @@ class StockDataDownloader:
 
         except Exception as e:
             logger.error(f"Error retrieving data for {symbol}: {str(e)}")
+            return None
+
+    async def get_weekly_data(self, symbol: str) -> Optional[WeeklyDataFile]:
+        """
+        Retrieve stored weekly data for a symbol from GCS.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            WeeklyDataFile object or None if not found
+        """
+        try:
+            storage_path = StoragePaths.get_weekly_path(symbol)
+            data_dict = await self.storage.download_json(storage_path)
+
+            if data_dict:
+                # Convert date strings back to date objects
+                for point in data_dict["data_points"]:
+                    point["week_ending"] = datetime.fromisoformat(
+                        point["week_ending"]
+                    ).date()
+                    point["week_start"] = datetime.fromisoformat(
+                        point["week_start"]
+                    ).date()
+
+                data_dict["data_range"]["start"] = datetime.fromisoformat(
+                    data_dict["data_range"]["start"]
+                ).date()
+                data_dict["data_range"]["end"] = datetime.fromisoformat(
+                    data_dict["data_range"]["end"]
+                ).date()
+
+                data_dict["last_updated"] = datetime.fromisoformat(
+                    data_dict["last_updated"]
+                )
+
+                return WeeklyDataFile(**data_dict)
+
+            return None
+
+        except Exception as e:
+            logger.error(f"Error retrieving weekly data for {symbol}: {str(e)}")
             return None
 
     async def list_available_symbols(self) -> List[str]:
@@ -292,6 +356,21 @@ class StockDataDownloader:
                     source="yahoo_finance",
                 ),
             )
+
+            # Calculate indicators for weekly data if enabled
+            if self.calculate_indicators_enabled:
+                logger.info(f"Calculating weekly indicators for {daily_data.symbol}")
+                indicators = await self.indicator_calculator.calculate_for_data(
+                    weekly_data, self.default_indicators
+                )
+                # Convert indicator models to dict for storage
+                weekly_data.indicators = {
+                    name: indicator_data.model_dump(mode="json")
+                    for name, indicator_data in indicators.items()
+                }
+                logger.info(
+                    f"Calculated {len(indicators)} weekly indicators for {daily_data.symbol}"
+                )
 
             # Store in GCS
             storage_path = StoragePaths.get_weekly_path(daily_data.symbol)
