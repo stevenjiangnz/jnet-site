@@ -155,7 +155,11 @@ jobs:
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars="VERSION=${{ needs.version.outputs.semVer }}"
+            --service-account 506487697841-compute@developer.gserviceaccount.com \
+            --set-env-vars="ENVIRONMENT=production,LOG_LEVEL=INFO,GCS_BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }},GCS_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},API_KEY=${{ secrets.STOCK_DATA_SERVICE_API_KEY }},VERSION=${{ needs.version.outputs.semVer }}" \
+            --memory 512Mi \
+            --cpu 1 \
+            --port 9000
             
       - name: Get Service URL
         run: |

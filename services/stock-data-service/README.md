@@ -1,6 +1,6 @@
 # Stock Data Service
 
-A Python-based microservice for downloading and managing stock/ETF end-of-day (EOD) data from Yahoo Finance with Google Cloud Storage persistence and Redis caching.
+A Python-based microservice for downloading and managing stock/ETF end-of-day (EOD) data from Yahoo Finance with Google Cloud Storage persistence, Redis caching, and API key authentication. Deployed on Google Cloud Run at https://stock-data-service-506487697841.us-central1.run.app/
 
 ## Features
 
@@ -10,12 +10,14 @@ A Python-based microservice for downloading and managing stock/ETF end-of-day (E
 - **Technical Indicators** - Automatic calculation of 11+ indicators including ADX with DI+/DI-
 - **Google Cloud Storage (GCS)** for persistent data storage with atomic writes
 - **Upstash Redis** caching via REST API for high-performance data access
+- **API Key Authentication** for production security
 - RESTful API endpoints with comprehensive documentation
 - Symbol data deletion with cache invalidation
 - Rate limiting to respect Yahoo Finance limits
 - Automatic data validation
 - Structured data models with Pydantic
 - Comprehensive test coverage
+- **Automatic Gap Filling** for incremental data updates
 
 ## Tech Stack
 
@@ -141,6 +143,28 @@ The service automatically calculates technical indicators for all downloaded dat
 - `scan_trend` - Trend indicators (ADX, SMAs)
 - `scan_volatility` - Volatility indicators (ATR, Bollinger Bands)
 - `scan_volume` - Volume indicators (OBV, Volume SMA, CMF)
+
+## Production Usage
+
+The service is deployed at https://stock-data-service-506487697841.us-central1.run.app/
+
+### Authentication
+
+All `/api/v1/*` endpoints require API key authentication in production. Include your API key in one of these headers:
+
+```bash
+# Using X-API-Key header
+curl -H "X-API-Key: your-api-key" https://stock-data-service-506487697841.us-central1.run.app/api/v1/list
+
+# Using Authorization Bearer header
+curl -H "Authorization: Bearer your-api-key" https://stock-data-service-506487697841.us-central1.run.app/api/v1/list
+```
+
+Public endpoints (no authentication required):
+- `/health` - Health check
+- `/docs` - Interactive API documentation
+- `/openapi.json` - OpenAPI specification
+- `/redoc` - Alternative API documentation
 
 ## API Endpoints
 
@@ -1042,6 +1066,45 @@ uv run ruff check --fix .
 ```
 
 **Pre-commit Hooks**: Once installed, Black and Ruff will run automatically before each commit to ensure code quality.
+
+## Deployment
+
+### Local Deployment
+```bash
+# Build and run with Docker
+docker build -t stock-data-service .
+docker run -p 9000:9000 --env-file .env stock-data-service
+
+# Or use Docker Compose with other services
+docker-compose up stock-data-service
+```
+
+### Cloud Run Deployment
+```bash
+# Deploy using the deployment script (reads from .env file)
+./scripts/deploy-stock-data-service.sh jnet-site
+
+# Manual deployment
+gcloud run deploy stock-data-service \
+  --image stevenjiangnz/jnet-stock-data-service:latest \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --port 9000 \
+  --set-env-vars "API_KEY=your-key,GCS_BUCKET_NAME=your-bucket,..."
+```
+
+### CI/CD Pipeline
+
+The service uses GitHub Actions for automated deployment:
+- **Develop branch**: Builds and pushes Docker image with `develop` tag
+- **Main branch**: Creates semantic version, tags, and deploys to Cloud Run
+
+Required GitHub Secrets:
+- `STOCK_DATA_SERVICE_API_KEY`
+- `GCS_BUCKET_NAME`
+- `GCP_PROJECT_ID`
+- `GCP_SA_KEY`
+- `DOCKER_HUB_TOKEN`
 
 ## Contributing
 

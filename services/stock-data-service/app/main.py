@@ -7,6 +7,7 @@ from app.config import settings, VERSION
 from app.api.v1.router import api_router
 from app.services.gcs_storage import GCSStorageManager
 from app.services.simple_cache import SimpleCache
+from app.middleware.auth import APIKeyMiddleware
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
@@ -33,6 +34,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Stock Data Service", version=VERSION, lifespan=lifespan)
+
+# Add API Key middleware
+app.add_middleware(APIKeyMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

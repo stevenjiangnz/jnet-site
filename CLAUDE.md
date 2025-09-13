@@ -178,6 +178,14 @@ docker-compose exec stock-data-service uv add <package-name>
 # - Automatic gap filling for incremental downloads
 # - GCS storage with cache invalidation
 # - 20+ years of historical data support
+# - API key authentication for production endpoints
+# - Technical indicators support (ADX, DI+, DI-)
+
+# Deploy to Cloud Run (uses .env file for configuration)
+./scripts/deploy-stock-data-service.sh jnet-site
+
+# Production URL: https://stock-data-service-506487697841.us-central1.run.app
+# API requires X-API-Key header or Authorization: Bearer header
 ```
 
 ### Database Operations
@@ -303,9 +311,12 @@ Frontend (Next.js) :3110 (Docker) / :3100 (Local dev)
 
 - **Stock Data Service**: Python FastAPI with uv
   - Stock/ETF EOD data download from Yahoo Finance
-  - Local file storage (JSON/CSV)
-  - Bulk download support
+  - GCS (Google Cloud Storage) for data persistence
+  - Bulk download support with automatic gap filling
   - Rate limiting for API compliance
+  - Technical indicators calculation (ADX, DI+, DI-, more coming)
+  - API key authentication in production
+  - Redis caching with Upstash
 
 ### Key Patterns
 
@@ -341,6 +352,13 @@ DATABASE_URL=Server=db;Database=jnetsolution;User=dev;Password=devpass;
 
 # User/Content Services
 DATABASE_URL=postgresql://dev:devpass@db:5432/jnetsolution
+
+# Stock Data Service
+GCS_PROJECT_ID=jnet-site
+GCS_BUCKET_NAME=jnet-site-stock-data
+STOCK_DATA_SERVICE_API_KEY=<your-api-key>  # Required for production
+UPSTASH_REDIS_URL=<your-redis-url>  # For caching
+UPSTASH_REDIS_TOKEN=<your-redis-token>
 ```
 
 ### Docker Development Setup
@@ -352,10 +370,12 @@ DATABASE_URL=postgresql://dev:devpass@db:5432/jnetsolution
 ### Production Deployment (Google Cloud Run)
 - Each service deploys as separate Cloud Run service
 - Frontend: Public access (`--allow-unauthenticated`)
-- Backend services: Require authentication
+- Stock Data Service: Public access with API key authentication
+- Other backend services: Require authentication
 - Environment variables set via Cloud Run UI or gcloud CLI
 - Cloud SQL for production database
 - Images pushed to Docker Hub as `<username>/jnet-<service>:<version>`
+- Stock Data Service uses default service account (506487697841-compute@developer.gserviceaccount.com)
 
 ### Common Development Tasks
 
@@ -411,6 +431,8 @@ Commit message conventions for automatic versioning:
 - `GCP_SA_KEY`: Service account JSON key for Cloud Run deployment
 - `DOCKER_HUB_TOKEN`: Docker Hub access token for image push
 - `DOCKER_USERNAME` (optional): Docker Hub username (defaults to 'stevenjiangnz')
+- `STOCK_DATA_SERVICE_API_KEY`: API key for stock data service authentication
+- `GCS_BUCKET_NAME`: GCS bucket name for stock data storage
 ```
 
 ## Documentation
@@ -423,3 +445,6 @@ Commit message conventions for automatic versioning:
 
 ## Cloud Environments
 - **Production Frontend**: https://frontend-506487697841.us-central1.run.app/
+- **Stock Data Service API**: https://stock-data-service-506487697841.us-central1.run.app/
+  - API Docs: https://stock-data-service-506487697841.us-central1.run.app/docs
+  - Health Check: https://stock-data-service-506487697841.us-central1.run.app/health
