@@ -41,6 +41,11 @@ async def download_symbol(
                 status_code=404, detail=f"No data found for symbol {symbol}"
             )
 
+        # Check if weekly data was processed
+        weekly_data = await downloader.get_weekly_data(symbol)
+        weekly_processed = weekly_data is not None
+        weekly_records = len(weekly_data.data_points) if weekly_data else None
+
         return DownloadResponse(
             status="success",
             symbol=stock_data.symbol,
@@ -48,6 +53,8 @@ async def download_symbol(
             start_date=str(stock_data.data_range.start),
             end_date=str(stock_data.data_range.end),
             file_path=f"gs://{stock_data.symbol}.json",  # Simplified GCS path
+            weekly_processed=weekly_processed,
+            weekly_records=weekly_records,
         )
 
     except Exception as e:

@@ -6,9 +6,11 @@ A Python-based microservice for downloading and managing stock/ETF end-of-day (E
 
 - Download EOD data for individual stocks/ETFs from Yahoo Finance
 - Bulk download support for multiple symbols
+- **Automatic Weekly Data Aggregation** from daily data
 - **Google Cloud Storage (GCS)** for persistent data storage with atomic writes
 - **Upstash Redis** caching via REST API for high-performance data access
-- RESTful API endpoints
+- RESTful API endpoints with comprehensive documentation
+- Symbol data deletion with cache invalidation
 - Rate limiting to respect Yahoo Finance limits
 - Automatic data validation
 - Structured data models with Pydantic
@@ -78,6 +80,31 @@ curl "http://localhost:9000/api/v1/download/AAPL?start_date=2022-05-01&end_date=
 curl "http://localhost:9000/api/v1/download/AAPL?start_date=2005-01-01&end_date=2025-12-31"
 
 # Result: Complete data with no gaps for all trading days
+```
+
+### Weekly Data Aggregation
+The service automatically generates weekly aggregated data from daily data:
+- **Automatic Processing**: Weekly data is generated immediately after daily data downloads
+- **Monday-Friday Trading Weeks**: Weekly boundaries follow standard Monday-Friday trading weeks
+- **Partial Week Handling**: Correctly handles holidays and partial trading weeks
+- **OHLCV Aggregation**: 
+  - Open: Monday's opening price
+  - High: Highest price of the week
+  - Low: Lowest price of the week
+  - Close: Friday's closing price (or last trading day)
+  - Volume: Sum of daily volumes
+- **Data Consistency**: Weekly volume always equals the sum of daily volumes for validation
+
+**Example Weekly Data Usage:**
+```bash
+# Get weekly data for a symbol
+curl http://localhost:9000/api/v1/weekly/AAPL
+
+# Sync weekly data for existing daily data
+curl -X POST http://localhost:9000/api/v1/sync/weekly/AAPL
+
+# Check sync status
+curl http://localhost:9000/api/v1/sync/weekly/status
 ```
 
 ## API Endpoints
@@ -179,7 +206,7 @@ curl -X POST http://localhost:9000/api/v1/bulk-download \
 GET /api/v1/data/{symbol}
 ```
 
-Retrieves stored data for a symbol from GCS with Redis caching.
+Retrieves stored daily data for a symbol from GCS with Redis caching.
 
 **Parameters:**
 - `symbol` (path parameter): Stock symbol
@@ -296,6 +323,223 @@ curl http://localhost:9000/api/v1/list
 }
 ```
 
+### Weekly Data Endpoints
+
+#### 1. Get Weekly Data
+```
+GET /api/v1/weekly/{symbol}
+```
+
+Retrieves weekly aggregated data for a symbol.
+
+**Parameters:**
+- `symbol` (path parameter): Stock symbol
+- `start_date` (query parameter, optional): Filter data from this date
+- `end_date` (query parameter, optional): Filter data until this date
+
+**Example Requests:**
+```bash
+# Get all weekly data
+curl http://localhost:9000/api/v1/weekly/AAPL
+
+# Get weekly data for specific date range
+curl "http://localhost:9000/api/v1/weekly/AAPL?start_date=2024-01-01&end_date=2024-12-31"
+```
+
+**Response:**
+```json
+{
+  "symbol": "AAPL",
+  "data_type": "weekly",
+  "data_points": [
+    {
+      "week_start": "2024-12-09",
+      "week_end": "2024-12-13",
+      "open": 194.52,
+      "high": 195.98,
+      "low": 194.18,
+      "close": 195.71,
+      "adj_close": 195.71,
+      "volume": 245638515,
+      "trading_days": 5
+    }
+    // ... more weekly data points
+  ],
+  "start_date": "2024-01-01",
+  "end_date": "2024-12-13",
+  "record_count": 50
+}
+```
+
+#### 2. Get Latest Weekly Data
+```
+GET /api/v1/weekly/{symbol}/latest
+```
+
+Get the latest weekly data point for a symbol.
+
+**Example Request:**
+```bash
+curl http://localhost:9000/api/v1/weekly/AAPL/latest
+```
+
+**Response:**
+```json
+{
+  "symbol": "AAPL",
+  "week_start": "2024-12-09",
+  "week_end": "2024-12-13",
+  "open": 194.52,
+  "high": 195.98,
+  "low": 194.18,
+  "close": 195.71,
+  "adj_close": 195.71,
+  "volume": 245638515,
+  "trading_days": 5,
+  "change": 1.19,
+  "change_percent": 0.61
+}
+```
+
+### Sync Endpoints
+
+#### 1. Sync Weekly Data for Symbol
+```
+POST /api/v1/sync/weekly/{symbol}
+```
+
+Generate weekly data from existing daily data for a specific symbol.
+
+**Parameters:**
+- `symbol` (path parameter): Stock symbol
+- `force` (query parameter, optional): Force regeneration even if weekly data exists (default: false)
+
+**Example Request:**
+```bash
+# Sync weekly data for AAPL
+curl -X POST http://localhost:9000/api/v1/sync/weekly/AAPL
+
+# Force regeneration
+curl -X POST "http://localhost:9000/api/v1/sync/weekly/AAPL?force=true"
+```
+
+#### 2. Sync All Weekly Data
+```
+POST /api/v1/sync/weekly
+```
+
+Generate weekly data for all symbols that have daily data.
+
+**Parameters:**
+- `force` (query parameter, optional): Force regeneration even if weekly data exists (default: false)
+
+**Example Request:**
+```bash
+# Sync all symbols
+curl -X POST http://localhost:9000/api/v1/sync/weekly
+
+# Force regeneration for all
+curl -X POST "http://localhost:9000/api/v1/sync/weekly?force=true"
+```
+
+#### 3. Get Sync Status
+```
+GET /api/v1/sync/weekly/status
+```
+
+Check the status of weekly data synchronization.
+
+**Example Request:**
+```bash
+curl http://localhost:9000/api/v1/sync/weekly/status
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Weekly data sync status",
+  "data": {
+    "total_symbols_with_daily": 10,
+    "total_symbols_with_weekly": 8,
+    "symbols_missing_weekly": 2,
+    "missing_symbols": ["TSLA", "NVDA"],
+    "sync_percentage": 80.0
+  }
+}
+```
+
+### Delete Endpoints
+
+#### 1. Delete Symbol Data
+```
+DELETE /api/v1/symbol/{symbol}
+```
+
+Delete all data (daily and weekly) for a specific symbol.
+
+**Example Request:**
+```bash
+curl -X DELETE http://localhost:9000/api/v1/symbol/AAPL
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Successfully deleted data for AAPL",
+  "data": {
+    "symbol": "AAPL",
+    "daily_deleted": true,
+    "weekly_deleted": true,
+    "cache_cleared": true,
+    "errors": []
+  }
+}
+```
+
+#### 2. Delete Multiple Symbols
+```
+DELETE /api/v1/symbols
+```
+
+Delete data for multiple symbols in one request.
+
+**Request Body:**
+```json
+["AAPL", "GOOGL", "MSFT"]
+```
+
+**Example Request:**
+```bash
+curl -X DELETE http://localhost:9000/api/v1/symbols \
+  -H "Content-Type: application/json" \
+  -d '["AAPL", "GOOGL", "MSFT"]'
+```
+
+**Response:**
+```json
+{
+  "status": "completed",
+  "message": "Deleted 3 symbols, failed: 0",
+  "data": {
+    "total": 3,
+    "successful": 3,
+    "failed": 0,
+    "details": [
+      {
+        "symbol": "AAPL",
+        "daily_deleted": true,
+        "weekly_deleted": true,
+        "cache_cleared": true,
+        "errors": []
+      }
+      // ... more symbol results
+    ]
+  }
+}
+```
+
 ## Environment Variables
 
 ### Core Settings
@@ -368,12 +612,14 @@ Data is stored in Google Cloud Storage with the following organization:
 gs://your-bucket-name/
 ├── stock-data/
 │   ├── daily/
-│   │   ├── AAPL.json      # Complete historical data for Apple
-│   │   ├── GOOGL.json     # Complete historical data for Google
+│   │   ├── AAPL.json      # Complete historical daily data for Apple
+│   │   ├── GOOGL.json     # Complete historical daily data for Google
 │   │   └── [symbol].json
-│   ├── weekly/            # Future: Weekly aggregated data
+│   ├── weekly/            # Weekly aggregated data (auto-generated from daily)
+│   │   ├── AAPL.json      # Weekly data for Apple
+│   │   ├── GOOGL.json     # Weekly data for Google
 │   │   └── [symbol].json
-│   └── metadata/          # Future: System metadata
+│   └── metadata/          # System metadata
 │       ├── profile.json
 │       └── symbol-index.json
 ```
@@ -476,14 +722,21 @@ gcloud run deploy stock-data-service \
 - ✅ Comprehensive test coverage
 - ✅ CI/CD pipeline with GitHub Actions
 
-### Phase 2: Cloud Run Deployment (Next)
+### Phase 2: Weekly Data Aggregation (Completed ✅)
+- ✅ Weekly data aggregation from daily data
+- ✅ Automatic weekly processing after downloads
+- ✅ API endpoints for weekly data retrieval
+- ✅ Sync endpoints for existing data
+- ✅ Cache management for weekly data
+
+### Phase 3: Cloud Run Deployment (Next)
 - Deploy to Google Cloud Run
 - Configure production environment
 - Set up monitoring and alerting
 - Implement health checks
 
-### Phase 3: Advanced Features (Future)
-- Weekly/monthly data aggregation
+### Phase 4: Advanced Features (Future)
+- Monthly data aggregation
 - Technical indicators calculation
 - Batch processing improvements
 - Data export features

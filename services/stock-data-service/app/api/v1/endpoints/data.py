@@ -237,3 +237,110 @@ async def get_recent_data(
     await cache.set_json(cache_key, response, redis_config.cache_ttl_recent_data)
 
     return JSONResponse(content=response)
+
+
+@router.get("/weekly/{symbol}")
+async def get_weekly_data(
+    symbol: str,
+    start_date: Optional[date] = Query(None, description="Start date for data range"),
+    end_date: Optional[date] = Query(None, description="End date for data range"),
+):
+    """
+    Retrieve weekly aggregated data for a stock symbol
+    """
+    # Validate symbol
+    if not validate_symbol(symbol):
+        raise HTTPException(status_code=400, detail="Invalid symbol format")
+
+    downloader = StockDataDownloader()
+    cache = get_cache()
+
+    # Check cache first if no specific date range requested
+    if not start_date and not end_date:
+        cache_key = CacheKeys.weekly_data(symbol)
+        cached_data = await cache.get_json(cache_key)
+        if cached_data:
+            logger.info(f"Cache hit for {symbol} weekly data")
+            return JSONResponse(content=cached_data)
+
+    # Get weekly data from GCS
+    weekly_data = await downloader.get_weekly_data(symbol)
+
+    if not weekly_data:
+        raise HTTPException(
+            status_code=404, detail=f"No weekly data found for symbol {symbol}"
+        )
+
+    # Filter by date range if specified
+    if start_date or end_date:
+        filtered_points = []
+        for point in weekly_data.data_points:
+            if start_date and point.week_ending < start_date:
+                continue
+            if end_date and point.week_start > end_date:
+                continue
+            filtered_points.append(point)
+        weekly_data.data_points = filtered_points
+
+    # Convert to dict for response
+    response_data = weekly_data.to_dict()
+
+    # Cache the full data if no date range specified
+    if not start_date and not end_date:
+        cache_key = CacheKeys.weekly_data(symbol)
+        await cache.set_json(
+            cache_key, response_data, redis_config.cache_ttl_recent_data
+        )
+
+    return JSONResponse(content=response_data)
+
+
+@router.get("/weekly/{symbol}/latest")
+async def get_latest_weekly(symbol: str):
+    """
+    Get the latest weekly data point for a symbol
+    """
+    # Validate symbol
+    if not validate_symbol(symbol):
+        raise HTTPException(status_code=400, detail="Invalid symbol format")
+
+    cache = get_cache()
+    downloader = StockDataDownloader()
+
+    # Check cache first
+    cache_key = f"weekly:latest:{symbol}"
+    cached_data = await cache.get_json(cache_key)
+
+    if cached_data:
+        logger.info(f"Cache hit for {symbol} latest weekly data")
+        return JSONResponse(content=cached_data)
+
+    # Get weekly data from GCS
+    weekly_data = await downloader.get_weekly_data(symbol)
+
+    if not weekly_data or not weekly_data.data_points:
+        raise HTTPException(
+            status_code=404, detail=f"No weekly data found for symbol {symbol}"
+        )
+
+    # Get latest week
+    latest = weekly_data.data_points[-1]
+    latest_weekly = {
+        "symbol": symbol.upper(),
+        "week_start": latest.week_start.isoformat(),
+        "week_ending": latest.week_ending.isoformat(),
+        "open": latest.open,
+        "high": latest.high,
+        "low": latest.low,
+        "close": latest.close,
+        "adj_close": latest.adj_close,
+        "volume": latest.volume,
+        "trading_days": latest.trading_days,
+        "change": round(latest.close - latest.open, 2),
+        "change_percent": round(((latest.close - latest.open) / latest.open) * 100, 2),
+    }
+
+    # Cache with medium TTL
+    await cache.set_json(cache_key, latest_weekly, redis_config.cache_ttl_recent_data)
+
+    return JSONResponse(content=latest_weekly)

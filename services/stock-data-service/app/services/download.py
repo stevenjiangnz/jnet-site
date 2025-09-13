@@ -11,11 +11,14 @@ from app.models.stock_data import (
     StockDataPoint,
     DataRange,
     StockMetadata,
+    WeeklyDataFile,
+    WeeklyDataPoint,
 )
 from app.services.gcs_storage import GCSStorageManager
 from app.services.storage_paths import StoragePaths
 from app.services.simple_cache import get_cache
 from app.services.cache_keys import CacheKeys
+from app.services.weekly_aggregator import WeeklyAggregator
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +29,7 @@ class StockDataDownloader:
     def __init__(self):
         """Initialize the downloader with GCS storage."""
         self.storage = GCSStorageManager()
+        self.weekly_aggregator = WeeklyAggregator()
 
     async def download_symbol(
         self,
@@ -71,6 +75,9 @@ class StockDataDownloader:
 
             if success:
                 logger.info(f"Successfully stored {symbol} data to GCS")
+
+                # Process and store weekly data
+                await self._process_weekly_data(stock_data)
 
                 # Invalidate cache after successful upload
                 cache = get_cache()
@@ -249,3 +256,106 @@ class StockDataDownloader:
         except Exception as e:
             logger.error(f"Error downloading latest data for {symbol}: {str(e)}")
             return False
+
+    async def _process_weekly_data(self, daily_data: StockDataFile) -> bool:
+        """
+        Process daily data into weekly aggregates and store in GCS.
+
+        Args:
+            daily_data: Daily stock data file
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            logger.info(f"Processing weekly data for {daily_data.symbol}")
+
+            # Aggregate daily data to weekly
+            weekly_points = self.weekly_aggregator.aggregate_to_weekly(
+                daily_data.data_points
+            )
+
+            if not weekly_points:
+                logger.warning(f"No weekly data generated for {daily_data.symbol}")
+                return False
+
+            # Create weekly data file
+            weekly_data = WeeklyDataFile(
+                symbol=daily_data.symbol,
+                data_type="weekly",
+                last_updated=datetime.utcnow(),
+                data_range=daily_data.data_range,  # Same range as daily
+                data_points=weekly_points,
+                metadata=StockMetadata(
+                    total_records=len(weekly_points),
+                    trading_days=daily_data.metadata.trading_days,
+                    source="yahoo_finance",
+                ),
+            )
+
+            # Store in GCS
+            storage_path = StoragePaths.get_weekly_path(daily_data.symbol)
+            success = await self.storage.upload_json(
+                storage_path, weekly_data.to_dict()
+            )
+
+            if success:
+                logger.info(
+                    f"Successfully stored weekly data for {daily_data.symbol} to GCS"
+                )
+
+                # Invalidate weekly cache
+                cache = get_cache()
+                cache_key = CacheKeys.weekly_data(daily_data.symbol)
+                await cache.delete(cache_key)
+
+            return success
+
+        except Exception as e:
+            logger.error(
+                f"Error processing weekly data for {daily_data.symbol}: {str(e)}"
+            )
+            return False
+
+    async def get_weekly_data(self, symbol: str) -> Optional[WeeklyDataFile]:
+        """
+        Retrieve weekly data for a symbol from GCS.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            WeeklyDataFile object or None if not found
+        """
+        try:
+            storage_path = StoragePaths.get_weekly_path(symbol)
+            data_dict = await self.storage.download_json(storage_path)
+
+            if data_dict:
+                # Convert date strings back to date objects
+                for point in data_dict["data_points"]:
+                    point["week_ending"] = datetime.fromisoformat(
+                        point["week_ending"]
+                    ).date()
+                    point["week_start"] = datetime.fromisoformat(
+                        point["week_start"]
+                    ).date()
+
+                data_dict["data_range"]["start"] = datetime.fromisoformat(
+                    data_dict["data_range"]["start"]
+                ).date()
+                data_dict["data_range"]["end"] = datetime.fromisoformat(
+                    data_dict["data_range"]["end"]
+                ).date()
+
+                data_dict["last_updated"] = datetime.fromisoformat(
+                    data_dict["last_updated"]
+                )
+
+                return WeeklyDataFile(**data_dict)
+
+            return None
+
+        except Exception as e:
+            logger.error(f"Error retrieving weekly data for {symbol}: {str(e)}")
+            return None
