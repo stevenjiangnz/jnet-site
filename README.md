@@ -11,6 +11,7 @@ Personal public site with microservices architecture, built with modern web tech
 - **User Service**: Python FastAPI for user management
 - **Content Service**: Node.js Express for blog and portfolio content
 - **Stock Data Service**: Python FastAPI with uv for stock/ETF EOD data downloading
+- **API Service**: Python FastAPI for business logic (backtesting, scanning, analysis, notifications)
 - **Local Database**: PostgreSQL 15 (for non-auth services)
 
 ## 🚀 Quick Start
@@ -122,6 +123,18 @@ The stock-data service downloads EOD (End of Day) stock and ETF data from Yahoo 
 - **API Documentation**: Available at http://localhost:9001/docs
 - **Volume Mount**: Uses Docker external volume to persist data across container restarts
 
+### API Service
+
+The API service provides business logic layer for trading and analysis features:
+
+- **Backtesting**: Run trading strategies using Backtrader
+- **Stock Scanner**: Find stocks matching specific criteria
+- **Technical Analysis**: Calculate indicators and generate trading signals
+- **Alerts**: Price and indicator-based alert system
+- **Notifications**: Push notifications via Pushover and email
+- **API Documentation**: Available at http://localhost:8002/docs
+- **Stock Data Endpoints**: Formatted data for Highcharts frontend integration
+
 ### Local Development (without Docker)
 
 ```bash
@@ -131,6 +144,7 @@ The stock-data service downloads EOD (End of Day) stock and ETF data from Yahoo 
 ./scripts/local-start-user.sh         # User service on port 8000
 ./scripts/local-start-content.sh      # Content service on port 3000
 ./scripts/local-start-stock-data.sh   # Stock Data service on port 9000
+cd services/api-service && ./scripts/run_local.sh  # API service on port 8002
 
 # Build all services locally
 ./scripts/local-build-all.sh

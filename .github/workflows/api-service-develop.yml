@@ -1,0 +1,39 @@
+name: API Service - Develop
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'services/api-service/**'
+      - '.github/workflows/api-service-develop.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install uv
+        run: pip install uv
+      - name: Install dependencies
+        run: cd services/api-service && uv sync
+      - name: Run tests
+        run: cd services/api-service && uv run pytest
+      - name: Run linting
+        run: cd services/api-service && ./scripts/lint.sh
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: |
+          cd services/api-service
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/jnet-api-service:develop .
+      - name: Push to Docker Hub
+        run: |
+          echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker push ${{ secrets.DOCKER_USERNAME }}/jnet-api-service:develop
