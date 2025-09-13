@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     # Storage
     max_file_age_days: int = 365
     default_data_format: str = "json"
-    
+
     # Weekly data settings
     weekly_data_enabled: bool = True
     weekly_aggregation_delay: int = 0  # Process immediately

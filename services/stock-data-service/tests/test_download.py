@@ -88,7 +88,7 @@ async def test_download_symbol_success(
 
     # Verify storage was called twice (daily + weekly)
     assert mock_gcs_storage.upload_json.call_count == 2
-    
+
     # Verify cache was invalidated
     assert mock_cache.delete.call_count == 2
 

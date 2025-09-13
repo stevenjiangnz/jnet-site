@@ -63,9 +63,9 @@ class TestWeeklyAggregator:
         """Test aggregating a full trading week."""
         week_start = date(2024, 1, 8)
         week_end = date(2024, 1, 12)
-        
+
         result = aggregator.aggregate_week(sample_daily_data, week_start, week_end)
-        
+
         assert result.week_start == week_start
         assert result.week_ending == week_end
         assert result.open == 100.0  # First day's open
@@ -73,7 +73,9 @@ class TestWeeklyAggregator:
         assert result.adj_close == 107.0  # Last day's adj_close
         assert result.high == 109.0  # Max high (105 + 4)
         assert result.low == 99.0  # Min low
-        assert result.volume == 6000000  # Sum of all volumes (1000000 + 1100000 + 1200000 + 1300000 + 1400000)
+        assert (
+            result.volume == 6000000
+        )  # Sum of all volumes (1000000 + 1100000 + 1200000 + 1300000 + 1400000)
         assert result.trading_days == 5
 
     def test_aggregate_week_partial_week(self, aggregator):
@@ -108,12 +110,12 @@ class TestWeeklyAggregator:
                 volume=1200000,
             ),
         ]
-        
+
         week_start = date(2024, 1, 8)
         week_end = date(2024, 1, 12)
-        
+
         result = aggregator.aggregate_week(data, week_start, week_end)
-        
+
         assert result.open == 100.0
         assert result.close == 105.0
         assert result.high == 107.0
@@ -139,9 +141,9 @@ class TestWeeklyAggregator:
                 volume=1000000,
             )
         ]
-        
+
         result = aggregator.aggregate_to_weekly(data)
-        
+
         assert len(result) == 1
         weekly = result[0]
         assert weekly.week_start == date(2024, 1, 8)
@@ -179,11 +181,11 @@ class TestWeeklyAggregator:
                     volume=1100000,
                 )
             )
-        
+
         result = aggregator.aggregate_to_weekly(data)
-        
+
         assert len(result) == 2
-        
+
         # Check first week
         week1 = result[0]
         assert week1.week_start == date(2024, 1, 8)
@@ -191,7 +193,7 @@ class TestWeeklyAggregator:
         assert week1.open == 100.0
         assert week1.close == 107.0
         assert week1.trading_days == 5
-        
+
         # Check second week
         week2 = result[1]
         assert week2.week_start == date(2024, 1, 15)
@@ -231,9 +233,9 @@ class TestWeeklyAggregator:
                 volume=1100000,
             ),
         ]
-        
+
         result = aggregator.aggregate_to_weekly(data)
-        
+
         assert len(result) == 1
         weekly = result[0]
         assert weekly.open == 100.0  # Monday's open
@@ -283,9 +285,9 @@ class TestWeeklyAggregator:
                 volume=1300000,
             ),
         ]
-        
+
         result = aggregator.aggregate_to_weekly(data)
-        
+
         assert len(result) == 1
         weekly = result[0]
         assert weekly.trading_days == 4  # Only 4 trading days
@@ -298,16 +300,16 @@ class TestWeeklyAggregator:
         # Start mid-week, end mid-week
         start = date(2024, 1, 10)  # Wednesday
         end = date(2024, 1, 24)  # Wednesday of next week
-        
+
         boundaries = aggregator.get_partial_week_boundaries(start, end)
-        
+
         assert len(boundaries) == 3
-        
+
         # First partial week
         assert boundaries[0] == (date(2024, 1, 10), date(2024, 1, 12))
-        
+
         # Full week
         assert boundaries[1] == (date(2024, 1, 15), date(2024, 1, 19))
-        
+
         # Last partial week
         assert boundaries[2] == (date(2024, 1, 22), date(2024, 1, 24))
