@@ -1,7 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+
 from app.config import settings
+from app.main import app
 
 
 @pytest.fixture
@@ -23,7 +24,7 @@ def mock_stock_data():
             "high": 105.0,
             "low": 99.0,
             "close": 103.0,
-            "volume": 1000000
+            "volume": 1000000,
         },
         {
             "date": "2024-01-02",
@@ -31,6 +32,6 @@ def mock_stock_data():
             "high": 107.0,
             "low": 102.0,
             "close": 106.0,
-            "volume": 1200000
-        }
+            "volume": 1200000,
+        },
     ]

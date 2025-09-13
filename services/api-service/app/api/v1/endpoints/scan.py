@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException
-from typing import Dict, Any, List
 import logging
+from typing import Any, Dict, List
 
-from app.models.scan import ScanRequest, ScanResponse, ScanPreset
+from fastapi import APIRouter, HTTPException
 
+from app.models.scan import ScanPreset, ScanRequest, ScanResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -13,9 +13,7 @@ logger = logging.getLogger(__name__)
 async def create_scan(request: ScanRequest) -> ScanResponse:
     # TODO: Implement scan logic
     return ScanResponse(
-        symbols=[],
-        total_count=0,
-        message="Scan functionality coming soon"
+        symbols=[], total_count=0, message="Scan functionality coming soon"
     )
 
 
@@ -26,11 +24,7 @@ async def get_scan_presets() -> List[ScanPreset]:
             id="momentum_breakout",
             name="Momentum Breakout",
             description="Stocks breaking out on high volume",
-            criteria={
-                "volume_ratio": ">2",
-                "price_change": ">5%",
-                "rsi": ">70"
-            }
+            criteria={"volume_ratio": ">2", "price_change": ">5%", "rsi": ">70"},
         ),
         ScanPreset(
             id="oversold_bounce",
@@ -39,9 +33,9 @@ async def get_scan_presets() -> List[ScanPreset]:
             criteria={
                 "rsi": "<30",
                 "price_position": "near_support",
-                "volume": "increasing"
-            }
-        )
+                "volume": "increasing",
+            },
+        ),
     ]
     return presets
 

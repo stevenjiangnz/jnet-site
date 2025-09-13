@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException
-from typing import Dict, Any, List
 import logging
+from typing import Any, Dict, List
+
+from fastapi import APIRouter
 
 from app.models.analysis import SignalRequest, SignalResponse
-
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -12,11 +12,7 @@ logger = logging.getLogger(__name__)
 @router.post("/signals", response_model=SignalResponse)
 async def generate_signals(request: SignalRequest) -> SignalResponse:
     # TODO: Implement signal generation
-    return SignalResponse(
-        symbol=request.symbol,
-        signals=[],
-        timestamp=None
-    )
+    return SignalResponse(symbol=request.symbol, signals=[], timestamp=None)
 
 
 @router.post("/correlation")
@@ -25,7 +21,7 @@ async def analyze_correlation(symbols: List[str]) -> Dict[str, Any]:
     return {
         "symbols": symbols,
         "correlation_matrix": {},
-        "message": "Correlation analysis coming soon"
+        "message": "Correlation analysis coming soon",
     }
 
 
@@ -36,5 +32,5 @@ async def recognize_patterns(symbol: str, timeframe: str = "1d") -> Dict[str, An
         "symbol": symbol,
         "timeframe": timeframe,
         "patterns": [],
-        "message": "Pattern recognition coming soon"
+        "message": "Pattern recognition coming soon",
     }

@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException
-from typing import Dict, Any, List
 import logging
+from typing import List
+
+from fastapi import APIRouter, HTTPException
 
 from app.models.strategy import Strategy, StrategyRequest
-
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -20,29 +20,21 @@ async def list_strategies() -> List[Strategy]:
                 "rsi_period": 14,
                 "rsi_overbought": 70,
                 "rsi_oversold": 30,
-                "volume_multiplier": 2
-            }
+                "volume_multiplier": 2,
+            },
         ),
         Strategy(
             id="mean_reversion",
             name="Mean Reversion",
             description="Mean reversion strategy using Bollinger Bands",
-            parameters={
-                "bb_period": 20,
-                "bb_stddev": 2,
-                "position_size": 0.1
-            }
+            parameters={"bb_period": 20, "bb_stddev": 2, "position_size": 0.1},
         ),
         Strategy(
             id="trend_following",
             name="Trend Following",
             description="Trend following with moving average crossover",
-            parameters={
-                "fast_ma": 50,
-                "slow_ma": 200,
-                "atr_multiplier": 2
-            }
-        )
+            parameters={"fast_ma": 50, "slow_ma": 200, "atr_multiplier": 2},
+        ),
     ]
     return strategies
 
@@ -57,6 +49,5 @@ async def get_strategy(strategy_id: str) -> Strategy:
 async def create_custom_strategy(request: StrategyRequest) -> Strategy:
     # TODO: Implement custom strategy creation
     raise HTTPException(
-        status_code=501, 
-        detail="Custom strategy creation not yet implemented"
+        status_code=501, detail="Custom strategy creation not yet implemented"
     )

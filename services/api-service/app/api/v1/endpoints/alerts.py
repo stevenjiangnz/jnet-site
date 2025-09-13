@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException
-from typing import Dict, Any, List
-import uuid
 import logging
+import uuid
+from typing import Dict, List
 
-from app.models.alert import AlertRequest, AlertResponse, Alert
+from fastapi import APIRouter, HTTPException
 
+from app.models.alert import Alert, AlertRequest, AlertResponse
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -16,18 +16,12 @@ alerts_db = {}
 @router.post("/", response_model=AlertResponse)
 async def create_alert(request: AlertRequest) -> AlertResponse:
     alert_id = str(uuid.uuid4())
-    
-    alert = Alert(
-        id=alert_id,
-        **request.dict()
-    )
-    
+
+    alert = Alert(id=alert_id, **request.dict())
+
     alerts_db[alert_id] = alert
-    
-    return AlertResponse(
-        id=alert_id,
-        message="Alert created successfully"
-    )
+
+    return AlertResponse(id=alert_id, message="Alert created successfully")
 
 
 @router.get("/", response_model=List[Alert])
@@ -39,7 +33,7 @@ async def list_alerts() -> List[Alert]:
 async def get_alert(alert_id: str) -> Alert:
     if alert_id not in alerts_db:
         raise HTTPException(status_code=404, detail="Alert not found")
-    
+
     return alerts_db[alert_id]
 
 
@@ -47,25 +41,19 @@ async def get_alert(alert_id: str) -> Alert:
 async def update_alert(alert_id: str, request: AlertRequest) -> AlertResponse:
     if alert_id not in alerts_db:
         raise HTTPException(status_code=404, detail="Alert not found")
-    
-    alert = Alert(
-        id=alert_id,
-        **request.dict()
-    )
-    
+
+    alert = Alert(id=alert_id, **request.dict())
+
     alerts_db[alert_id] = alert
-    
-    return AlertResponse(
-        id=alert_id,
-        message="Alert updated successfully"
-    )
+
+    return AlertResponse(id=alert_id, message="Alert updated successfully")
 
 
 @router.delete("/{alert_id}")
 async def delete_alert(alert_id: str) -> Dict[str, str]:
     if alert_id not in alerts_db:
         raise HTTPException(status_code=404, detail="Alert not found")
-    
+
     del alerts_db[alert_id]
-    
+
     return {"message": "Alert deleted successfully"}

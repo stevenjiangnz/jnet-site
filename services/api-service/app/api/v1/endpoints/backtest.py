@@ -1,11 +1,11 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from typing import Dict, Any, List
-import uuid
 import logging
+import uuid
+from typing import Any, Dict
 
-from app.models.backtest import BacktestRequest, BacktestResponse, BacktestStatus
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+
 from app.core.backtrader.engine import BacktestEngine
-
+from app.models.backtest import BacktestRequest, BacktestResponse, BacktestStatus
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -16,27 +16,26 @@ backtest_results = {}
 
 @router.post("/", response_model=BacktestResponse)
 async def create_backtest(
-    request: BacktestRequest,
-    background_tasks: BackgroundTasks
+    request: BacktestRequest, background_tasks: BackgroundTasks
 ) -> BacktestResponse:
     backtest_id = str(uuid.uuid4())
-    
+
     # Initialize result
     backtest_results[backtest_id] = {
         "id": backtest_id,
         "status": BacktestStatus.PENDING,
         "request": request.dict(),
         "result": None,
-        "error": None
+        "error": None,
     }
-    
+
     # Run backtest in background
     background_tasks.add_task(run_backtest, backtest_id, request)
-    
+
     return BacktestResponse(
         id=backtest_id,
         status=BacktestStatus.PENDING,
-        message="Backtest queued for processing"
+        message="Backtest queued for processing",
     )
 
 
@@ -44,7 +43,7 @@ async def create_backtest(
 async def get_backtest(backtest_id: str) -> Dict[str, Any]:
     if backtest_id not in backtest_results:
         raise HTTPException(status_code=404, detail="Backtest not found")
-    
+
     return backtest_results[backtest_id]
 
 
@@ -52,29 +51,26 @@ async def get_backtest(backtest_id: str) -> Dict[str, Any]:
 async def get_backtest_report(backtest_id: str) -> Dict[str, Any]:
     if backtest_id not in backtest_results:
         raise HTTPException(status_code=404, detail="Backtest not found")
-    
+
     result = backtest_results[backtest_id]
     if result["status"] != BacktestStatus.COMPLETED:
         raise HTTPException(status_code=400, detail="Backtest not completed")
-    
+
     # Generate detailed report
-    return {
-        "id": backtest_id,
-        "report": result.get("result", {})
-    }
+    return {"id": backtest_id, "report": result.get("result", {})}
 
 
 async def run_backtest(backtest_id: str, request: BacktestRequest):
     try:
         backtest_results[backtest_id]["status"] = BacktestStatus.RUNNING
-        
+
         # TODO: Implement actual backtest logic
         engine = BacktestEngine()
         result = await engine.run(request)
-        
+
         backtest_results[backtest_id]["status"] = BacktestStatus.COMPLETED
         backtest_results[backtest_id]["result"] = result
-        
+
     except Exception as e:
         logger.error(f"Backtest {backtest_id} failed: {e}")
         backtest_results[backtest_id]["status"] = BacktestStatus.FAILED

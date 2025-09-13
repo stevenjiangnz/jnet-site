@@ -1,7 +1,8 @@
-from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel
 
 
 class Interval(str, Enum):
@@ -43,8 +44,8 @@ class StockDataRequest(BaseModel):
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     interval: Interval = Interval.ONE_DAY
-    
-    
+
+
 class IndicatorRequest(BaseModel):
     indicator: IndicatorType
     period: Optional[int] = None

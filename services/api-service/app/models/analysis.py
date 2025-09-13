@@ -1,6 +1,7 @@
-from pydantic import BaseModel
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 class SignalRequest(BaseModel):

@@ -1,7 +1,14 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import health, backtest, scan, analysis, alerts, strategies, stock
-
+from app.api.v1.endpoints import (
+    alerts,
+    analysis,
+    backtest,
+    health,
+    scan,
+    stock,
+    strategies,
+)
 
 api_router = APIRouter()
 
