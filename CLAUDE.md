@@ -445,6 +445,7 @@ Commit message conventions for automatic versioning:
 
 ## Cloud Environments
 - **Production Frontend**: https://frontend-506487697841.us-central1.run.app/
-- **Stock Data Service API**: https://stock-data-service-506487697841.us-central1.run.app/
+- **Stock Data Service API**: https://stock-data-service-506487697841.us-central1.run.app/ (v0.0.6)
   - API Docs: https://stock-data-service-506487697841.us-central1.run.app/docs
   - Health Check: https://stock-data-service-506487697841.us-central1.run.app/health
+  - Requires API Key for /api/v1/* endpoints
