@@ -34,28 +34,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Docker image name
+        id: docker_meta
+        run: |
+          if [ -n "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "image_name=${{ secrets.DOCKER_USERNAME }}/jnet-api-service" >> $GITHUB_OUTPUT
+          else
+            echo "image_name=jnet-api-service" >> $GITHUB_OUTPUT
+          fi
       - name: Build and push Docker image
         run: |
           cd services/api-service
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/jnet-api-service:latest \
-                       -t ${{ secrets.DOCKER_USERNAME }}/jnet-api-service:${{ needs.version.outputs.version }} .
-          echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          docker push ${{ secrets.DOCKER_USERNAME }}/jnet-api-service:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/jnet-api-service:${{ needs.version.outputs.version }}
+          docker build -t ${{ steps.docker_meta.outputs.image_name }}:latest \
+                       -t ${{ steps.docker_meta.outputs.image_name }}:${{ needs.version.outputs.version }} .
+          if [ -n "${{ secrets.DOCKER_USERNAME }}" ] && [ -n "${{ secrets.DOCKER_HUB_TOKEN }}" ]; then
+            echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            docker push ${{ steps.docker_meta.outputs.image_name }}:latest
+            docker push ${{ steps.docker_meta.outputs.image_name }}:${{ needs.version.outputs.version }}
+          fi
       
       - name: Deploy to Cloud Run
+        if: ${{ secrets.GCP_SA_KEY != '' }}
         run: |
           echo ${{ secrets.GCP_SA_KEY }} | base64 -d > /tmp/gcp-key.json
           gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
           gcloud run deploy api-service \
-            --image ${{ secrets.DOCKER_USERNAME }}/jnet-api-service:${{ needs.version.outputs.version }} \
+            --image ${{ steps.docker_meta.outputs.image_name }}:${{ needs.version.outputs.version }} \
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
             --set-env-vars "ENVIRONMENT=production,API_KEY=${{ secrets.API_SERVICE_KEY }}"
       
       - name: Create Release
+        if: ${{ github.token != '' }}
         uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: api-service-v${{ needs.version.outputs.version }}
           release_name: API Service v${{ needs.version.outputs.version }}
