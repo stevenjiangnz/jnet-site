@@ -14,10 +14,13 @@ RUN pip install uv
 
 # Copy project files
 COPY pyproject.toml .
-COPY app ./app
+COPY uv.lock .
 
 # Install dependencies
 RUN uv sync --frozen
+
+# Copy application code
+COPY app ./app
 
 # Expose port
 EXPOSE 8002
