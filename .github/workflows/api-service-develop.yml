@@ -1,0 +1,51 @@
+name: API Service - Develop
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'services/api-service/**'
+      - '.github/workflows/api-service-develop.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install uv
+        run: pip install uv
+      - name: Install dependencies
+        run: cd services/api-service && uv sync
+      - name: Run tests
+        run: cd services/api-service && uv run pytest
+      - name: Run linting
+        run: cd services/api-service && ./scripts/lint.sh
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker image name
+        id: docker_meta
+        run: |
+          if [ -n "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "image_name=${{ secrets.DOCKER_USERNAME }}/jnet-api-service" >> $GITHUB_OUTPUT
+          else
+            echo "image_name=jnet-api-service" >> $GITHUB_OUTPUT
+          fi
+      - name: Build Docker image
+        run: |
+          cd services/api-service
+          docker build -t ${{ steps.docker_meta.outputs.image_name }}:develop .
+      - name: Push to Docker Hub
+        run: |
+          if [ -n "${{ secrets.DOCKER_USERNAME }}" ] && [ -n "${{ secrets.DOCKER_HUB_TOKEN }}" ]; then
+            echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            docker push ${{ steps.docker_meta.outputs.image_name }}:develop
+          else
+            echo "Skipping Docker Hub push - credentials not configured"
+          fi

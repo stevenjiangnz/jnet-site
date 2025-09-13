@@ -101,6 +101,45 @@ services:
       retries: 3
       start_period: 40s
 
+  api-service:
+    build:
+      context: ./services/api-service
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8002:8002"
+      - "8888:8888"  # Jupyter port
+    volumes:
+      - ./services/api-service:/app
+      - api-service-jupyter:/app/notebooks
+      - api-service-uv-cache:/uv-cache
+      - ./services/api-service/credentials:/app/credentials:ro
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=INFO
+      - API_KEY=dev-api-key
+      - STOCK_DATA_SERVICE_URL=http://stock-data-service:9000
+      - UV_CACHE_DIR=/uv-cache
+      - UV_PROJECT_ENVIRONMENT=/opt/venv
+      - PYTHONUNBUFFERED=1
+      - JUPYTER_ENABLE=true
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME:-jnet-api-service}
+      - GCS_PROJECT_ID=${GCS_PROJECT_ID}
+      - GCS_CREDENTIALS_PATH=/app/credentials/gcs-service-account.json
+      - UPSTASH_REDIS_URL=${UPSTASH_REDIS_URL}
+      - UPSTASH_REDIS_TOKEN=${UPSTASH_REDIS_TOKEN}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+    depends_on:
+      - stock-data-service
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   db:
     image: postgres:15
     ports:
@@ -121,4 +160,8 @@ volumes:
       device: ${PWD}/services/stock-data-service/data/downloads
       o: bind
   stock-data-uv-cache:
+    driver: local
+  api-service-jupyter:
+    driver: local
+  api-service-uv-cache:
     driver: local

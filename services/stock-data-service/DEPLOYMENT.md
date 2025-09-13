@@ -3,6 +3,10 @@
 ## Overview
 The Stock Data Service is deployed to Google Cloud Run with API key authentication and GCS integration.
 
+**Current Production Version**: v0.0.6  
+**Service URL**: https://stock-data-service-506487697841.us-central1.run.app  
+**Last Deployed**: Successfully deployed via GitHub Actions CI/CD
+
 ## Prerequisites
 - Google Cloud SDK installed (`gcloud` CLI)
 - Docker installed and logged in to Docker Hub
@@ -105,17 +109,39 @@ View logs:
 gcloud run logs read --service stock-data-service --region us-central1
 ```
 
+## Verification Steps
+
+After deployment, verify the service is working correctly:
+
+```bash
+# 1. Check the deployed image version
+gcloud run services describe stock-data-service --region us-central1 --format="value(spec.template.spec.containers[0].image)"
+
+# 2. Test health endpoint (no auth required)
+curl https://stock-data-service-506487697841.us-central1.run.app/health
+
+# 3. Test API without authentication (should return 401)
+curl https://stock-data-service-506487697841.us-central1.run.app/api/v1/list
+
+# 4. Test API with authentication (should return data)
+curl -H "X-API-Key: your-api-key" https://stock-data-service-506487697841.us-central1.run.app/api/v1/list
+```
+
 ## Troubleshooting
 
 ### Common Issues
 1. **GCS Access Denied**: Ensure the service account has Storage Object Admin role
 2. **API Key Not Working**: Check the API_KEY environment variable is set correctly
 3. **Port Issues**: The service runs on port 9000, ensure Cloud Run is configured correctly
+4. **Black Formatting**: Run `uv run black .` before committing to avoid CI failures
 
 ### Debugging
 ```bash
 # Check deployed environment variables
 gcloud run services describe stock-data-service --region us-central1 --format='value(spec.template.spec.containers[0].env[*].value)'
+
+# View recent logs
+gcloud run logs read --service stock-data-service --region us-central1 --limit 50
 
 # Test with curl
 curl -H "X-API-Key: your-api-key" https://stock-data-service-506487697841.us-central1.run.app/api/v1/list
