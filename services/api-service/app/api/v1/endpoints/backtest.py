@@ -60,7 +60,7 @@ async def get_backtest_report(backtest_id: str) -> Dict[str, Any]:
     return {"id": backtest_id, "report": result.get("result", {})}
 
 
-async def run_backtest(backtest_id: str, request: BacktestRequest):
+async def run_backtest(backtest_id: str, request: BacktestRequest) -> None:
     try:
         backtest_results[backtest_id]["status"] = BacktestStatus.RUNNING
 

@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class StockDataService:
-    def __init__(self):
+    def __init__(self) -> None:
         self.base_url = settings.stock_data_service_url
         self.client = httpx.AsyncClient(timeout=30.0)
 
@@ -31,7 +31,8 @@ class StockDataService:
                 },
             )
             response.raise_for_status()
-            return response.json()
+            result = response.json()
+            return result if isinstance(result, list) else []
         except Exception:
             logger.warning(
                 f"Stock data service unavailable, using mock data for {symbol}"
@@ -56,7 +57,7 @@ class StockDataService:
                 results[symbol] = []
         return results
 
-    async def close(self):
+    async def close(self) -> None:
         await self.client.aclose()
 
     def _generate_mock_data(

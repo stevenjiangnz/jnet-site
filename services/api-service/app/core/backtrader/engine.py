@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class BacktestEngine:
-    def __init__(self):
+    def __init__(self) -> None:
         self.stock_data_service = StockDataService()
 
     async def run(self, request: BacktestRequest) -> Dict[str, Any]:
