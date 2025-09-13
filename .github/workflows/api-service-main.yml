@@ -54,19 +54,21 @@ jobs:
           fi
       
       - name: Deploy to Cloud Run
-        if: ${{ secrets.GCP_SA_KEY != '' }}
         run: |
-          echo ${{ secrets.GCP_SA_KEY }} | base64 -d > /tmp/gcp-key.json
-          gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
-          gcloud run deploy api-service \
-            --image ${{ steps.docker_meta.outputs.image_name }}:${{ needs.version.outputs.version }} \
-            --region us-central1 \
-            --platform managed \
-            --allow-unauthenticated \
-            --set-env-vars "ENVIRONMENT=production,API_KEY=${{ secrets.API_SERVICE_KEY }}"
+          if [ -n "${{ secrets.GCP_SA_KEY }}" ]; then
+            echo ${{ secrets.GCP_SA_KEY }} | base64 -d > /tmp/gcp-key.json
+            gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+            gcloud run deploy api-service \
+              --image ${{ steps.docker_meta.outputs.image_name }}:${{ needs.version.outputs.version }} \
+              --region us-central1 \
+              --platform managed \
+              --allow-unauthenticated \
+              --set-env-vars "ENVIRONMENT=production,API_KEY=${{ secrets.API_SERVICE_KEY }}"
+          else
+            echo "Skipping Cloud Run deployment - GCP_SA_KEY not configured"
+          fi
       
       - name: Create Release
-        if: ${{ github.token != '' }}
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

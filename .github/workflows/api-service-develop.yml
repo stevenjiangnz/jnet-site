@@ -42,7 +42,10 @@ jobs:
           cd services/api-service
           docker build -t ${{ steps.docker_meta.outputs.image_name }}:develop .
       - name: Push to Docker Hub
-        if: ${{ secrets.DOCKER_USERNAME != '' && secrets.DOCKER_HUB_TOKEN != '' }}
         run: |
-          echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          docker push ${{ steps.docker_meta.outputs.image_name }}:develop
+          if [ -n "${{ secrets.DOCKER_USERNAME }}" ] && [ -n "${{ secrets.DOCKER_HUB_TOKEN }}" ]; then
+            echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+            docker push ${{ steps.docker_meta.outputs.image_name }}:develop
+          else
+            echo "Skipping Docker Hub push - credentials not configured"
+          fi
