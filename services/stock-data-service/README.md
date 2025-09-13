@@ -59,6 +59,12 @@ uv run uvicorn app.main:app --reload --port 9000
 
 # 5. Run tests
 uv run pytest
+
+# 6. Run linting (Black & Ruff)
+./scripts/lint.sh
+
+# 7. Setup pre-commit hooks (optional but recommended)
+./scripts/setup-pre-commit.sh
 ```
 
 ## Key Features
@@ -1016,6 +1022,26 @@ uv run pytest tests/test_api.py
 # Run in verbose mode
 uv run pytest -v
 ```
+
+### Code Quality
+
+The project uses Black for code formatting and Ruff for linting:
+
+```bash
+# Run linting checks
+./scripts/lint.sh
+
+# Auto-format code with Black
+uv run black .
+
+# Fix linting issues with Ruff
+uv run ruff check --fix .
+
+# Setup pre-commit hooks (runs automatically before commits)
+./scripts/setup-pre-commit.sh
+```
+
+**Pre-commit Hooks**: Once installed, Black and Ruff will run automatically before each commit to ensure code quality.
 
 ## Contributing
 

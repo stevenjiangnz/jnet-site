@@ -6,9 +6,9 @@ from .models import IndicatorData, IndicatorValue
 
 __all__ = [
     "IndicatorCalculator",
-    "DEFAULT_INDICATORS", 
+    "DEFAULT_INDICATORS",
     "INDICATOR_SETS",
     "INDICATOR_MIN_PERIODS",
     "IndicatorData",
-    "IndicatorValue"
+    "IndicatorValue",
 ]

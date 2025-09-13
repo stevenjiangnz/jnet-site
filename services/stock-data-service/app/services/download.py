@@ -34,7 +34,9 @@ class StockDataDownloader:
         self.storage = GCSStorageManager()
         self.weekly_aggregator = WeeklyAggregator()
         self.indicator_calculator = IndicatorCalculator()
-        self.calculate_indicators_enabled = getattr(settings, 'ENABLE_INDICATOR_CALCULATION', True)
+        self.calculate_indicators_enabled = getattr(
+            settings, "ENABLE_INDICATOR_CALCULATION", True
+        )
         self.default_indicators = DEFAULT_INDICATORS
 
     async def download_symbol(
@@ -74,13 +76,12 @@ class StockDataDownloader:
 
             # Convert DataFrame to our data model
             stock_data = await self._convert_to_stock_data(symbol, df)
-            
+
             # Calculate indicators if enabled
             if self.calculate_indicators_enabled:
                 logger.info(f"Calculating indicators for {symbol}")
                 indicators = await self.indicator_calculator.calculate_for_data(
-                    stock_data,
-                    self.default_indicators
+                    stock_data, self.default_indicators
                 )
                 # Convert indicator models to dict for storage
                 stock_data.indicators = {
@@ -194,8 +195,12 @@ class StockDataDownloader:
             if data_dict:
                 # Convert date strings back to date objects
                 for point in data_dict["data_points"]:
-                    point["week_ending"] = datetime.fromisoformat(point["week_ending"]).date()
-                    point["week_start"] = datetime.fromisoformat(point["week_start"]).date()
+                    point["week_ending"] = datetime.fromisoformat(
+                        point["week_ending"]
+                    ).date()
+                    point["week_start"] = datetime.fromisoformat(
+                        point["week_start"]
+                    ).date()
 
                 data_dict["data_range"]["start"] = datetime.fromisoformat(
                     data_dict["data_range"]["start"]
@@ -351,20 +356,21 @@ class StockDataDownloader:
                     source="yahoo_finance",
                 ),
             )
-            
+
             # Calculate indicators for weekly data if enabled
             if self.calculate_indicators_enabled:
                 logger.info(f"Calculating weekly indicators for {daily_data.symbol}")
                 indicators = await self.indicator_calculator.calculate_for_data(
-                    weekly_data,
-                    self.default_indicators
+                    weekly_data, self.default_indicators
                 )
                 # Convert indicator models to dict for storage
                 weekly_data.indicators = {
                     name: indicator_data.model_dump(mode="json")
                     for name, indicator_data in indicators.items()
                 }
-                logger.info(f"Calculated {len(indicators)} weekly indicators for {daily_data.symbol}")
+                logger.info(
+                    f"Calculated {len(indicators)} weekly indicators for {daily_data.symbol}"
+                )
 
             # Store in GCS
             storage_path = StoragePaths.get_weekly_path(daily_data.symbol)

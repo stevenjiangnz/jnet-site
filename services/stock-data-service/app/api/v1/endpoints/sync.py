@@ -27,7 +27,9 @@ class WeeklyDataSyncer:
         self.aggregator = WeeklyAggregator()
         self.downloader = StockDataDownloader()
         self.indicator_calculator = IndicatorCalculator()
-        self.calculate_indicators_enabled = getattr(settings, 'ENABLE_INDICATOR_CALCULATION', True)
+        self.calculate_indicators_enabled = getattr(
+            settings, "ENABLE_INDICATOR_CALCULATION", True
+        )
 
     async def sync_symbol(self, symbol: str, force: bool = False) -> dict:
         """Sync weekly data for a single symbol."""
@@ -73,20 +75,21 @@ class WeeklyDataSyncer:
                     source=daily_data.metadata.source,
                 ),
             )
-            
+
             # Calculate indicators for weekly data if enabled
             if self.calculate_indicators_enabled:
                 logger.info(f"Calculating weekly indicators for {symbol}")
                 indicators = await self.indicator_calculator.calculate_for_data(
-                    weekly_data,
-                    DEFAULT_INDICATORS
+                    weekly_data, DEFAULT_INDICATORS
                 )
                 # Convert indicator models to dict for storage
                 weekly_data.indicators = {
                     name: indicator_data.model_dump(mode="json")
                     for name, indicator_data in indicators.items()
                 }
-                logger.info(f"Calculated {len(indicators)} weekly indicators for {symbol}")
+                logger.info(
+                    f"Calculated {len(indicators)} weekly indicators for {symbol}"
+                )
 
             # Upload to GCS
             weekly_path = StoragePaths.get_weekly_path(symbol)

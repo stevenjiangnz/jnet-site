@@ -78,7 +78,9 @@ class StockDataFile(BaseModel):
     metadata: StockMetadata
     last_updated: datetime = Field(default_factory=datetime.utcnow)
     data_type: str = "daily"
-    indicators: Optional[Dict[str, Any]] = Field(default=None, description="Technical indicators data")
+    indicators: Optional[Dict[str, Any]] = Field(
+        default=None, description="Technical indicators data"
+    )
 
     @field_validator("symbol")
     @classmethod
@@ -147,7 +149,9 @@ class WeeklyDataFile(BaseModel):
     metadata: StockMetadata
     last_updated: datetime = Field(default_factory=datetime.utcnow)
     data_type: str = "weekly"
-    indicators: Optional[Dict[str, Any]] = Field(default=None, description="Technical indicators data")
+    indicators: Optional[Dict[str, Any]] = Field(
+        default=None, description="Technical indicators data"
+    )
 
     @field_validator("symbol")
     @classmethod
