@@ -212,6 +212,7 @@ Deploy to Google Cloud Run:
 - [x] User authentication (Supabase - Email/Password and Google OAuth)
 - [ ] Admin panel for content management
 - [x] Stock/ETF EOD data downloading service
+- [x] Dark/Light mode theme toggle with system preference support
 - [ ] Mobile-responsive design
 - [ ] SEO optimized
 - [ ] Fast loading (< 3s)
