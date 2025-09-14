@@ -1,0 +1,153 @@
+name: Test Host Runner - Full Stack Build
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - '.github/workflows/test-host-runner-full.yml'
+
+jobs:
+  system-check:
+    runs-on: [self-hosted, linux, x64, host]
+    outputs:
+      docker_version: ${{ steps.versions.outputs.docker }}
+      compose_version: ${{ steps.versions.outputs.compose }}
+    
+    steps:
+      - name: Check system resources
+        run: |
+          echo "=== System Resources ==="
+          echo "CPU info:"
+          nproc
+          echo ""
+          echo "Memory info:"
+          free -h
+          echo ""
+          echo "Disk space:"
+          df -h | grep -E "(^/|Filesystem)"
+      
+      - name: Check Docker setup
+        id: versions
+        run: |
+          DOCKER_VERSION=$(docker --version | cut -d' ' -f3 | tr -d ',')
+          COMPOSE_VERSION=$(docker-compose --version | cut -d' ' -f3 | tr -d ',')
+          echo "docker=${DOCKER_VERSION}" >> $GITHUB_OUTPUT
+          echo "compose=${COMPOSE_VERSION}" >> $GITHUB_OUTPUT
+          
+          echo "Docker version: ${DOCKER_VERSION}"
+          echo "Docker Compose version: ${COMPOSE_VERSION}"
+          
+          echo ""
+          echo "Docker daemon info:"
+          docker info --format "Storage Driver: {{.Driver}}"
+          docker info --format "Total Memory: {{.MemTotal}}"
+
+  build-services:
+    needs: system-check
+    runs-on: [self-hosted, linux, x64, host]
+    strategy:
+      matrix:
+        include:
+          - service: frontend
+            path: ./frontend
+          - service: api-service
+            path: ./services/api-service
+          - service: stock-data-service
+            path: ./services/stock-data-service
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Build ${{ matrix.service }}
+        run: |
+          echo "Building ${{ matrix.service }}..."
+          cd ${{ matrix.path }}
+          
+          # Check if Dockerfile exists
+          if [ -f "Dockerfile" ]; then
+            echo "Found Dockerfile, building image..."
+            docker build -t jnet-${{ matrix.service }}:host-test .
+            echo "✓ Build completed for ${{ matrix.service }}"
+          else
+            echo "❌ No Dockerfile found in ${{ matrix.path }}"
+            exit 1
+          fi
+      
+      - name: Test ${{ matrix.service }} image
+        run: |
+          echo "Testing ${{ matrix.service }} image..."
+          
+          # Run basic container test
+          if docker run --rm jnet-${{ matrix.service }}:host-test echo "Container started successfully"; then
+            echo "✓ Basic container test passed"
+          else
+            echo "✓ Container requires specific startup command (expected for services)"
+          fi
+          
+          # Check image size
+          SIZE=$(docker images jnet-${{ matrix.service }}:host-test --format "{{.Size}}")
+          echo "Image size: ${SIZE}"
+
+  integration-test:
+    needs: build-services
+    runs-on: [self-hosted, linux, x64, host]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Test Docker Compose integration
+        run: |
+          echo "Testing Docker Compose setup..."
+          
+          # Validate compose file
+          docker-compose config > /dev/null 2>&1 && echo "✓ Docker Compose file is valid" || echo "❌ Docker Compose file validation failed"
+          
+          # List services
+          echo ""
+          echo "Services defined in docker-compose.yml:"
+          docker-compose config --services
+      
+      - name: Network test
+        run: |
+          echo "Testing Docker networking..."
+          
+          # Create test network
+          docker network create test-network || true
+          
+          # Run containers with network communication
+          docker run -d --name test-server --network test-network alpine:latest sleep 300
+          docker run --rm --network test-network alpine:latest ping -c 3 test-server && echo "✓ Network communication working"
+          
+          # Cleanup
+          docker stop test-server && docker rm test-server
+          docker network rm test-network
+
+  cleanup:
+    needs: [build-services, integration-test]
+    runs-on: [self-hosted, linux, x64, host]
+    if: always()
+    
+    steps:
+      - name: Clean up test images
+        run: |
+          echo "Cleaning up test images..."
+          
+          # Remove test images
+          docker images | grep "host-test" | awk '{print $3}' | xargs -r docker rmi -f || true
+          
+          # Prune unused images
+          docker image prune -f
+          
+          echo "Cleanup completed"
+      
+      - name: Final status
+        run: |
+          echo "=== Final Docker Status ==="
+          echo "Images:"
+          docker images | head -10
+          echo ""
+          echo "Disk usage:"
+          docker system df

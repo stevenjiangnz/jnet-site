@@ -1,0 +1,68 @@
+name: Test Host Runner with Docker
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - '.github/workflows/test-host-runner.yml'
+
+jobs:
+  test-docker:
+    runs-on: [self-hosted, linux, x64, host]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check Docker version
+        run: |
+          echo "Docker version:"
+          docker --version
+          echo ""
+          echo "Docker Compose version:"
+          docker-compose --version
+      
+      - name: List Docker images
+        run: |
+          echo "Current Docker images:"
+          docker images
+      
+      - name: Build test Docker image
+        run: |
+          echo "Creating a simple test Dockerfile..."
+          cat > Dockerfile.test <<EOF
+          FROM alpine:latest
+          RUN apk add --no-cache curl
+          CMD ["echo", "Hello from host runner!"]
+          EOF
+          
+          echo "Building test image..."
+          docker build -f Dockerfile.test -t test-host-runner:latest .
+      
+      - name: Run test container
+        run: |
+          echo "Running test container..."
+          docker run --rm test-host-runner:latest
+      
+      - name: Build frontend Docker image
+        run: |
+          echo "Building frontend Docker image..."
+          cd frontend
+          docker build -t jnet-frontend:test .
+      
+      - name: List images after build
+        run: |
+          echo "Docker images after build:"
+          docker images | grep -E "(test-host-runner|jnet-frontend)"
+      
+      - name: Clean up
+        run: |
+          echo "Cleaning up test images..."
+          docker rmi test-host-runner:latest || true
+          docker rmi jnet-frontend:test || true
+          rm -f Dockerfile.test
+      
+      - name: Test Docker Compose
+        run: |
+          echo "Testing Docker Compose..."
+          docker-compose config --quiet && echo "✓ Docker Compose configuration is valid"
