@@ -6,13 +6,11 @@ on:
     paths:
       - '.github/workflows/test-host-runner.yml'
 
-env:
-  # Manual switch: Set to 'true' to use host-runner, 'false' to use GitHub runner
-  USE_HOST_RUNNER: 'true'
-
 jobs:
   test-docker:
-    runs-on: ${{ env.USE_HOST_RUNNER == 'true' && fromJSON('["self-hosted", "linux", "x64", "host"]') || 'ubuntu-latest' }}
+    # MANUAL SWITCH: Comment/uncomment one of these lines to switch runners
+    runs-on: [self-hosted, linux, x64, host]  # Use host-runner
+    # runs-on: ubuntu-latest  # Use GitHub-hosted runner
     
     steps:
       - name: Checkout code
@@ -20,8 +18,7 @@ jobs:
       
       - name: Check Docker version
         run: |
-          RUNNER_TYPE="${{ env.USE_HOST_RUNNER == 'true' && 'Host Runner' || 'GitHub-hosted Runner' }}"
-          echo "Running on: $RUNNER_TYPE"
+          echo "Running on: Self-hosted runner"
           echo "Docker version:"
           docker --version
           echo ""
@@ -39,7 +36,7 @@ jobs:
           cat > Dockerfile.test <<EOF
           FROM alpine:latest
           RUN apk add --no-cache curl
-          CMD ["echo", "Hello from ${{ env.USE_HOST_RUNNER == 'true' && 'host' || 'GitHub' }} runner!"]
+          CMD ["echo", "Hello from runner!"]
           EOF
           
           echo "Building test image..."
