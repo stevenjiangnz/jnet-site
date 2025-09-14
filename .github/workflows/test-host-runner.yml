@@ -9,8 +9,8 @@ on:
 jobs:
   test-docker:
     # MANUAL SWITCH: Comment/uncomment one of these lines to switch runners
-    runs-on: [self-hosted, linux, x64, host]  # Use host-runner
-    # runs-on: ubuntu-latest  # Use GitHub-hosted runner
+    # runs-on: [self-hosted, linux, x64, host]  # Use host-runner
+    runs-on: ubuntu-latest  # Use GitHub-hosted runner
     
     steps:
       - name: Checkout code
@@ -18,7 +18,7 @@ jobs:
       
       - name: Check Docker version
         run: |
-          echo "Running on: Self-hosted runner"
+          echo "Running on: GitHub-hosted runner"
           echo "Docker version:"
           docker --version
           echo ""
