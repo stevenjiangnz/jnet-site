@@ -38,7 +38,7 @@ export function Navbar({ user }: NavbarProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-sm font-medium transition-colors ${
+                className={`text-base font-medium transition-colors ${
                   pathname === item.href
                     ? "text-indigo-600 dark:text-indigo-400"
                     : "navbar-link hover:text-indigo-600 dark:hover:text-indigo-400"
