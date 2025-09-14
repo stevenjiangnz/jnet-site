@@ -1,5 +1,6 @@
 name: Test Host Runner with Docker
 
+# Testing fallback mechanism - host runner is disabled
 on:
   push:
     branches: [develop]
