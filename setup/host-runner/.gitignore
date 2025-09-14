@@ -1,0 +1,9 @@
+# Runtime directories
+logs/
+runners/
+
+# PID files
+*.pid
+
+# Service files (generated for each repo)
+config/*.service
