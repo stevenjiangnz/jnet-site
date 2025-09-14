@@ -101,3 +101,50 @@ body {
 .main-subtitle {
   color: var(--muted-foreground);
 }
+
+/* Sidebar styles */
+.sidebar-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+}
+
+.sidebar-link {
+  color: var(--muted-foreground);
+  transition: all 0.2s;
+}
+
+.sidebar-link:hover {
+  color: var(--foreground);
+}
+
+.sidebar-text {
+  color: var(--muted-foreground);
+}
+
+/* Main content styles */
+.main-content-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+}
+
+/* Stat card styles */
+.stat-card {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.stat-label {
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  color: var(--foreground);
+}
+
+/* Activity item styles */
+.activity-item {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+}

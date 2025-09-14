@@ -206,14 +206,16 @@ Deploy to Google Cloud Run:
 
 ## 📝 Features
 
-- [ ] Landing page with portfolio showcase
+- [x] Landing page with 3-column layout (17.5%-65%-17.5% responsive grid)
+- [x] Full-width navigation bar with centered menu items
+- [x] Trading-themed logo and branding
 - [ ] Blog section with markdown support
 - [ ] Contact form with email integration
 - [x] User authentication (Supabase - Email/Password and Google OAuth)
 - [ ] Admin panel for content management
 - [x] Stock/ETF EOD data downloading service
 - [x] Dark/Light mode theme toggle with system preference support
-- [ ] Mobile-responsive design
+- [x] Mobile-responsive design with hamburger menu
 - [ ] SEO optimized
 - [ ] Fast loading (< 3s)
 - [ ] Accessible (WCAG 2.1 AA)
