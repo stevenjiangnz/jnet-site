@@ -26,10 +26,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+      - name: Check .NET version
+        run: |
+          echo "Using .NET version:"
+          dotnet --version
 
       - name: Restore dependencies
         working-directory: ${{ env.SERVICE_PATH }}
