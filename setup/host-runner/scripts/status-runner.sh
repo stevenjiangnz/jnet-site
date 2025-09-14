@@ -25,25 +25,43 @@ check_runner() {
         return
     fi
     
-    if [ ! -f "$pid_file" ]; then
+    # Find the actual Runner.Listener process
+    local runner_pid=$(pgrep -f "${runner_dir}/bin/Runner.Listener" || true)
+    
+    if [ -z "$runner_pid" ]; then
         echo -e "  Status: ${YELLOW}Stopped${NC}"
+        # Clean up stale PID file if exists
+        rm -f "$pid_file" 2>/dev/null || true
         return
     fi
     
-    local pid=$(cat "$pid_file")
-    if ps -p $pid > /dev/null 2>&1; then
-        echo -e "  Status: ${GREEN}Running${NC}"
-        echo "  PID: $pid"
-        echo "  Uptime: $(ps -o etime= -p $pid | xargs)"
-        
-        # Check if runner is registered
-        if [ -f "${runner_dir}/.runner" ]; then
-            local runner_name=$(jq -r .agentName "${runner_dir}/.runner" 2>/dev/null || echo "Unknown")
-            echo "  Runner Name: $runner_name"
-        fi
-    else
-        echo -e "  Status: ${RED}Crashed (stale PID)${NC}"
-        echo "  Last PID: $pid"
+    # Runner is running
+    echo -e "  Status: ${GREEN}Running${NC}"
+    echo "  PID: $runner_pid"
+    echo "  Uptime: $(ps -o etime= -p $runner_pid | xargs)"
+    
+    # Update PID file with correct PID
+    echo $runner_pid > "$pid_file"
+    
+    # Check if runner is registered
+    if [ -f "${runner_dir}/.runner" ]; then
+        local runner_name=$(jq -r .agentName "${runner_dir}/.runner" 2>/dev/null || echo "Unknown")
+        echo "  Runner Name: $runner_name"
+    fi
+    
+    # Show memory usage
+    local mem_usage=$(ps -p $runner_pid -o %mem,rss --no-headers 2>/dev/null || echo "N/A")
+    if [ "$mem_usage" != "N/A" ]; then
+        local mem_percent=$(echo $mem_usage | awk '{print $1}')
+        local mem_kb=$(echo $mem_usage | awk '{print $2}')
+        local mem_mb=$((mem_kb / 1024))
+        echo "  Memory: ${mem_percent}% (${mem_mb}MB)"
+    fi
+    
+    # Check for any child processes
+    local child_count=$(pgrep -P $runner_pid 2>/dev/null | wc -l || echo "0")
+    if [ "$child_count" -gt 0 ]; then
+        echo "  Active Jobs: $child_count"
     fi
 }
 

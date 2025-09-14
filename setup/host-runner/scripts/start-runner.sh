@@ -28,17 +28,16 @@ if [ ! -d "$RUNNER_DIR" ]; then
     exit 1
 fi
 
-# Check if already running
-if [ -f "$PID_FILE" ]; then
-    PID=$(cat "$PID_FILE")
-    if ps -p $PID > /dev/null 2>&1; then
-        echo -e "${YELLOW}Runner is already running (PID: $PID)${NC}"
-        exit 0
-    else
-        echo -e "${YELLOW}Removing stale PID file${NC}"
-        rm -f "$PID_FILE"
-    fi
+# Check if already running by looking for actual Runner.Listener process
+EXISTING_PID=$(pgrep -f "${RUNNER_DIR}/bin/Runner.Listener" || true)
+if [ -n "$EXISTING_PID" ]; then
+    echo -e "${YELLOW}Runner is already running (PID: $EXISTING_PID)${NC}"
+    echo $EXISTING_PID > "$PID_FILE"
+    exit 0
 fi
+
+# Clean up any stale PID file
+rm -f "$PID_FILE"
 
 # Create log directory
 mkdir -p "$LOG_DIR"
@@ -49,25 +48,38 @@ cd "$RUNNER_DIR"
 
 # Run in background
 nohup ./run.sh > "$LOG_FILE" 2>&1 &
-PID=$!
-echo $PID > "$PID_FILE"
+SCRIPT_PID=$!
 
-# Wait a moment to check if it started successfully
-sleep 3
+# Wait for Runner.Listener to start (max 10 seconds)
+echo -n "Waiting for runner to start"
+for i in {1..10}; do
+    RUNNER_PID=$(pgrep -f "${RUNNER_DIR}/bin/Runner.Listener" || true)
+    if [ -n "$RUNNER_PID" ]; then
+        echo ""
+        break
+    fi
+    echo -n "."
+    sleep 1
+done
 
-if ps -p $PID > /dev/null 2>&1; then
-    echo -e "${GREEN}✓ Runner started successfully (PID: $PID)${NC}"
-    echo "Log file: $LOG_FILE"
+if [ -z "$RUNNER_PID" ]; then
     echo ""
-    echo "To view logs:"
-    echo -e "  ${YELLOW}tail -f $LOG_FILE${NC}"
-    echo ""
-    echo "To stop:"
-    echo -e "  ${YELLOW}./scripts/stop-runner.sh ${GITHUB_REPO}${NC}"
-else
     echo -e "${RED}✗ Failed to start runner${NC}"
     echo "Check logs: $LOG_FILE"
     tail -20 "$LOG_FILE"
-    rm -f "$PID_FILE"
+    # Try to kill the script if it's still running
+    kill $SCRIPT_PID 2>/dev/null || true
     exit 1
 fi
+
+# Save the actual Runner.Listener PID
+echo $RUNNER_PID > "$PID_FILE"
+
+echo -e "${GREEN}✓ Runner started successfully (PID: $RUNNER_PID)${NC}"
+echo "Log file: $LOG_FILE"
+echo ""
+echo "To view logs:"
+echo -e "  ${YELLOW}tail -f $LOG_FILE${NC}"
+echo ""
+echo "To stop:"
+echo -e "  ${YELLOW}./scripts/stop-runner.sh ${GITHUB_REPO}${NC}"

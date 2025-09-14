@@ -23,7 +23,7 @@ jobs:
           docker --version
           echo ""
           echo "Docker Compose version:"
-          docker-compose --version
+          docker compose version
       
       - name: List Docker images
         run: |
@@ -68,4 +68,4 @@ jobs:
       - name: Test Docker Compose
         run: |
           echo "Testing Docker Compose..."
-          docker-compose config --quiet && echo "✓ Docker Compose configuration is valid"
+          docker compose config --quiet && echo "✓ Docker Compose configuration is valid"

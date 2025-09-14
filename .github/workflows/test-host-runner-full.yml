@@ -33,7 +33,7 @@ jobs:
         id: versions
         run: |
           DOCKER_VERSION=$(docker --version | cut -d' ' -f3 | tr -d ',')
-          COMPOSE_VERSION=$(docker-compose --version | cut -d' ' -f3 | tr -d ',')
+          COMPOSE_VERSION=$(docker compose version | cut -d' ' -f4 | tr -d ',')
           echo "docker=${DOCKER_VERSION}" >> $GITHUB_OUTPUT
           echo "compose=${COMPOSE_VERSION}" >> $GITHUB_OUTPUT
           
@@ -109,12 +109,12 @@ jobs:
           echo "Testing Docker Compose setup..."
           
           # Validate compose file
-          docker-compose config > /dev/null 2>&1 && echo "✓ Docker Compose file is valid" || echo "❌ Docker Compose file validation failed"
+          docker compose config > /dev/null 2>&1 && echo "✓ Docker Compose file is valid" || echo "❌ Docker Compose file validation failed"
           
           # List services
           echo ""
           echo "Services defined in docker-compose.yml:"
-          docker-compose config --services
+          docker compose config --services
       
       - name: Network test
         run: |

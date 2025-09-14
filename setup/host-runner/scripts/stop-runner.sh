@@ -25,30 +25,27 @@ if [ ! -d "$RUNNER_DIR" ]; then
     exit 1
 fi
 
-# Check if PID file exists
-if [ ! -f "$PID_FILE" ]; then
+# Find the actual Runner.Listener process
+RUNNER_PID=$(pgrep -f "${RUNNER_DIR}/bin/Runner.Listener" || true)
+
+if [ -z "$RUNNER_PID" ]; then
     echo -e "${YELLOW}Runner is not running${NC}"
-    exit 0
-fi
-
-PID=$(cat "$PID_FILE")
-
-# Check if process is running
-if ! ps -p $PID > /dev/null 2>&1; then
-    echo -e "${YELLOW}Runner process not found (stale PID file)${NC}"
+    # Clean up stale PID file if exists
     rm -f "$PID_FILE"
     exit 0
 fi
 
 # Stop the runner
-echo -e "${YELLOW}Stopping runner (PID: $PID)...${NC}"
+echo -e "${YELLOW}Stopping runner (PID: $RUNNER_PID)...${NC}"
 
 # Send SIGTERM for graceful shutdown
-kill $PID 2>/dev/null || true
+kill $RUNNER_PID 2>/dev/null || true
 
 # Wait for process to stop (max 30 seconds)
+echo -n "Waiting for runner to stop"
 for i in {1..30}; do
-    if ! ps -p $PID > /dev/null 2>&1; then
+    if ! ps -p $RUNNER_PID > /dev/null 2>&1; then
+        echo ""
         break
     fi
     echo -n "."
@@ -58,13 +55,23 @@ done
 echo ""
 
 # Force kill if still running
-if ps -p $PID > /dev/null 2>&1; then
+if ps -p $RUNNER_PID > /dev/null 2>&1; then
     echo -e "${YELLOW}Force stopping runner...${NC}"
-    kill -9 $PID 2>/dev/null || true
+    kill -9 $RUNNER_PID 2>/dev/null || true
     sleep 1
 fi
+
+# Also kill any related processes (run.sh, run-helper.sh)
+pkill -f "${RUNNER_DIR}/run.sh" 2>/dev/null || true
+pkill -f "${RUNNER_DIR}/run-helper.sh" 2>/dev/null || true
 
 # Clean up PID file
 rm -f "$PID_FILE"
 
-echo -e "${GREEN}✓ Runner stopped${NC}"
+# Final check
+if pgrep -f "${RUNNER_DIR}/bin/Runner.Listener" > /dev/null 2>&1; then
+    echo -e "${RED}✗ Failed to stop runner completely${NC}"
+    exit 1
+else
+    echo -e "${GREEN}✓ Runner stopped${NC}"
+fi
