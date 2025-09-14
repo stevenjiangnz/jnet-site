@@ -24,25 +24,25 @@ export default async function Home() {
           {/* Left sidebar - 17.5% */}
           <aside className="hidden lg:block space-y-4">
             <div className="sidebar-card rounded-lg p-3">
-              <h2 className="text-base font-semibold main-title mb-2">Quick Links</h2>
+              <h2 className="text-lg font-semibold main-title mb-3">Quick Links</h2>
               <nav className="space-y-1">
-                <a href="#" className="block sidebar-link p-1.5 text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+                <a href="#" className="block sidebar-link p-2 text-base rounded hover:bg-gray-100 dark:hover:bg-gray-700">
                   Portfolio Overview
                 </a>
-                <a href="#" className="block sidebar-link p-1.5 text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+                <a href="#" className="block sidebar-link p-2 text-base rounded hover:bg-gray-100 dark:hover:bg-gray-700">
                   Watchlist
                 </a>
-                <a href="#" className="block sidebar-link p-1.5 text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+                <a href="#" className="block sidebar-link p-2 text-base rounded hover:bg-gray-100 dark:hover:bg-gray-700">
                   Recent Trades
                 </a>
-                <a href="#" className="block sidebar-link p-1.5 text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+                <a href="#" className="block sidebar-link p-2 text-base rounded hover:bg-gray-100 dark:hover:bg-gray-700">
                   Market News
                 </a>
               </nav>
             </div>
             
             <div className="sidebar-card rounded-lg p-3">
-              <h2 className="text-base font-semibold main-title mb-2">Market Status</h2>
+              <h2 className="text-lg font-semibold main-title mb-3">Market Status</h2>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="sidebar-text">US Market</span>
@@ -121,7 +121,7 @@ export default async function Home() {
           {/* Right sidebar - 17.5% */}
           <aside className="hidden xl:block space-y-4">
             <div className="sidebar-card rounded-lg p-3">
-              <h2 className="text-base font-semibold main-title mb-2">Indices</h2>
+              <h2 className="text-lg font-semibold main-title mb-3">Indices</h2>
               <div className="space-y-2">
                 <div>
                   <div className="flex justify-between items-center text-sm">
@@ -148,7 +148,7 @@ export default async function Home() {
             </div>
 
             <div className="sidebar-card rounded-lg p-3">
-              <h2 className="text-base font-semibold main-title mb-2">Movers</h2>
+              <h2 className="text-lg font-semibold main-title mb-3">Movers</h2>
               <div className="space-y-1">
                 <div className="text-sm">
                   <div className="flex justify-between">

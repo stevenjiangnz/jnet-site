@@ -58,10 +58,10 @@ export function MobileMenu({ user }: MobileMenuProps) {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`block py-2 px-3 rounded ${
+                className={`block py-2 px-3 rounded text-base ${
                   pathname === item.href
                     ? "text-indigo-600 dark:text-indigo-400 bg-gray-100 dark:bg-gray-800"
-                    : "navbar-link hover:bg-gray-100 dark:hover:bg-gray-800"
+                    : "navbar-link hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
               >
                 {item.label}
@@ -72,7 +72,7 @@ export function MobileMenu({ user }: MobileMenuProps) {
                 <Link
                   href="/dashboard"
                   onClick={() => setIsOpen(false)}
-                  className="block py-2 px-3 rounded navbar-link hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="block py-2 px-3 rounded text-base navbar-link hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   Dashboard
                 </Link>
