@@ -9,8 +9,8 @@ on:
 jobs:
   system-check:
     # MANUAL SWITCH: Comment/uncomment one of these lines to switch runners
-    # runs-on: [self-hosted, linux, x64, host]  # Use host-runner
-    runs-on: ubuntu-latest  # Use GitHub-hosted runner
+    runs-on: [self-hosted, linux, x64, host]  # Use host-runner
+    # runs-on: ubuntu-latest  # Use GitHub-hosted runner
     outputs:
       docker_version: ${{ steps.versions.outputs.docker }}
       compose_version: ${{ steps.versions.outputs.compose }}
@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Check system resources
         run: |
-          echo "Running on: GitHub-hosted runner"
+          echo "Running on: Self-hosted runner"
           echo "=== System Resources ==="
           echo "CPU info:"
           nproc
@@ -48,8 +48,8 @@ jobs:
   build-services:
     needs: system-check
     # MANUAL SWITCH: Comment/uncomment one of these lines to switch runners
-    # runs-on: [self-hosted, linux, x64, host]  # Use host-runner
-    runs-on: ubuntu-latest  # Use GitHub-hosted runner
+    runs-on: [self-hosted, linux, x64, host]  # Use host-runner
+    # runs-on: ubuntu-latest  # Use GitHub-hosted runner
     strategy:
       matrix:
         include:
@@ -97,8 +97,8 @@ jobs:
   integration-test:
     needs: build-services
     # MANUAL SWITCH: Comment/uncomment one of these lines to switch runners
-    # runs-on: [self-hosted, linux, x64, host]  # Use host-runner
-    runs-on: ubuntu-latest  # Use GitHub-hosted runner
+    runs-on: [self-hosted, linux, x64, host]  # Use host-runner
+    # runs-on: ubuntu-latest  # Use GitHub-hosted runner
     
     steps:
       - name: Checkout code
@@ -135,8 +135,8 @@ jobs:
     needs: [build-services, integration-test]
     if: always()
     # MANUAL SWITCH: Comment/uncomment one of these lines to switch runners
-    # runs-on: [self-hosted, linux, x64, host]  # Use host-runner
-    runs-on: ubuntu-latest  # Use GitHub-hosted runner
+    runs-on: [self-hosted, linux, x64, host]  # Use host-runner
+    # runs-on: ubuntu-latest  # Use GitHub-hosted runner
     
     steps:
       - name: Clean up test images
