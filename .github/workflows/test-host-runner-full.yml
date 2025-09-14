@@ -1,34 +1,27 @@
 name: Test Host Runner - Full Stack Build
 
-# Testing fallback mechanism - host runner is disabled
 on:
   push:
     branches: [develop]
     paths:
       - '.github/workflows/test-host-runner-full.yml'
 
+env:
+  # Manual switch: Set to 'true' to use host-runner, 'false' to use GitHub runner
+  USE_HOST_RUNNER: 'true'
+
 jobs:
-  # First try system check on host runner
-  system-check-host:
-    runs-on: [self-hosted, linux, x64, host]
-    continue-on-error: true
+  system-check:
+    runs-on: ${{ env.USE_HOST_RUNNER == 'true' && fromJSON('["self-hosted", "linux", "x64", "host"]') || 'ubuntu-latest' }}
     outputs:
       docker_version: ${{ steps.versions.outputs.docker }}
       compose_version: ${{ steps.versions.outputs.compose }}
-      runner_available: ${{ steps.check.outputs.available }}
-      runner_type: ${{ steps.check.outputs.type }}
     
     steps:
-      - name: Check runner availability
-        id: check
-        run: |
-          echo "Host runner is available"
-          echo "available=true" >> $GITHUB_OUTPUT
-          echo "type=host" >> $GITHUB_OUTPUT
-          
       - name: Check system resources
         run: |
-          echo "Running on: Host Runner"
+          RUNNER_TYPE="${{ env.USE_HOST_RUNNER == 'true' && 'Host Runner' || 'GitHub-hosted Runner' }}"
+          echo "Running on: $RUNNER_TYPE"
           echo "=== System Resources ==="
           echo "CPU info:"
           nproc
@@ -55,56 +48,9 @@ jobs:
           docker info --format "Storage Driver: {{.Driver}}"
           docker info --format "Total Memory: {{.MemTotal}}"
 
-  # Fallback system check on GitHub runner
-  system-check-github:
-    needs: system-check-host
-    if: ${{ needs.system-check-host.outputs.runner_available != 'true' }}
-    runs-on: ubuntu-latest
-    outputs:
-      docker_version: ${{ steps.versions.outputs.docker }}
-      compose_version: ${{ steps.versions.outputs.compose }}
-      runner_type: ${{ steps.check.outputs.type }}
-    
-    steps:
-      - name: Set runner type
-        id: check
-        run: |
-          echo "type=github" >> $GITHUB_OUTPUT
-          
-      - name: Check system resources
-        run: |
-          echo "Running on: GitHub-hosted Runner (fallback)"
-          echo "=== System Resources ==="
-          echo "CPU info:"
-          nproc
-          echo ""
-          echo "Memory info:"
-          free -h
-          echo ""
-          echo "Disk space:"
-          df -h | grep -E "(^/|Filesystem)"
-      
-      - name: Check Docker setup
-        id: versions
-        run: |
-          DOCKER_VERSION=$(docker --version | cut -d' ' -f3 | tr -d ',')
-          COMPOSE_VERSION=$(docker-compose --version | cut -d' ' -f3 | tr -d ',')
-          echo "docker=${DOCKER_VERSION}" >> $GITHUB_OUTPUT
-          echo "compose=${COMPOSE_VERSION}" >> $GITHUB_OUTPUT
-          
-          echo "Docker version: ${DOCKER_VERSION}"
-          echo "Docker Compose version: ${COMPOSE_VERSION}"
-          
-          echo ""
-          echo "Docker daemon info:"
-          docker info --format "Storage Driver: {{.Driver}}"
-          docker info --format "Total Memory: {{.MemTotal}}"
-
-  # Build services - will use whichever runner is available
   build-services:
-    needs: [system-check-host, system-check-github]
-    if: always()
-    runs-on: ${{ (needs.system-check-host.outputs.runner_available == 'true' && fromJSON('["self-hosted", "linux", "x64", "host"]')) || 'ubuntu-latest' }}
+    needs: system-check
+    runs-on: ${{ env.USE_HOST_RUNNER == 'true' && fromJSON('["self-hosted", "linux", "x64", "host"]') || 'ubuntu-latest' }}
     strategy:
       matrix:
         include:
@@ -118,11 +64,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      - name: Display runner info
-        run: |
-          RUNNER_TYPE="${{ needs.system-check-host.outputs.runner_type || needs.system-check-github.outputs.runner_type }}"
-          echo "Building on: ${RUNNER_TYPE} runner"
       
       - name: Build ${{ matrix.service }}
         run: |
@@ -155,9 +96,8 @@ jobs:
           echo "Image size: ${SIZE}"
 
   integration-test:
-    needs: [build-services, system-check-host, system-check-github]
-    if: always()
-    runs-on: ${{ (needs.system-check-host.outputs.runner_available == 'true' && fromJSON('["self-hosted", "linux", "x64", "host"]')) || 'ubuntu-latest' }}
+    needs: build-services
+    runs-on: ${{ env.USE_HOST_RUNNER == 'true' && fromJSON('["self-hosted", "linux", "x64", "host"]') || 'ubuntu-latest' }}
     
     steps:
       - name: Checkout code
@@ -191,9 +131,9 @@ jobs:
           docker network rm test-network
 
   cleanup:
-    needs: [build-services, integration-test, system-check-host, system-check-github]
+    needs: [build-services, integration-test]
     if: always()
-    runs-on: ${{ (needs.system-check-host.outputs.runner_available == 'true' && fromJSON('["self-hosted", "linux", "x64", "host"]')) || 'ubuntu-latest' }}
+    runs-on: ${{ env.USE_HOST_RUNNER == 'true' && fromJSON('["self-hosted", "linux", "x64", "host"]') || 'ubuntu-latest' }}
     
     steps:
       - name: Clean up test images
