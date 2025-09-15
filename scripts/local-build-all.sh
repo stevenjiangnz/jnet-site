@@ -8,10 +8,6 @@ echo "📦 Building frontend..."
 cd frontend && npm run build
 cd ..
 
-# Build auth service
-echo "📦 Building auth service..."
-cd services/auth-service && dotnet build
-cd ../..
 
 # Build content service
 echo "📦 Building content service..."

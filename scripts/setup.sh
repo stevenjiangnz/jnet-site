@@ -28,7 +28,7 @@ sleep 10
 
 # Check service health
 echo "🏥 Checking service health..."
-services=("frontend:3110" "auth-service:5001" "user-service:8001" "content-service:3001")
+services=("frontend:3110" "user-service:8001" "content-service:3001")
 for service in "${services[@]}"; do
     IFS=':' read -r name port <<< "$service"
     if curl -s "http://localhost:$port/health" > /dev/null 2>&1 || curl -s "http://localhost:$port/" > /dev/null 2>&1; then
@@ -43,9 +43,10 @@ echo "✅ Setup complete!"
 echo ""
 echo "🌐 Access your services at:"
 echo "   Frontend: http://localhost:3110"
-echo "   Auth Service: http://localhost:5001"
 echo "   User Service: http://localhost:8001"
 echo "   Content Service: http://localhost:3001"
+echo "   Stock Data Service: http://localhost:9001"
+echo "   API Service: http://localhost:8002"
 echo "   Database: localhost:5432"
 echo ""
 echo "📝 Useful commands:"

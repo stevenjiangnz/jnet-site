@@ -45,7 +45,6 @@ function categorizeCommit(commit) {
 function generateChangelog(service, version, previousTag) {
   const servicePath = {
     'frontend': 'frontend/',
-    'auth-service': 'services/auth-service/',
     'user-service': 'services/user-service/',
     'content-service': 'services/content-service/'
   };
@@ -131,7 +130,7 @@ function main() {
   }
   
   const [service, version, previousTag] = args;
-  const validServices = ['frontend', 'auth-service', 'user-service', 'content-service'];
+  const validServices = ['frontend', 'user-service', 'content-service'];
   
   if (!validServices.includes(service)) {
     console.error(`Invalid service: ${service}`);

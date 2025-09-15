@@ -18,26 +18,8 @@ services:
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     depends_on:
-      - auth-service
       - user-service
       - content-service
-
-  auth-service:
-    build:
-      context: ./services/auth-service
-      dockerfile: Dockerfile.dev
-    ports:
-      - "5001:5000"
-    volumes:
-      - ./services/auth-service:/app
-      - /app/bin
-      - /app/obj
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - DATABASE_URL=Server=db;Database=jnetsolution;User=dev;Password=devpass;
-      - JWT_SECRET=your-development-secret-key-min-32-characters-long
-    depends_on:
-      - db
 
   user-service:
     build:

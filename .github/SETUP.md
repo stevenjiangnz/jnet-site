@@ -95,7 +95,7 @@ Each service needs initial setup before the workflows will work:
 
 ```bash
 # Make sure version files exist
-# (Already created for auth-service and user-service)
+# (Already created for user-service)
 ```
 
 ### 2. Push to Develop Branch

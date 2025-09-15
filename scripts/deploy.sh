@@ -35,7 +35,7 @@ fi
 
 # Build and push images
 echo "🔨 Building and pushing Docker images to Docker Hub..."
-services=("frontend" "auth-service" "user-service" "content-service" "stock-data-service")
+services=("frontend" "user-service" "content-service" "stock-data-service")
 
 for service in "${services[@]}"; do
     echo "📦 Building $service..."
@@ -57,13 +57,6 @@ done
 # Deploy services to Cloud Run
 echo "🚀 Deploying services to Cloud Run..."
 
-# Deploy auth-service
-gcloud run deploy jnetsolution-auth \
-    --image "$DOCKER_USERNAME/jnet-auth-service:latest" \
-    --platform managed \
-    --region $REGION \
-    --no-allow-unauthenticated \
-    --set-env-vars "ASPNETCORE_ENVIRONMENT=Production"
 
 # Deploy user-service
 gcloud run deploy jnetsolution-user \
