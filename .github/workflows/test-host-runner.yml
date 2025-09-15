@@ -9,7 +9,7 @@ on:
 jobs:
   test-docker:
     # MANUAL SWITCH: Comment/uncomment one of these lines to switch runners
-    runs-on: [self-hosted, macOS, mac]  # Use host-runner
+    runs-on: ubuntu-latest
     # runs-on: ubuntu-latest  # Use GitHub-hosted runner
     
     steps:
