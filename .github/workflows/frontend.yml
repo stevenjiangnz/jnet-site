@@ -26,12 +26,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+      - name: Check Node.js version
+        run: |
+          echo "Using Node.js version:"
+          node --version
+          echo "Using npm version:"
+          npm --version
+
+      - name: Clean workspace
+        working-directory: ${{ env.SERVICE_PATH }}
+        run: |
+          rm -rf node_modules .next
+          npm cache clean --force
 
       - name: Install dependencies
         working-directory: ${{ env.SERVICE_PATH }}
