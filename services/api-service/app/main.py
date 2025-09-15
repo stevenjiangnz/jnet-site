@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="JNet API Service",
     description="Business Logic Layer for JNet Solution",
-    version="0.1.0",
+    version="0.1.1",
     lifespan=lifespan,
 )
 
