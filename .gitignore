@@ -75,3 +75,11 @@ supabase/.temp/
 supabase/.branches/
 supabase/functions/*/node_modules/
 .supabase/github-actions-key.json
+
+# Playwright screenshots
+.playwright-mcp/
+
+# GitHub Actions runner runtime
+setup/host-runner/logs/
+setup/host-runner/runners/
+setup/host-runner/config/*.service

@@ -6,6 +6,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Always perform Black formatting check before pushing code to GitHub, as formatting issues can cause time-consuming review bounces
 
+## GitHub Actions Runners
+
+### Host-based Runners Setup
+For running GitHub Actions workflows with full Docker support, use the host-based runner setup:
+
+```bash
+cd setup/host-runner
+
+# Initial setup
+chmod +x setup.sh && ./setup.sh
+
+# Setup a runner for a repository
+export GITHUB_PERSONAL_ACCESS_TOKEN="your-pat-token"
+./scripts/setup-runner.sh <github-owner> <github-repo>
+
+# Start/stop runners
+./scripts/start-runner.sh <repo-name>
+./scripts/stop-runner.sh <repo-name>
+
+# Check status
+./scripts/status-runner.sh
+```
+
+Multiple runners can be created, one for each repository. See `setup/host-runner/README.md` for detailed instructions.
+
 ## Commands
 
 ### Initial Setup
