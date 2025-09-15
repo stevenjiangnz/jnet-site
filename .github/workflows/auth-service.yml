@@ -106,6 +106,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          ecr: false
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -134,6 +135,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          ecr: false
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
