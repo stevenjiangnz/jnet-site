@@ -9,9 +9,10 @@ This directory contains GitHub Actions workflows and supporting scripts for the 
 - **Purpose**: Run tests and build verification
 - **Jobs**: 
   - Frontend tests (TypeScript, linting)
-  - Auth service tests (.NET)
   - User service tests (Python)
   - Content service tests (Node.js)
+  - Stock data service tests (Python)
+  - API service tests (Python)
   - Docker build verification
 
 ### 2. Develop Branch Build (`develop.yml`)
@@ -62,9 +63,11 @@ See [SETUP.md](./SETUP.md) for detailed setup instructions including:
 
 ```
 frontend (Next.js) → Google Cloud Run (public)
-    ├── auth-service (.NET) → Google Cloud Run (authenticated)
+    ├── Supabase Auth → Authentication service
     ├── user-service (Python) → Google Cloud Run (authenticated)
-    └── content-service (Node.js) → Google Cloud Run (authenticated)
+    ├── content-service (Node.js) → Google Cloud Run (authenticated)
+    ├── stock-data-service (Python) → Google Cloud Run (public)
+    └── api-service (Python) → Google Cloud Run (authenticated)
 ```
 
 ## Quick Start

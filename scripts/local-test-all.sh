@@ -9,11 +9,6 @@ echo "📦 Testing frontend..."
 cd frontend && npm test -- --passWithNoTests
 cd ..
 
-# Test auth service
-echo ""
-echo "📦 Testing auth service..."
-cd services/auth-service && dotnet test
-cd ../..
 
 # Test user service
 echo ""

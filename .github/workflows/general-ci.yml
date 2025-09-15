@@ -5,22 +5,18 @@ on:
     branches: [main, develop]
     paths-ignore:
       - 'frontend/**'
-      - 'services/auth-service/**'
       - 'services/user-service/**'
       - 'services/content-service/**'
       - '.github/workflows/frontend.yml'
-      - '.github/workflows/auth-service.yml'
       - '.github/workflows/user-service.yml'
       - '.github/workflows/content-service.yml'
   pull_request:
     branches: [main, develop]
     paths-ignore:
       - 'frontend/**'
-      - 'services/auth-service/**'
       - 'services/user-service/**'
       - 'services/content-service/**'
       - '.github/workflows/frontend.yml'
-      - '.github/workflows/auth-service.yml'
       - '.github/workflows/user-service.yml'
       - '.github/workflows/content-service.yml'
 
@@ -37,7 +33,6 @@ jobs:
         run: |
           echo "Checking if all Dockerfiles exist..."
           test -f frontend/Dockerfile
-          test -f services/auth-service/Dockerfile
           test -f services/user-service/Dockerfile
           test -f services/content-service/Dockerfile
 

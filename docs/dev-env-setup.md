@@ -23,9 +23,6 @@ jnetsolution/
 │   ├── package.json
 │   └── src/
 ├── services/                         # Backend microservices
-│   ├── auth-service/                 # .NET service
-│   │   ├── Dockerfile
-│   │   └── src/
 │   ├── user-service/                 # Python service
 │   │   ├── Dockerfile
 │   │   ├── requirements.txt
@@ -87,7 +84,6 @@ docker-compose up -d
 
 # Start specific service
 docker-compose up frontend
-docker-compose up auth-service
 
 # View logs
 docker-compose logs -f frontend
@@ -95,7 +91,6 @@ docker-compose logs -f frontend
 
 ## Services Started
 - Frontend (Next.js): http://localhost:3000
-- Auth Service (.NET): http://localhost:5001
 - User Service (Python): http://localhost:8001
 - Content Service (Node.js): http://localhost:3001
 
@@ -119,14 +114,12 @@ docker-compose -f docker-compose.prod.yml build
 
 # Build specific service
 docker build -t jnetsolution/frontend ./frontend
-docker build -t jnetsolution/auth-service ./services/auth-service
 ```
 
 ## Google Cloud Run Preparation
 ```bash
 # Tag for GCR
 docker tag jnetsolution/frontend gcr.io/YOUR_PROJECT_ID/jnetsolution-frontend
-docker tag jnetsolution/auth-service gcr.io/YOUR_PROJECT_ID/jnetsolution-auth
 
 # Push to registry
 docker push gcr.io/YOUR_PROJECT_ID/jnetsolution-frontend
@@ -153,9 +146,9 @@ gcloud run deploy jnetsolution-frontend \
   --region us-central1 \
   --allow-unauthenticated
 
-# Deploy auth service
-gcloud run deploy jnetsolution-auth \
-  --image gcr.io/YOUR_PROJECT_ID/jnetsolution-auth \
+# Deploy user service
+gcloud run deploy jnetsolution-user \
+  --image gcr.io/YOUR_PROJECT_ID/jnetsolution-user \
   --platform managed \
   --region us-central1 \
   --no-allow-unauthenticated
@@ -183,12 +176,12 @@ Personal public site with microservices backend architecture, designed for scala
 - **Features**: SSR, SEO optimization, responsive design
 
 ## Backend Services
-- **Auth Service** (.NET 8): User authentication, JWT tokens
 - **User Service** (Python FastAPI): User profiles, preferences
 - **Content Service** (Node.js Express): Blog posts, portfolio items
+- **Authentication**: Handled by Supabase Auth
 
 ## Data Flow
-1. Frontend authenticates via Auth Service
+1. Frontend authenticates via Supabase Auth
 2. Authenticated requests to User/Content services
 3. Services communicate via internal APIs
 4. Shared database or service-specific databases
@@ -246,21 +239,9 @@ services:
       - NODE_ENV=development
       - API_BASE_URL=http://localhost:8000
     depends_on:
-      - auth-service
       - user-service
       - content-service
 
-  auth-service:
-    build:
-      context: ./services/auth-service
-      dockerfile: Dockerfile.dev
-    ports:
-      - "5001:5000"
-    volumes:
-      - ./services/auth-service:/app
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - DATABASE_URL=Server=db;Database=jnetsolution;User=dev;Password=devpass;
 
   user-service:
     build:
@@ -365,7 +346,7 @@ module.exports = nextConfig
 echo "Setting up JNetSolution development environment..."
 
 # Create directory structure
-mkdir -p {frontend,services/{auth-service,user-service,content-service},prd,.claude/{commands,context}}
+mkdir -p {frontend,services/{user-service,content-service},prd,.claude/{commands,context}}
 
 # Copy environment file
 cp .env.example .env.local

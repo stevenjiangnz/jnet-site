@@ -6,9 +6,6 @@ echo "🧪 Running all tests for JNetSolution..."
 echo "Testing Frontend..."
 docker-compose exec -T frontend npm test -- --passWithNoTests || echo "⚠️  Frontend tests need to be implemented"
 
-# Test auth-service
-echo "Testing Auth Service..."
-docker-compose exec -T auth-service dotnet test || echo "⚠️  Auth Service tests need to be implemented"
 
 # Test user-service
 echo "Testing User Service..."
