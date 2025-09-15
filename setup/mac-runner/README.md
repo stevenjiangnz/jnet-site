@@ -158,7 +158,29 @@ If you need Docker support on your Mac runner:
 
 1. Install Docker Desktop from https://docker.com
 2. Ensure Docker Desktop is running
-3. Add user to docker group (if applicable)
+3. Configure Docker for non-interactive mode:
+   ```bash
+   ./scripts/configure-docker.sh
+   ```
+
+### Docker Login Issues
+
+If you encounter "User interaction is not allowed" errors with Docker login:
+
+**Option 1: Configure Docker (Recommended)**
+Run the configuration script on your Mac:
+```bash
+./scripts/configure-docker.sh
+```
+
+**Option 2: Update Workflows**
+Replace `docker/login-action@v3` with direct Docker login:
+```yaml
+- name: Log in to Docker Hub
+  run: |
+    echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }} --password-stdin
+  shell: bash
+```
 
 ## Troubleshooting
 

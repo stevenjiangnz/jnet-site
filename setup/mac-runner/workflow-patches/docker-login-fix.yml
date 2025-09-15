@@ -1,0 +1,11 @@
+# Docker Login Fix for Mac Runners
+# 
+# Replace the docker/login-action@v3 step with this direct login approach:
+
+      - name: Log in to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }} --password-stdin
+        shell: bash
+
+# This avoids the macOS keychain interaction issue by using direct Docker CLI login
+# The credentials are stored in ~/.docker/config.json instead of the keychain
