@@ -8,8 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## GitHub Actions Runners
 
-### Host-based Runners Setup
-For running GitHub Actions workflows with full Docker support, use the host-based runner setup:
+### Host-based Runners Setup (Ubuntu/Linux)
+For running GitHub Actions workflows with full Docker support on Ubuntu/Linux hosts:
 
 ```bash
 cd setup/host-runner
@@ -30,6 +30,29 @@ export GITHUB_PERSONAL_ACCESS_TOKEN="your-pat-token"
 ```
 
 Multiple runners can be created, one for each repository. See `setup/host-runner/README.md` for detailed instructions.
+
+### Mac Runner Setup (macOS)
+For running GitHub Actions workflows on Mac mini or other macOS machines:
+
+```bash
+cd setup/mac-runner
+
+# Initial setup
+chmod +x setup.sh && ./setup.sh
+
+# Setup a runner for a repository
+export GITHUB_PERSONAL_ACCESS_TOKEN="your-pat-token"
+./scripts/setup-runner.sh <github-owner> <github-repo>
+
+# Start/stop runners
+./scripts/start-runner.sh <repo-name>
+./scripts/stop-runner.sh <repo-name>
+
+# Check status
+./scripts/status-runner.sh
+```
+
+Mac runners automatically detect architecture (Intel x64 or Apple Silicon arm64). See `setup/mac-runner/README.md` for detailed instructions.
 
 ## Commands
 
