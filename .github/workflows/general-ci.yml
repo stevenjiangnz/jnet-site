@@ -42,7 +42,7 @@ jobs:
           test -f services/content-service/Dockerfile
 
   script-validation:
-    runs-on: [self-hosted, linux, x64, host]
+    runs-on: [self-hosted, macOS, mac]
     steps:
       - uses: actions/checkout@v4
 

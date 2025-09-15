@@ -16,7 +16,7 @@ env:
 
 jobs:
   test:
-    runs-on: [self-hosted, linux, x64, host]
+    runs-on: [self-hosted, macOS, mac]
     steps:
       - uses: actions/checkout@v4
       
@@ -47,7 +47,7 @@ jobs:
 
   version:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: [self-hosted, linux, x64, host]
+    runs-on: [self-hosted, macOS, mac]
     needs: test
     outputs:
       semVer: ${{ steps.versioning.outputs.new-version }}
@@ -93,7 +93,7 @@ jobs:
 
   build-and-push:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: [self-hosted, linux, x64, host]
+    runs-on: [self-hosted, macOS, mac]
     needs: version
     env:
       SEMVER: ${{ needs.version.outputs.semVer }}
@@ -123,7 +123,7 @@ jobs:
 
   deploy-production:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: [self-hosted, linux, x64, host]
+    runs-on: [self-hosted, macOS, mac]
     needs: [version, build-and-push]
     environment:
       name: production
