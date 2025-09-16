@@ -46,7 +46,6 @@ function generateChangelog(service, version, previousTag) {
   const servicePath = {
     'frontend': 'frontend/',
     'user-service': 'services/user-service/',
-    'content-service': 'services/content-service/'
   };
   
   let changelog = `## ${service} v${version}\n\n`;
@@ -130,7 +129,7 @@ function main() {
   }
   
   const [service, version, previousTag] = args;
-  const validServices = ['frontend', 'user-service', 'content-service'];
+  const validServices = ['frontend', 'user-service'];
   
   if (!validServices.includes(service)) {
     console.error(`Invalid service: ${service}`);

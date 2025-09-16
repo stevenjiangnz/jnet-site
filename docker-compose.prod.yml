@@ -12,7 +12,6 @@ services:
       - API_BASE_URL=http://api-service:8002
     depends_on:
       - user-service
-      - content-service
 
   user-service:
     build:
@@ -22,18 +21,6 @@ services:
       - "8001:8000"
     environment:
       - ENVIRONMENT=production
-      - DATABASE_URL=${DATABASE_URL}
-    depends_on:
-      - db
-
-  content-service:
-    build:
-      context: ./services/content-service
-      dockerfile: Dockerfile
-    ports:
-      - "3001:3000"
-    environment:
-      - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
       - db

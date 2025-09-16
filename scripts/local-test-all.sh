@@ -20,12 +20,6 @@ fi
 pytest tests/
 cd ../..
 
-# Test content service
-echo ""
-echo "📦 Testing content service..."
-cd services/content-service && npm test -- --passWithNoTests
-cd ../..
-
 # Test stock-data service
 echo ""
 echo "📦 Testing stock-data service..."
