@@ -22,8 +22,6 @@ graph TB
     
     subgraph "Backend Services"
         AuthService[Auth Service<br/>.NET 8 - Legacy]
-        UserService[User Service<br/>Python FastAPI]
-        ContentService[Content Service<br/>Node.js Express]
         StockService[Stock Data Service<br/>Python FastAPI + uv]
     end
     
@@ -35,13 +33,9 @@ graph TB
     
     Browser --> NextJS
     NextJS --> Supabase
-    NextJS --> UserService
-    NextJS --> ContentService
     NextJS --> StockService
     
     Supabase --> SupabaseDB
-    UserService --> LocalDB
-    ContentService --> LocalDB
     StockService --> FileStorage
     AuthService --> LocalDB
 ```
@@ -95,17 +89,6 @@ frontend/src/
 
 ### Backend Services
 
-#### User Service (Python FastAPI)
-- User profile management
-- User preferences
-- Profile image handling
-- RESTful API design
-
-#### Content Service (Node.js Express)
-- Blog post CRUD operations
-- Portfolio item management
-- Markdown processing
-- Content categorization
 
 #### Stock Data Service (Python FastAPI + uv)
 - EOD stock/ETF data fetching
@@ -159,8 +142,6 @@ frontend/src/
 Docker Compose Setup:
 - Frontend: Port 3110 (Docker) / 3100 (Local)
 - Auth Service: Port 5001
-- User Service: Port 8001
-- Content Service: Port 3001
 - Stock Service: Port 9001
 - PostgreSQL: Port 5432
 ```

@@ -9,7 +9,8 @@ on:
         type: choice
         options:
           - frontend
-          - user-service
+          - api-service
+          - stock-data-service
           - all
       version:
         description: 'Version tag to deploy (leave empty for latest)'
@@ -80,19 +81,4 @@ jobs:
           --platform managed \
           --allow-unauthenticated \
           --set-env-vars="NODE_ENV=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"
-          
-    - name: Deploy User Service
-      if: github.event.inputs.service == 'user-service' || github.event.inputs.service == 'all'
-      run: |
-        VERSION="${{ github.event.inputs.version }}"
-        if [[ -z "$VERSION" ]]; then
-          VERSION="latest"
-        fi
-        
-        gcloud run deploy user-service${{ steps.env.outputs.suffix }} \
-          --image docker.io/${DOCKER_USERNAME}/jnet-user-service:${VERSION} \
-          --region us-central1 \
-          --platform managed \
-          --no-allow-unauthenticated \
-          --set-env-vars="ENVIRONMENT=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"
           

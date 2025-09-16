@@ -10,12 +10,12 @@ Personal public site with microservices backend architecture, designed for scala
 
 ## Backend Services
 - **Auth Service** (.NET 8): User authentication, JWT tokens
-- **User Service** (Python FastAPI): User profiles, preferences
-- **Content Service** (Node.js Express): Blog posts, portfolio items
+- **Stock Data Service** (Python FastAPI): Stock/ETF data management
+- **API Service** (Python FastAPI): Business logic, analysis, notifications
 
 ## Data Flow
 1. Frontend authenticates via Auth Service
-2. Authenticated requests to User/Content services
+2. Authenticated requests to backend services
 3. Services communicate via internal APIs
 4. Shared database or service-specific databases
 

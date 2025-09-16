@@ -23,10 +23,6 @@ jnetsolution/
 │   ├── package.json
 │   └── src/
 ├── services/                         # Backend microservices
-│   ├── user-service/                 # Python service
-│   │   ├── Dockerfile
-│   │   ├── requirements.txt
-│   │   └── src/
 ├── docker-compose.yml                # Local development orchestration
 ├── docker-compose.prod.yml           # Production-like testing
 ├── .env.example
@@ -87,7 +83,6 @@ docker-compose logs -f frontend
 
 ## Services Started
 - Frontend (Next.js): http://localhost:3000
-- User Service (Python): http://localhost:8001
 
 ## Development Workflow
 1. Make changes to code
@@ -141,12 +136,6 @@ gcloud run deploy jnetsolution-frontend \
   --region us-central1 \
   --allow-unauthenticated
 
-# Deploy user service
-gcloud run deploy jnetsolution-user \
-  --image gcr.io/YOUR_PROJECT_ID/jnetsolution-user \
-  --platform managed \
-  --region us-central1 \
-  --no-allow-unauthenticated
 ```
 
 ## Environment Variables
@@ -171,12 +160,11 @@ Personal public site with microservices backend architecture, designed for scala
 - **Features**: SSR, SEO optimization, responsive design
 
 ## Backend Services
-- **User Service** (Python FastAPI): User profiles, preferences
 - **Authentication**: Handled by Supabase Auth
 
 ## Data Flow
 1. Frontend authenticates via Supabase Auth
-2. Authenticated requests to User/Content services
+2. Authenticated requests to backend services
 3. Services communicate via internal APIs
 4. Shared database or service-specific databases
 
@@ -232,19 +220,6 @@ services:
     environment:
       - NODE_ENV=development
       - API_BASE_URL=http://localhost:8000
-    depends_on:
-      - user-service
-  user-service:
-    build:
-      context: ./services/user-service
-      dockerfile: Dockerfile.dev
-    ports:
-      - "8001:8000"
-    volumes:
-      - ./services/user-service:/app
-    environment:
-      - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://dev:devpass@db:5432/jnetsolution
 
   db:
     image: postgres:15
@@ -324,7 +299,7 @@ module.exports = nextConfig
 echo "Setting up JNetSolution development environment..."
 
 # Create directory structure
-mkdir -p {frontend,services/user-service,prd,.claude/{commands,context}}
+mkdir -p {frontend,services,prd,.claude/{commands,context}}
 
 # Copy environment file
 cp .env.example .env.local

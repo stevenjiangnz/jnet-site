@@ -10,15 +10,6 @@ cd frontend && npm test -- --passWithNoTests
 cd ..
 
 
-# Test user service
-echo ""
-echo "📦 Testing user service..."
-cd services/user-service
-if [ -d "venv" ]; then
-    source venv/bin/activate
-fi
-pytest tests/
-cd ../..
 
 # Test stock-data service
 echo ""

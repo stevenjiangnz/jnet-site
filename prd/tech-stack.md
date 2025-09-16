@@ -15,17 +15,7 @@
 - **Database**: PostgreSQL
 - **ORM**: Entity Framework Core
 
-### User Service
-- **Framework**: FastAPI (Python 3.11+)
-- **Database**: PostgreSQL
-- **ORM**: SQLAlchemy
-- **Testing**: pytest
 
-### Content Service
-- **Framework**: Express.js (Node.js 18+)
-- **Database**: PostgreSQL
-- **ORM**: Prisma
-- **Testing**: Jest
 
 ## Infrastructure
 - **Containerization**: Docker
