@@ -10,7 +10,6 @@ This directory contains GitHub Actions workflows and supporting scripts for the 
 - **Jobs**: 
   - Frontend tests (TypeScript, linting)
   - User service tests (Python)
-  - Content service tests (Node.js)
   - Stock data service tests (Python)
   - API service tests (Python)
   - Docker build verification
@@ -65,7 +64,6 @@ See [SETUP.md](./SETUP.md) for detailed setup instructions including:
 frontend (Next.js) → Google Cloud Run (public)
     ├── Supabase Auth → Authentication service
     ├── user-service (Python) → Google Cloud Run (authenticated)
-    ├── content-service (Node.js) → Google Cloud Run (authenticated)
     ├── stock-data-service (Python) → Google Cloud Run (public)
     └── api-service (Python) → Google Cloud Run (authenticated)
 ```

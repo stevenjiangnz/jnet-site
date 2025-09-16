@@ -6,19 +6,15 @@ on:
     paths-ignore:
       - 'frontend/**'
       - 'services/user-service/**'
-      - 'services/content-service/**'
       - '.github/workflows/frontend.yml'
       - '.github/workflows/user-service.yml'
-      - '.github/workflows/content-service.yml'
   pull_request:
     branches: [main, develop]
     paths-ignore:
       - 'frontend/**'
       - 'services/user-service/**'
-      - 'services/content-service/**'
       - '.github/workflows/frontend.yml'
       - '.github/workflows/user-service.yml'
-      - '.github/workflows/content-service.yml'
 
 jobs:
   docker-compose-test:
@@ -34,7 +30,6 @@ jobs:
           echo "Checking if all Dockerfiles exist..."
           test -f frontend/Dockerfile
           test -f services/user-service/Dockerfile
-          test -f services/content-service/Dockerfile
 
   script-validation:
     runs-on: ubuntu-latest

@@ -10,7 +10,6 @@ on:
         options:
           - frontend
           - user-service
-          - content-service
           - all
       version:
         description: 'Version tag to deploy (leave empty for latest)'
@@ -97,17 +96,3 @@ jobs:
           --no-allow-unauthenticated \
           --set-env-vars="ENVIRONMENT=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"
           
-    - name: Deploy Content Service
-      if: github.event.inputs.service == 'content-service' || github.event.inputs.service == 'all'
-      run: |
-        VERSION="${{ github.event.inputs.version }}"
-        if [[ -z "$VERSION" ]]; then
-          VERSION="latest"
-        fi
-        
-        gcloud run deploy content-service${{ steps.env.outputs.suffix }} \
-          --image docker.io/${DOCKER_USERNAME}/jnet-content-service:${VERSION} \
-          --region us-central1 \
-          --platform managed \
-          --no-allow-unauthenticated \
-          --set-env-vars="NODE_ENV=${{ steps.env.outputs.ENV_NAME }},VERSION=${VERSION}"

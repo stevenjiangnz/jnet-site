@@ -19,7 +19,6 @@ services:
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     depends_on:
       - user-service
-      - content-service
 
   user-service:
     build:
@@ -31,21 +30,6 @@ services:
       - ./services/user-service:/app
     environment:
       - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://dev:devpass@db:5432/jnetsolution
-    depends_on:
-      - db
-
-  content-service:
-    build:
-      context: ./services/content-service
-      dockerfile: Dockerfile.dev
-    ports:
-      - "3001:3000"
-    volumes:
-      - ./services/content-service:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
       - DATABASE_URL=postgresql://dev:devpass@db:5432/jnetsolution
     depends_on:
       - db

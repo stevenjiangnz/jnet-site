@@ -11,10 +11,6 @@ docker-compose exec -T frontend npm test -- --passWithNoTests || echo "⚠️  F
 echo "Testing User Service..."
 docker-compose exec -T user-service pytest || echo "⚠️  User Service tests need to be implemented"
 
-# Test content-service
-echo "Testing Content Service..."
-docker-compose exec -T content-service npm test -- --passWithNoTests || echo "⚠️  Content Service tests need to be implemented"
-
 # Test stock-data-service
 echo "Testing Stock Data Service..."
 docker-compose exec -T stock-data-service uv run pytest || echo "⚠️  Stock Data Service tests failed"
