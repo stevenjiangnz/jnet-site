@@ -18,21 +18,7 @@ services:
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     depends_on:
-      - user-service
-
-  user-service:
-    build:
-      context: ./services/user-service
-      dockerfile: Dockerfile.dev
-    ports:
-      - "8001:8000"
-    volumes:
-      - ./services/user-service:/app
-    environment:
-      - ENVIRONMENT=development
-      - DATABASE_URL=postgresql://dev:devpass@db:5432/jnetsolution
-    depends_on:
-      - db
+      - api-service
 
   stock-data-service:
     build:

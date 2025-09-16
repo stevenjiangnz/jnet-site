@@ -35,7 +35,7 @@ fi
 
 # Build and push images
 echo "🔨 Building and pushing Docker images to Docker Hub..."
-services=("frontend" "user-service" "stock-data-service")
+services=("frontend" "stock-data-service")
 
 for service in "${services[@]}"; do
     echo "📦 Building $service..."
@@ -57,14 +57,6 @@ done
 # Deploy services to Cloud Run
 echo "🚀 Deploying services to Cloud Run..."
 
-
-# Deploy user-service
-gcloud run deploy jnetsolution-user \
-    --image "$DOCKER_USERNAME/jnet-user-service:latest" \
-    --platform managed \
-    --region $REGION \
-    --no-allow-unauthenticated \
-    --set-env-vars "ENVIRONMENT=production"
 
 # Deploy frontend (allow unauthenticated)
 gcloud run deploy jnetsolution-frontend \

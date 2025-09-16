@@ -59,17 +59,7 @@ Starts the .NET auth service locally on port 5000.
 - Sets required environment variables
 - Runs with development configuration
 
-### `local-start-user.sh`
-Starts the Python user service locally on port 8000.
-- Creates virtual environment if needed
-- Installs dependencies
-- Runs with auto-reload
 
-### `local-start-content.sh`
-Starts the Node.js content service locally on port 3000.
-- Installs dependencies if needed
-- Sets environment variables
-- Runs in development mode
 
 ### `local-build-all.sh`
 Builds all services locally (except Python which doesn't need building).

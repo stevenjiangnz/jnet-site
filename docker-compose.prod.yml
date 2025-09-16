@@ -10,20 +10,6 @@ services:
     environment:
       - NODE_ENV=production
       - API_BASE_URL=http://api-service:8002
-    depends_on:
-      - user-service
-
-  user-service:
-    build:
-      context: ./services/user-service
-      dockerfile: Dockerfile
-    ports:
-      - "8001:8000"
-    environment:
-      - ENVIRONMENT=production
-      - DATABASE_URL=${DATABASE_URL}
-    depends_on:
-      - db
 
   db:
     image: postgres:15

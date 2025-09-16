@@ -7,7 +7,6 @@ Personal public site with microservices architecture, built with modern web tech
 - **Frontend**: Next.js 15+ with React, TypeScript, and Tailwind CSS
 - **Authentication**: Supabase Auth (Email/Password and Google OAuth)
 - **Database**: Supabase (PostgreSQL)
-- **User Service**: Python FastAPI for user management
 - **Stock Data Service**: Python FastAPI with uv for stock/ETF EOD data downloading
 - **API Service**: Python FastAPI for business logic (backtesting, scanning, analysis, notifications)
 - **Local Database**: PostgreSQL 15 (for non-auth services)
@@ -49,7 +48,6 @@ Personal public site with microservices architecture, built with modern web tech
 
 5. Access the services:
    - Frontend: http://localhost:3110
-   - User Service: http://localhost:8001
    - Stock Data Service: http://localhost:9001
    - API Service: http://localhost:8002
 
@@ -63,7 +61,6 @@ jnet-site/
 │       ├── providers/        # React contexts (Auth)
 │       └── utils/            # Utilities (Supabase clients)
 ├── services/                  # Backend microservices
-│   ├── user-service/         # Python FastAPI user management
 │   └── stock-data-service/   # Python FastAPI stock/ETF data downloader
 ├── prd/                      # Product requirements and documentation
 ├── plan/                     # Implementation plans
@@ -134,8 +131,6 @@ The API service provides business logic layer for trading and analysis features:
 ```bash
 # Start services locally
 ./scripts/local-start-frontend.sh     # Frontend on port 3100
-./scripts/local-start-user.sh         # User service on port 8000
-./scripts/local-start-content.sh      # Content service on port 3000
 ./scripts/local-start-stock-data.sh   # Stock Data service on port 9000
 cd services/api-service && ./scripts/run_local.sh  # API service on port 8002
 

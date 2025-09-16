@@ -7,9 +7,6 @@ echo "Testing Frontend..."
 docker-compose exec -T frontend npm test -- --passWithNoTests || echo "⚠️  Frontend tests need to be implemented"
 
 
-# Test user-service
-echo "Testing User Service..."
-docker-compose exec -T user-service pytest || echo "⚠️  User Service tests need to be implemented"
 
 # Test stock-data-service
 echo "Testing Stock Data Service..."

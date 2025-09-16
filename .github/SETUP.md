@@ -95,7 +95,7 @@ Each service needs initial setup before the workflows will work:
 
 ```bash
 # Make sure version files exist
-# (Already created for user-service)
+# Version files are created during the build process
 ```
 
 ### 2. Push to Develop Branch
@@ -125,13 +125,7 @@ Each service can have environment-specific variables set in Cloud Run:
 - `DATABASE_URL`: Connection string
 - `JWT_SECRET`: Secret key for JWT
 
-**User Service**:
-- `ENVIRONMENT`: production/staging
-- `DATABASE_URL`: PostgreSQL connection string
 
-**Content Service**:
-- `NODE_ENV`: production/staging
-- `DATABASE_URL`: PostgreSQL connection string
 
 ### Setting Environment Variables
 ```bash
