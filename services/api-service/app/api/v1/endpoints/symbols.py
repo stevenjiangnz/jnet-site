@@ -1,20 +1,22 @@
 """
 Symbol management endpoints that proxy to stock-data-service.
 """
-from fastapi import APIRouter, HTTPException, Query
-from typing import List, Optional
-from datetime import date
+
+import logging
+from typing import Any, Dict, List, Optional
+
 import httpx
+from fastapi import APIRouter, HTTPException, Query
+
 from app.config import settings
 from app.models.symbol import (
-    SymbolListResponse,
     BulkDownloadRequest,
     BulkDownloadResponse,
-    SymbolPriceResponse,
+    DeleteSymbolsRequest,
     SymbolChartResponse,
-    DeleteSymbolsRequest
+    SymbolListResponse,
+    SymbolPriceResponse,
 )
-import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -29,8 +31,7 @@ async def list_symbols():
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{STOCK_SERVICE_URL}/api/v1/list",
-                timeout=30.0
+                f"{STOCK_SERVICE_URL}/api/v1/list", timeout=30.0
             )
             response.raise_for_status()
             return response.json()
@@ -45,8 +46,7 @@ async def add_symbol(symbol: str = Query(..., description="Stock symbol to add")
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{STOCK_SERVICE_URL}/api/v1/download/{symbol.upper()}",
-                timeout=60.0
+                f"{STOCK_SERVICE_URL}/api/v1/download/{symbol.upper()}", timeout=60.0
             )
             response.raise_for_status()
             return response.json()
@@ -67,7 +67,7 @@ async def bulk_download(request: BulkDownloadRequest):
             response = await client.post(
                 f"{STOCK_SERVICE_URL}/api/v1/bulk-download",
                 json=request.dict(),
-                timeout=300.0  # 5 minutes for bulk operations
+                timeout=300.0,  # 5 minutes for bulk operations
             )
             response.raise_for_status()
             return response.json()
@@ -82,8 +82,7 @@ async def delete_symbol(symbol: str):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.delete(
-                f"{STOCK_SERVICE_URL}/api/v1/symbol/{symbol.upper()}",
-                timeout=30.0
+                f"{STOCK_SERVICE_URL}/api/v1/symbol/{symbol.upper()}", timeout=30.0
             )
             response.raise_for_status()
             return {"message": f"Symbol {symbol} deleted successfully"}
@@ -102,10 +101,11 @@ async def delete_symbols(request: DeleteSymbolsRequest):
     try:
         async with httpx.AsyncClient() as client:
             # The stock-data-service expects a list in the body
-            response = await client.delete(
+            response = await client.request(
+                "DELETE",
                 f"{STOCK_SERVICE_URL}/api/v1/symbols",
                 json=request.symbols,
-                timeout=60.0
+                timeout=60.0,
             )
             response.raise_for_status()
             return {"message": f"Deleted {len(request.symbols)} symbols successfully"}
@@ -120,12 +120,11 @@ async def get_symbol_price(symbol: str):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{STOCK_SERVICE_URL}/api/v1/data/{symbol.upper()}/latest",
-                timeout=30.0
+                f"{STOCK_SERVICE_URL}/api/v1/data/{symbol.upper()}/latest", timeout=30.0
             )
             response.raise_for_status()
             data = response.json()
-            
+
             # Transform the response to our model
             if isinstance(data, list) and len(data) > 0:
                 latest = data[0]
@@ -135,10 +134,12 @@ async def get_symbol_price(symbol: str):
                     change=latest.get("change"),
                     changePercent=latest.get("change_percent"),
                     volume=latest.get("volume"),
-                    timestamp=latest.get("date")
+                    timestamp=latest.get("date"),
                 )
             else:
-                raise HTTPException(status_code=404, detail=f"No price data for symbol {symbol}")
+                raise HTTPException(
+                    status_code=404, detail=f"No price data for symbol {symbol}"
+                )
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
@@ -151,20 +152,24 @@ async def get_symbol_price(symbol: str):
 @router.get("/{symbol}/chart", response_model=SymbolChartResponse)
 async def get_symbol_chart(
     symbol: str,
-    period: Optional[str] = Query("1M", description="Time period: 1D, 1W, 1M, 3M, 6M, 1Y"),
-    indicators: Optional[List[str]] = Query(None, description="Technical indicators to include")
+    period: Optional[str] = Query(
+        "1M", description="Time period: 1D, 1W, 1M, 3M, 6M, 1Y"
+    ),
+    indicators: Optional[List[str]] = Query(
+        None, description="Technical indicators to include"
+    ),
 ):
     """Get chart data for a symbol."""
     try:
         async with httpx.AsyncClient() as client:
-            params = {"period": period}
+            params: Dict[str, Any] = {"period": period}
             if indicators:
-                params["indicators"] = indicators
-                
+                params["indicators"] = ",".join(indicators)
+
             response = await client.get(
                 f"{STOCK_SERVICE_URL}/api/v1/chart/{symbol.upper()}",
                 params=params,
-                timeout=30.0
+                timeout=30.0,
             )
             response.raise_for_status()
             return response.json()
