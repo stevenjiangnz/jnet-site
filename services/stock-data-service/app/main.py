@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 
 from app.config import settings, VERSION
 from app.api.v1.router import api_router
@@ -33,7 +34,14 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Stock Data Service...")
 
 
-app = FastAPI(title="Stock Data Service", version=VERSION, lifespan=lifespan)
+app = FastAPI(
+    title="Stock Data Service", 
+    version=VERSION, 
+    lifespan=lifespan,
+    swagger_ui_parameters={
+        "persistAuthorization": True,
+    },
+)
 
 # Add API Key middleware
 app.add_middleware(APIKeyMiddleware)
@@ -52,3 +60,47 @@ app.include_router(api_router, prefix=settings.api_v1_prefix)
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "version": VERSION, "service": "stock-data-service"}
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description="Stock Data Service API",
+        routes=app.routes,
+    )
+    
+    # Add security schemes
+    openapi_schema["components"]["securitySchemes"] = {
+        "apiKeyQuery": {
+            "type": "apiKey",
+            "in": "query",
+            "name": "api_key",
+            "description": "API key passed as a query parameter"
+        },
+        "apiKeyHeader": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key",
+            "description": "API key passed as a header"
+        }
+    }
+    
+    # Apply security to all endpoints except docs and health
+    for path, methods in openapi_schema.get("paths", {}).items():
+        if path not in ["/", "/health", "/docs", "/redoc", "/openapi.json"]:
+            for method in methods.values():
+                if isinstance(method, dict):
+                    method["security"] = [
+                        {"apiKeyQuery": []},
+                        {"apiKeyHeader": []}
+                    ]
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi

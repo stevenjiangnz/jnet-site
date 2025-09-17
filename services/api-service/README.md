@@ -44,6 +44,15 @@ docker-compose up api-service
 - Swagger UI: http://localhost:8002/docs
 - ReDoc: http://localhost:8002/redoc
 
+### API Key Authentication
+
+The API requires authentication using an API key. You can provide the API key in two ways:
+
+1. **Query Parameter**: `?api_key=YOUR_API_KEY`
+2. **Header**: `X-API-Key: YOUR_API_KEY`
+
+In Swagger UI, click the "Authorize" button and enter your API key. The authentication will persist throughout your session.
+
 ## Testing
 
 Run tests:
