@@ -51,7 +51,7 @@ export function HomeContent() {
               Welcome to JNet Solutions
             </h1>
             <p className="mt-4 text-lg main-subtitle">
-              {user ? 'Your Trading Dashboard' : 'Please sign in to continue'}
+              {user ? 'Your Trading Platform' : 'Please sign in to continue'}
             </p>
             
             {user ? (

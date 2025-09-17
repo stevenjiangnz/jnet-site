@@ -63,12 +63,6 @@ export function Navbar({ user }: NavbarProps) {
                   <span className="text-sm navbar-text">
                     {user.email}
                   </span>
-                  <Link
-                    href="/dashboard"
-                    className="text-sm navbar-link"
-                  >
-                    Dashboard
-                  </Link>
                   <form action="/auth/signout" method="post">
                     <button
                       type="submit"

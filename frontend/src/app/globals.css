@@ -60,33 +60,6 @@ body {
   background-color: var(--muted);
 }
 
-/* Dashboard styles */
-.dashboard-container {
-  min-height: 100vh;
-  background-color: var(--muted);
-}
-
-.dashboard-card {
-  background-color: var(--card);
-  border: 1px solid var(--border);
-}
-
-.dashboard-title {
-  color: var(--foreground);
-}
-
-.dashboard-text {
-  color: var(--muted-foreground);
-}
-
-.dashboard-dt {
-  color: var(--muted-foreground);
-  opacity: 0.8;
-}
-
-.dashboard-dd {
-  color: var(--foreground);
-}
 
 /* Main page styles */
 .main-container {

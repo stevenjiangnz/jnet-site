@@ -70,13 +70,6 @@ export function MobileMenu({ user }: MobileMenuProps) {
             ))}
             {user && (
               <>
-                <Link
-                  href="/dashboard"
-                  onClick={() => setIsOpen(false)}
-                  className="block py-2 px-3 rounded text-base navbar-link hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  Dashboard
-                </Link>
                 <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
                 <div className="px-3 py-2 text-sm navbar-text">{user.email}</div>
               </>
