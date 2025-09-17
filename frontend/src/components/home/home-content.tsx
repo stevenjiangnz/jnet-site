@@ -72,7 +72,7 @@ export function HomeContent() {
                 <div className="main-content-card rounded-lg p-6">
                   <h2 className="text-xl font-semibold main-title mb-4">Recent Activity</h2>
                   <div className="space-y-3">
-                    <div className="activity-item p-3 rounded">
+                    <div className="activity-item p-3 rounded cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800">
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="font-medium">AAPL Buy Order</p>
@@ -81,7 +81,7 @@ export function HomeContent() {
                         <span className="text-sm text-green-600 dark:text-green-400">Filled</span>
                       </div>
                     </div>
-                    <div className="activity-item p-3 rounded">
+                    <div className="activity-item p-3 rounded cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800">
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="font-medium">TSLA Sell Order</p>
@@ -111,21 +111,21 @@ export function HomeContent() {
           <div className="sidebar-card rounded-lg p-3">
             <h2 className="text-lg font-semibold main-title mb-3">Indices</h2>
             <div className="space-y-2">
-              <div>
+              <div className="p-2 rounded cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
                 <div className="flex justify-between items-center text-sm">
                   <span className="font-medium">S&P</span>
                   <span className="text-green-600 dark:text-green-400 text-xs">+0.8%</span>
                 </div>
                 <p className="text-xs sidebar-text">4,783.45</p>
               </div>
-              <div>
+              <div className="p-2 rounded cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
                 <div className="flex justify-between items-center text-sm">
                   <span className="font-medium">NAS</span>
                   <span className="text-green-600 dark:text-green-400 text-xs">+1.2%</span>
                 </div>
                 <p className="text-xs sidebar-text">15,245</p>
               </div>
-              <div>
+              <div className="p-2 rounded cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
                 <div className="flex justify-between items-center text-sm">
                   <span className="font-medium">DOW</span>
                   <span className="text-red-600 dark:text-red-400 text-xs">-0.3%</span>
@@ -138,19 +138,19 @@ export function HomeContent() {
           <div className="sidebar-card rounded-lg p-3">
             <h2 className="text-lg font-semibold main-title mb-3">Movers</h2>
             <div className="space-y-1">
-              <div className="text-sm">
+              <div className="text-sm p-2 rounded cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
                 <div className="flex justify-between">
                   <span className="font-medium text-xs">NVDA</span>
                   <span className="text-green-600 dark:text-green-400 text-xs">+5.2%</span>
                 </div>
               </div>
-              <div className="text-sm">
+              <div className="text-sm p-2 rounded cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
                 <div className="flex justify-between">
                   <span className="font-medium text-xs">META</span>
                   <span className="text-green-600 dark:text-green-400 text-xs">+3.8%</span>
                 </div>
               </div>
-              <div className="text-sm">
+              <div className="text-sm p-2 rounded cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700">
                 <div className="flex justify-between">
                   <span className="font-medium text-xs">GOOGL</span>
                   <span className="text-red-600 dark:text-red-400 text-xs">-2.1%</span>

@@ -148,3 +148,126 @@ body {
   background-color: var(--muted);
   border: 1px solid var(--border);
 }
+
+/* Symbol Management Page Styles */
+.symbol-sidebar {
+  background-color: var(--card);
+  border-right: 1px solid var(--border);
+}
+
+.symbol-menu-item {
+  color: var(--muted-foreground);
+  transition: all 0.2s;
+}
+
+.symbol-menu-item:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+.symbol-menu-item.active {
+  background-color: #4f46e5; /* Indigo-600 */
+  color: #ffffff;
+}
+
+.symbol-stats-card {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.symbol-content-area {
+  background-color: var(--background);
+}
+
+.symbol-list-card {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border);
+}
+
+.dark .symbol-list-card {
+  background-color: rgba(23, 23, 23, 0.9);
+}
+
+.symbol-item-card {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.symbol-item {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+}
+
+.symbol-item:hover {
+  background-color: var(--muted);
+}
+
+.symbol-item.selected {
+  background-color: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.dark .symbol-item.selected {
+  background-color: rgba(99, 102, 241, 0.05);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+/* Price Page Styles */
+.price-sidebar {
+  background-color: var(--card);
+  border-right: 1px solid var(--border);
+}
+
+.price-content-area {
+  background-color: var(--background);
+}
+
+.price-chart-container {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+}
+
+.price-chart-placeholder {
+  background-color: var(--muted);
+}
+
+.price-data-sidebar {
+  background-color: var(--card);
+  border-left: 1px solid var(--border);
+}
+
+.price-data-card {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+}
+
+.price-timeframe-btn {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.price-timeframe-btn:hover {
+  background-color: var(--border);
+}
+
+.price-timeframe-btn.active {
+  background-color: #4f46e5; /* Indigo-600 */
+  color: #ffffff;
+}
+
+/* Form inputs */
+.form-input {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.form-input:focus {
+  border-color: #4f46e5;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.dark .form-input:focus {
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
