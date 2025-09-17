@@ -8,6 +8,12 @@ export interface Symbol {
   lastUpdate?: string;
 }
 
+export interface AddSymbolResponse {
+  symbol: string;
+  message: string;
+  data?: Record<string, unknown>;
+}
+
 export interface SymbolListResponse {
   symbols: string[];
   count: number;
