@@ -14,7 +14,7 @@ export function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
   
   const menuItems = [
-    { href: "/market", label: "Market" },
+    { href: "/price", label: "Price" },
     { href: "/screen", label: "Screen" },
     { href: "/analysis", label: "Analysis" },
     { href: "/settings", label: "Settings" },
@@ -25,12 +25,15 @@ export function Navbar({ user }: NavbarProps) {
       <div className="w-full px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and title */}
-          <div className="flex items-center space-x-3">
+          <Link 
+            href="/" 
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+          >
             <Logo className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
             <h1 className="text-xl font-semibold navbar-title">
-              JNet Solution
+              JNet Solutions
             </h1>
-          </div>
+          </Link>
 
           {/* Center menu items */}
           <div className="hidden md:flex items-center space-x-8">

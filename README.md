@@ -197,6 +197,11 @@ Deploy to Google Cloud Run:
 - [x] Landing page with 3-column layout (17.5%-65%-17.5% responsive grid)
 - [x] Full-width navigation bar with centered menu items
 - [x] Trading-themed logo and branding
+- [x] Price page with 3-column layout for stock charts and data
+  - Symbol selector with dropdown
+  - Chart configuration (timeframe, chart type, indicators)
+  - Placeholder for Highcharts stock charts
+  - Real-time data point details display
 - [ ] Blog section with markdown support
 - [ ] Contact form with email integration
 - [x] User authentication (Supabase - Email/Password and Google OAuth)
@@ -204,6 +209,7 @@ Deploy to Google Cloud Run:
 - [x] Stock/ETF EOD data downloading service
 - [x] Dark/Light mode theme toggle with system preference support
 - [x] Mobile-responsive design with hamburger menu
+- [x] Protected routes (authentication required for Price page)
 - [ ] SEO optimized
 - [ ] Fast loading (< 3s)
 - [ ] Accessible (WCAG 2.1 AA)
