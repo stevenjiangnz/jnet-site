@@ -14,16 +14,16 @@ export function HomeContent() {
           <div className="sidebar-card rounded-lg p-3">
             <h2 className="text-lg font-semibold main-title mb-3">Quick Links</h2>
             <nav className="space-y-1">
-              <a href="#" className="block sidebar-link p-2 text-base rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+              <a href="#" className="block quick-link-item p-2 text-base rounded transition-all">
                 Portfolio Overview
               </a>
-              <a href="#" className="block sidebar-link p-2 text-base rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+              <a href="#" className="block quick-link-item p-2 text-base rounded transition-all">
                 Watchlist
               </a>
-              <a href="#" className="block sidebar-link p-2 text-base rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+              <a href="#" className="block quick-link-item p-2 text-base rounded transition-all">
                 Recent Trades
               </a>
-              <a href="#" className="block sidebar-link p-2 text-base rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+              <a href="#" className="block quick-link-item p-2 text-base rounded transition-all">
                 Market News
               </a>
             </nav>
