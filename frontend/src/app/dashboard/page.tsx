@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { Navbar } from '@/components/navbar'
+import { AppLayout } from '@/components/layout/app-layout'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -18,8 +18,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="dashboard-container">
-      <Navbar user={user} />
+    <AppLayout>
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="dashboard-card shadow-sm rounded-lg p-6">
@@ -55,6 +54,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   )
 }

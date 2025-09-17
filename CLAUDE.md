@@ -113,6 +113,14 @@ docker-compose down
 docker-compose logs -f api-service
 ```
 
+### Local Development Scripts
+```bash
+# Start services locally (without Docker)
+./scripts/local-start-frontend.sh      # Frontend on port 3100
+./scripts/local-start-stock-data.sh    # Stock Data service on port 9000
+./scripts/local-start-api-service.sh   # API service on port 8002
+```
+
 ### Testing
 ```bash
 # Frontend tests
