@@ -117,6 +117,16 @@ body {
   color: var(--foreground);
 }
 
+.quick-link-item {
+  color: var(--muted-foreground);
+  transition: all 0.2s;
+}
+
+.quick-link-item:hover {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
 .sidebar-text {
   color: var(--muted-foreground);
 }
