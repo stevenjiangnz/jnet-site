@@ -19,6 +19,7 @@ from app.services.storage_paths import StoragePaths
 from app.services.simple_cache import get_cache
 from app.services.cache_keys import CacheKeys
 from app.services.weekly_aggregator import WeeklyAggregator
+from app.services.catalog_manager import CatalogManager
 from app.indicators.calculator import IndicatorCalculator
 from app.indicators.config import DEFAULT_INDICATORS
 from app.config import settings
@@ -33,6 +34,7 @@ class StockDataDownloader:
         """Initialize the downloader with GCS storage."""
         self.storage = GCSStorageManager()
         self.weekly_aggregator = WeeklyAggregator()
+        self.catalog_manager = CatalogManager()
         self.indicator_calculator = IndicatorCalculator()
         self.calculate_indicators_enabled = getattr(
             settings, "ENABLE_INDICATOR_CALCULATION", True
@@ -98,12 +100,17 @@ class StockDataDownloader:
                 logger.info(f"Successfully stored {symbol} data to GCS")
 
                 # Process and store weekly data
-                await self._process_weekly_data(stock_data)
+                has_weekly = await self._process_weekly_data(stock_data)
+
+                # Update catalog by rescanning this symbol's data
+                await self.catalog_manager.update_catalog_for_symbol(symbol)
 
                 # Invalidate cache after successful upload
                 cache = get_cache()
                 cache_key = CacheKeys.daily_data(symbol)
                 await cache.delete(cache_key)
+                # Also invalidate symbol list cache since catalog changed
+                await cache.delete(CacheKeys.symbol_list())
                 logger.info(f"Invalidated cache for {symbol}")
 
                 return stock_data

@@ -333,6 +333,219 @@ export default function StockPage() {
 }
 ```
 
+## Stock Data Catalog
+
+### 5. Get Stock Catalog
+```
+GET /api/v1/stock/catalog
+```
+
+Returns complete catalog of all available stock data with date ranges and metadata.
+
+### 6. Get Symbol Info from Catalog
+```
+GET /api/v1/stock/catalog/symbol/{symbol}
+```
+
+Returns catalog information for a specific symbol.
+
+### 7. Rebuild Catalog
+```
+POST /api/v1/stock/catalog/rebuild
+```
+
+Forces a complete rebuild of the catalog by scanning all stored data.
+
+### 8. Get Available Symbols
+```
+GET /api/v1/stock/available-symbols
+```
+
+Returns a simple list of available symbols for use in dropdowns and autocomplete.
+
+### Catalog API Client Methods
+```typescript
+// Add to lib/api/stock.ts
+
+export interface SymbolSummary {
+  symbol: string;
+  start_date: string;
+  end_date: string;
+  total_days: number;
+  has_weekly: boolean;
+  last_updated: string;
+}
+
+export interface DataCatalog {
+  version: string;
+  last_updated: string;
+  total_symbols: number;
+  symbols: SymbolSummary[];
+}
+
+export class StockAPI {
+  // ... existing methods ...
+
+  async getCatalog(): Promise<DataCatalog> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/stock/catalog`, {
+      headers: this.headers,
+    });
+    if (!response.ok) throw new Error('Failed to fetch catalog');
+    return response.json();
+  }
+
+  async getSymbolInfo(symbol: string): Promise<SymbolSummary> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/stock/catalog/symbol/${symbol}`, {
+      headers: this.headers,
+    });
+    if (!response.ok) throw new Error('Failed to fetch symbol info');
+    return response.json();
+  }
+
+  async rebuildCatalog(): Promise<any> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/stock/catalog/rebuild`, {
+      method: 'POST',
+      headers: this.headers,
+    });
+    if (!response.ok) throw new Error('Failed to rebuild catalog');
+    return response.json();
+  }
+
+  async getAvailableSymbols(): Promise<{
+    symbols: string[];
+    count: number;
+    last_updated: string;
+  }> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/stock/available-symbols`, {
+      headers: this.headers,
+    });
+    if (!response.ok) throw new Error('Failed to fetch available symbols');
+    return response.json();
+  }
+}
+```
+
+### Symbol Selector Component
+```tsx
+// components/SymbolSelector.tsx
+import React, { useState, useEffect } from 'react';
+import { stockAPI } from '@/lib/api/stock';
+
+interface SymbolSelectorProps {
+  value?: string;
+  onChange: (symbol: string) => void;
+  placeholder?: string;
+}
+
+export const SymbolSelector: React.FC<SymbolSelectorProps> = ({
+  value,
+  onChange,
+  placeholder = 'Select a symbol...',
+}) => {
+  const [symbols, setSymbols] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSymbols = async () => {
+      try {
+        const data = await stockAPI.getAvailableSymbols();
+        setSymbols(data.symbols);
+      } catch (error) {
+        console.error('Failed to fetch symbols:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSymbols();
+  }, []);
+
+  if (loading) return <div>Loading symbols...</div>;
+
+  return (
+    <select
+      value={value || ''}
+      onChange={(e) => onChange(e.target.value)}
+      className="px-3 py-2 border border-gray-300 rounded-md"
+    >
+      <option value="">{placeholder}</option>
+      {symbols.map((symbol) => (
+        <option key={symbol} value={symbol}>
+          {symbol}
+        </option>
+      ))}
+    </select>
+  );
+};
+```
+
+### Catalog Summary Component
+```tsx
+// components/CatalogSummary.tsx
+import React, { useState, useEffect } from 'react';
+import { stockAPI, DataCatalog } from '@/lib/api/stock';
+
+export const CatalogSummary: React.FC = () => {
+  const [catalog, setCatalog] = useState<DataCatalog | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      try {
+        const data = await stockAPI.getCatalog();
+        setCatalog(data);
+      } catch (error) {
+        console.error('Failed to fetch catalog:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCatalog();
+  }, []);
+
+  if (loading) return <div>Loading catalog...</div>;
+  if (!catalog) return <div>No catalog data available</div>;
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow">
+      <h2 className="text-xl font-semibold mb-4">Stock Data Catalog</h2>
+      
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <p className="text-sm text-gray-600">Total Symbols</p>
+          <p className="text-2xl font-semibold">{catalog.total_symbols}</p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Last Updated</p>
+          <p className="text-sm">
+            {new Date(catalog.last_updated).toLocaleString()}
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="font-medium mb-2">Available Symbols</h3>
+        <div className="max-h-64 overflow-y-auto">
+          {catalog.symbols.map((symbol) => (
+            <div
+              key={symbol.symbol}
+              className="flex justify-between py-2 border-b"
+            >
+              <span className="font-medium">{symbol.symbol}</span>
+              <span className="text-sm text-gray-600">
+                {new Date(symbol.start_date).toLocaleDateString()} - 
+                {new Date(symbol.end_date).toLocaleDateString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
 ## Available Indicators
 
 - **SMA** (Simple Moving Average): `{ indicator: "sma", period: 20 }`

@@ -96,6 +96,10 @@ Deploy to production:
 - `GET /api/v1/stock/{symbol}/quote` - Get current quote
 - `POST /api/v1/stock/{symbol}/chart` - Get chart data with indicators
 - `POST /api/v1/stock/batch/quotes` - Get multiple quotes
+- `GET /api/v1/stock/catalog` - Get catalog of all available stock data
+- `GET /api/v1/stock/catalog/symbol/{symbol}` - Get catalog info for specific symbol
+- `POST /api/v1/stock/catalog/rebuild` - Rebuild the stock data catalog
+- `GET /api/v1/stock/available-symbols` - Get list of available symbols
 
 ### Alerts
 - `POST /api/v1/alerts` - Create alert
