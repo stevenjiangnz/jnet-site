@@ -1,0 +1,332 @@
+"use client";
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+// Simple API client
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8002';
+
+const fetchSymbols = async () => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/symbols/list`);
+  if (!response.ok) throw new Error('Failed to fetch symbols');
+  return response.json();
+};
+
+const addSymbol = async (symbol: string) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/symbols/add?symbol=${symbol}`, {
+    method: 'POST',
+  });
+  if (!response.ok) throw new Error('Failed to add symbol');
+  return response.json();
+};
+
+const deleteSymbol = async (symbol: string) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/symbols/${symbol}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error('Failed to delete symbol');
+};
+
+export default function SymbolsPageContent() {
+  const pathname = usePathname();
+  const [activeView, setActiveView] = useState('list');
+  const [symbols, setSymbols] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newSymbol, setNewSymbol] = useState('');
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const menuItems = [
+    { id: 'list', label: 'Symbol List', icon: '📋' },
+    { id: 'add', label: 'Add Symbol', icon: '➕' },
+    { id: 'download', label: 'Download Data', icon: '📥' },
+    { id: 'analytics', label: 'Analytics', icon: '📊' },
+  ];
+
+  useEffect(() => {
+    loadSymbols();
+  }, []);
+
+  const loadSymbols = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchSymbols();
+      setSymbols(data.symbols || []);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load symbols');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddSymbol = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSymbol.trim()) return;
+
+    try {
+      await addSymbol(newSymbol.toUpperCase());
+      setNewSymbol('');
+      await loadSymbols();
+      setActiveView('list');
+      setError(null);
+    } catch (err) {
+      setError('Failed to add symbol');
+      console.error(err);
+    }
+  };
+
+  const handleDeleteSymbol = async (symbol: string) => {
+    if (!confirm(`Delete ${symbol}?`)) return;
+
+    try {
+      await deleteSymbol(symbol);
+      await loadSymbols();
+      setSelectedSymbol(null);
+      setError(null);
+    } catch (err) {
+      setError('Failed to delete symbol');
+      console.error(err);
+    }
+  };
+
+  return (
+    <div className="flex h-[calc(100vh-4rem)]">
+      {/* Left Sidebar */}
+      <div className="w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Symbol Management</h2>
+          <nav className="space-y-1">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveView(item.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeView === item.id
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900'
+                }`}
+              >
+                <span className="text-lg">{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          {/* Quick Stats */}
+          <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Quick Stats</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Total Symbols</span>
+                <span className="font-semibold text-gray-900 dark:text-gray-100">{symbols.length}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600 dark:text-gray-400">Last Updated</span>
+                <span className="font-semibold text-gray-900 dark:text-gray-100">Today</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-6 bg-gray-100 dark:bg-black overflow-y-auto">
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded">
+            {error}
+          </div>
+        )}
+
+        {/* Symbol List View */}
+        {activeView === 'list' && (
+          <div>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Symbol List</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Manage your tracked stock symbols
+              </p>
+            </div>
+
+            <div className="bg-white/90 dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800">
+              <div className="p-6">
+                {loading ? (
+                  <div className="text-center py-8">Loading symbols...</div>
+                ) : symbols.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No symbols found. Click "Add Symbol" to get started.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Symbol List */}
+                    <div className="bg-gray-50/50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                      <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">All Symbols ({symbols.length})</h3>
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {symbols.map((symbol) => (
+                          <div
+                            key={symbol}
+                            onClick={() => setSelectedSymbol(symbol)}
+                            className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                              selectedSymbol === symbol
+                                ? 'bg-indigo-100 dark:bg-indigo-950/50 border border-indigo-300 dark:border-indigo-900'
+                                : 'bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-800'
+                            }`}
+                          >
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium text-gray-900 dark:text-gray-100">{symbol}</span>
+                              <span className="text-sm text-gray-400">→</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Symbol Details */}
+                    <div className="bg-gray-50/50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                      <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Symbol Details</h3>
+                      {selectedSymbol ? (
+                        <div>
+                          <div className="space-y-4">
+                            <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+                              <h4 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedSymbol}</h4>
+                              <p className="text-gray-600 dark:text-gray-400">Stock Symbol</p>
+                            </div>
+                            
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-800">
+                                <span className="text-gray-600 dark:text-gray-400">Status</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">Active</span>
+                              </div>
+                              <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-800">
+                                <span className="text-gray-600 dark:text-gray-400">Data Points</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">~252/year</span>
+                              </div>
+                              <div className="flex justify-between py-3">
+                                <span className="text-gray-600 dark:text-gray-400">Storage</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">~0.5 MB</span>
+                              </div>
+                            </div>
+
+                            <div className="pt-4 space-y-2">
+                              <button
+                                onClick={() => handleDeleteSymbol(selectedSymbol)}
+                                className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                              >
+                                Delete Symbol
+                              </button>
+                              <button
+                                className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700"
+                                disabled
+                              >
+                                View Price Chart (Coming Soon)
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          Select a symbol to view details
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Symbol View */}
+        {activeView === 'add' && (
+          <div>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Add New Symbol</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Add a new stock symbol to track
+              </p>
+            </div>
+
+            <div className="bg-white/90 dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 max-w-lg">
+              <div className="p-6">
+                <form onSubmit={handleAddSymbol}>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                        Stock Symbol
+                      </label>
+                      <input
+                        type="text"
+                        value={newSymbol}
+                        onChange={(e) => setNewSymbol(e.target.value.toUpperCase())}
+                        placeholder="Enter symbol (e.g., AAPL)"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-950 dark:text-gray-100"
+                        required
+                      />
+                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        Enter the ticker symbol of the stock you want to track
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        type="submit"
+                        disabled={!newSymbol.trim()}
+                        className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-colors"
+                      >
+                        Add Symbol
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewSymbol('');
+                          setActiveView('list');
+                        }}
+                        className="px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Download Data View */}
+        {activeView === 'download' && (
+          <div>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Download Historical Data</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Download historical price data for symbols
+              </p>
+            </div>
+
+            <div className="bg-white/90 dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
+              <p className="text-gray-600 dark:text-gray-400">Download functionality coming soon...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Analytics View */}
+        {activeView === 'analytics' && (
+          <div>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Symbol Analytics</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                View analytics and insights for your symbols
+              </p>
+            </div>
+
+            <div className="bg-white/90 dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
+              <p className="text-gray-600 dark:text-gray-400">Analytics functionality coming soon...</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

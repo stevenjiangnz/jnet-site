@@ -41,7 +41,7 @@ export default function PricePageContent() {
   return (
     <div className="flex h-[calc(100vh-4rem)]">
       {/* Left Panel - Symbol Selector & Chart Config */}
-      <div className="w-80 border-r border-gray-200 dark:border-gray-800 p-6 overflow-y-auto">
+      <div className="w-80 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 overflow-y-auto">
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
           Symbol Selection
         </h2>
@@ -54,7 +54,7 @@ export default function PricePageContent() {
           <select
             value={selectedSymbol}
             onChange={(e) => setSelectedSymbol(e.target.value)}
-            className="w-full p-2 border rounded-md bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+            className="w-full p-2 border rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100"
           >
             {dummySymbols.map((symbol) => (
               <option key={symbol.code} value={symbol.code}>
@@ -82,7 +82,7 @@ export default function PricePageContent() {
                 className={`px-3 py-1 rounded text-sm ${
                   timeframe === tf
                     ? "bg-indigo-600 text-white"
-                    : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                    : "bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                 }`}
               >
                 {tf}
@@ -162,8 +162,8 @@ export default function PricePageContent() {
       </div>
 
       {/* Middle Panel - Charts */}
-      <div className="flex-1 p-6 overflow-y-auto">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 h-full">
+      <div className="flex-1 p-6 bg-gray-100 dark:bg-black overflow-y-auto">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-6 h-full">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {selectedSymbol} - {dummySymbols.find(s => s.code === selectedSymbol)?.name}
@@ -179,7 +179,7 @@ export default function PricePageContent() {
           </div>
           
           {/* Chart Placeholder */}
-          <div className="bg-gray-100 dark:bg-gray-700 rounded-lg h-[400px] mb-4 flex items-center justify-center">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg h-[400px] mb-4 flex items-center justify-center">
             <p className="text-gray-500 dark:text-gray-400">
               Highcharts Stock Chart Will Be Here
             </p>
@@ -187,7 +187,7 @@ export default function PricePageContent() {
           
           {/* Volume Chart Placeholder */}
           {showVolume && (
-            <div className="bg-gray-100 dark:bg-gray-700 rounded-lg h-[150px] flex items-center justify-center">
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg h-[150px] flex items-center justify-center">
               <p className="text-gray-500 dark:text-gray-400">
                 Volume Chart Will Be Here
               </p>
@@ -197,12 +197,12 @@ export default function PricePageContent() {
       </div>
 
       {/* Right Panel - Data Details */}
-      <div className="w-80 border-l border-gray-200 dark:border-gray-800 p-6 overflow-y-auto">
+      <div className="w-80 border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 overflow-y-auto">
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
           Data Point Details
         </h2>
         
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4">
+        <div className="bg-white dark:bg-gray-900 rounded-lg p-4 mb-4">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
             Selected Date
           </h3>
@@ -211,7 +211,7 @@ export default function PricePageContent() {
           </p>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4">
+        <div className="bg-white dark:bg-gray-900 rounded-lg p-4 mb-4">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
             OHLCV Data
           </h3>
@@ -249,7 +249,7 @@ export default function PricePageContent() {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
+        <div className="bg-white dark:bg-gray-900 rounded-lg p-4">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
             Day Statistics
           </h3>
