@@ -26,7 +26,7 @@ STOCK_SERVICE_URL = settings.stock_data_service_url or "http://stock-data-servic
 
 
 @router.get("/list", response_model=SymbolListResponse)
-async def list_symbols():
+async def list_symbols() -> SymbolListResponse:
     """List all available symbols."""
     try:
         async with httpx.AsyncClient() as client:
@@ -34,14 +34,17 @@ async def list_symbols():
                 f"{STOCK_SERVICE_URL}/api/v1/list", timeout=30.0
             )
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            return SymbolListResponse(**data)
     except httpx.HTTPError as e:
         logger.error(f"Error listing symbols: {e}")
         raise HTTPException(status_code=500, detail="Failed to list symbols")
 
 
 @router.post("/add")
-async def add_symbol(symbol: str = Query(..., description="Stock symbol to add")):
+async def add_symbol(
+    symbol: str = Query(..., description="Stock symbol to add")
+) -> Dict[str, Any]:
     """Add a new symbol by downloading its data."""
     try:
         async with httpx.AsyncClient() as client:
@@ -49,7 +52,7 @@ async def add_symbol(symbol: str = Query(..., description="Stock symbol to add")
                 f"{STOCK_SERVICE_URL}/api/v1/download/{symbol.upper()}", timeout=60.0
             )
             response.raise_for_status()
-            return response.json()
+            return response.json()  # type: ignore[no-any-return]
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
@@ -60,7 +63,7 @@ async def add_symbol(symbol: str = Query(..., description="Stock symbol to add")
 
 
 @router.post("/bulk-download", response_model=BulkDownloadResponse)
-async def bulk_download(request: BulkDownloadRequest):
+async def bulk_download(request: BulkDownloadRequest) -> BulkDownloadResponse:
     """Download data for multiple symbols with date range."""
     try:
         async with httpx.AsyncClient() as client:
@@ -70,14 +73,15 @@ async def bulk_download(request: BulkDownloadRequest):
                 timeout=300.0,  # 5 minutes for bulk operations
             )
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            return BulkDownloadResponse(**data)
     except httpx.HTTPError as e:
         logger.error(f"Error in bulk download: {e}")
         raise HTTPException(status_code=500, detail="Failed to perform bulk download")
 
 
 @router.delete("/{symbol}")
-async def delete_symbol(symbol: str):
+async def delete_symbol(symbol: str) -> Dict[str, str]:
     """Delete a single symbol's data."""
     try:
         async with httpx.AsyncClient() as client:
@@ -96,7 +100,7 @@ async def delete_symbol(symbol: str):
 
 
 @router.delete("/bulk", status_code=200)
-async def delete_symbols(request: DeleteSymbolsRequest):
+async def delete_symbols(request: DeleteSymbolsRequest) -> Dict[str, str]:
     """Delete multiple symbols' data."""
     try:
         async with httpx.AsyncClient() as client:
@@ -115,7 +119,7 @@ async def delete_symbols(request: DeleteSymbolsRequest):
 
 
 @router.get("/{symbol}/price", response_model=SymbolPriceResponse)
-async def get_symbol_price(symbol: str):
+async def get_symbol_price(symbol: str) -> SymbolPriceResponse:
     """Get latest price for a symbol."""
     try:
         async with httpx.AsyncClient() as client:
@@ -158,7 +162,7 @@ async def get_symbol_chart(
     indicators: Optional[List[str]] = Query(
         None, description="Technical indicators to include"
     ),
-):
+) -> SymbolChartResponse:
     """Get chart data for a symbol."""
     try:
         async with httpx.AsyncClient() as client:
@@ -172,7 +176,8 @@ async def get_symbol_chart(
                 timeout=30.0,
             )
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            return SymbolChartResponse(**data)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
