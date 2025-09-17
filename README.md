@@ -202,14 +202,24 @@ Deploy to Google Cloud Run:
   - Chart configuration (timeframe, chart type, indicators)
   - Placeholder for Highcharts stock charts
   - Real-time data point details display
+- [x] Symbol management page with comprehensive features
+  - List all tracked symbols with master-detail view
+  - Add new symbols with validation
+  - Delete symbols with confirmation
+  - Quick stats panel showing total symbols
+  - Left sidebar navigation for organized workflow
+  - Placeholder for bulk download functionality
+  - Placeholder for analytics view
 - [ ] Blog section with markdown support
 - [ ] Contact form with email integration
 - [x] User authentication (Supabase - Email/Password and Google OAuth)
 - [ ] Admin panel for content management
 - [x] Stock/ETF EOD data downloading service
+- [x] API service integration for symbol management
 - [x] Dark/Light mode theme toggle with system preference support
+  - Enhanced dark mode with deeper blacks and better contrast
 - [x] Mobile-responsive design with hamburger menu
-- [x] Protected routes (authentication required for Price page)
+- [x] Protected routes (authentication required for Price and Symbols pages)
 - [ ] SEO optimized
 - [ ] Fast loading (< 3s)
 - [ ] Accessible (WCAG 2.1 AA)

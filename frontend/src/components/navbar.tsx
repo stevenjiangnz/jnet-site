@@ -15,6 +15,7 @@ export function Navbar({ user }: NavbarProps) {
   
   const menuItems = [
     { href: "/price", label: "Price" },
+    { href: "/symbols", label: "Symbols" },
     { href: "/screen", label: "Screen" },
     { href: "/analysis", label: "Analysis" },
     { href: "/settings", label: "Settings" },
