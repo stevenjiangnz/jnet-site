@@ -31,7 +31,7 @@ export function AddSymbol() {
       setOpen(false);
       setSymbol('');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || 'Failed to add symbol');
     },
   });

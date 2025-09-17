@@ -25,7 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, RefreshCw, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { toast } from "sonner";
 import { SymbolsAPI } from '@/lib/api/symbols';
-import { Symbol, SymbolPriceResponse } from '@/types/symbol';
+import { SymbolPriceResponse } from '@/types/symbol';
 import { cn } from '@/lib/utils';
 
 export function SymbolList() {

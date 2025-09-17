@@ -3,7 +3,8 @@ import {
   BulkDownloadRequest, 
   BulkDownloadResponse,
   SymbolPriceResponse,
-  SymbolChartResponse
+  SymbolChartResponse,
+  AddSymbolResponse
 } from '@/types/symbol';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8002';
@@ -27,7 +28,7 @@ export class SymbolsAPI {
     return response.json();
   }
 
-  static async addSymbol(symbol: string): Promise<any> {
+  static async addSymbol(symbol: string): Promise<AddSymbolResponse> {
     const response = await fetch(`${API_BASE_URL}/api/v1/symbols/add?symbol=${symbol}`, {
       method: 'POST',
       headers: this.getHeaders(),

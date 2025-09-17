@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 // Simple API client
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8002';
@@ -29,7 +27,6 @@ const deleteSymbol = async (symbol: string) => {
 };
 
 export default function SymbolsPageContent() {
-  const pathname = usePathname();
   const [activeView, setActiveView] = useState('list');
   const [symbols, setSymbols] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -156,7 +153,7 @@ export default function SymbolsPageContent() {
                   <div className="text-center py-8">Loading symbols...</div>
                 ) : symbols.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
-                    No symbols found. Click "Add Symbol" to get started.
+                    No symbols found. Click &quot;Add Symbol&quot; to get started.
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
