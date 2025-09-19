@@ -179,8 +179,8 @@ class TestWeeklyIntegration:
             weekly_data = weekly_call[0][1]
             assert weekly_data["data_type"] == "weekly"
 
-            # Verify cache was invalidated for both
-            assert mock_cache.delete.call_count == 2
+            # Verify cache was invalidated for daily, symbol list, and weekly
+            assert mock_cache.delete.call_count == 3
 
     @pytest.mark.asyncio
     async def test_weekly_data_retrieval(self, mock_gcs_storage):

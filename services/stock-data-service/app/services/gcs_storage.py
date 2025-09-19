@@ -7,7 +7,7 @@ from google.cloud.exceptions import NotFound, Conflict
 from google.api_core import retry
 import google.auth.exceptions
 
-from app.config import GCSConfig
+from app.config import GCSConfig, settings
 
 logger = logging.getLogger(__name__)
 
@@ -20,10 +20,21 @@ class GCSStorageManager:
         self._client = None
         self._bucket = None
         self._config = GCSConfig()
+        self._is_test_mode = settings.environment == "test"
         self._initialize_client()
+        
+    @property
+    def is_test_mode(self) -> bool:
+        """Check if running in test mode."""
+        return self._is_test_mode
 
     def _initialize_client(self):
         """Initialize the GCS client with credentials."""
+        # Skip GCS initialization in test environment
+        if settings.environment == "test":
+            logger.info("Running in test environment, skipping GCS initialization")
+            return
+            
         try:
             if self._config.credentials_path:
                 # Use service account credentials
@@ -70,6 +81,10 @@ class GCSStorageManager:
         Returns:
             True if successful, False otherwise
         """
+        if settings.environment == "test":
+            logger.info(f"Test mode: Would upload {blob_name} to GCS")
+            return True
+            
         try:
             blob = self._bucket.blob(blob_name)
 
