@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
+// API configuration - uses server-side environment variables
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8002';
 const API_KEY = process.env.API_KEY || 'dev-api-key';
 
