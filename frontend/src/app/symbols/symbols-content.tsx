@@ -2,17 +2,15 @@
 
 import { useState, useEffect } from 'react';
 
-// Simple API client
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8002';
-
+// API client that uses Next.js API routes (server-side proxy)
 const fetchSymbols = async () => {
-  const response = await fetch(`${API_BASE_URL}/api/v1/symbols/list`);
+  const response = await fetch('/api/symbols/list');
   if (!response.ok) throw new Error('Failed to fetch symbols');
   return response.json();
 };
 
 const addSymbol = async (symbol: string) => {
-  const response = await fetch(`${API_BASE_URL}/api/v1/symbols/add?symbol=${symbol}`, {
+  const response = await fetch(`/api/symbols/add?symbol=${symbol}`, {
     method: 'POST',
   });
   if (!response.ok) throw new Error('Failed to add symbol');
@@ -20,7 +18,7 @@ const addSymbol = async (symbol: string) => {
 };
 
 const deleteSymbol = async (symbol: string) => {
-  const response = await fetch(`${API_BASE_URL}/api/v1/symbols/${symbol}`, {
+  const response = await fetch(`/api/symbols/${symbol}`, {
     method: 'DELETE',
   });
   if (!response.ok) throw new Error('Failed to delete symbol');

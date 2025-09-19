@@ -32,16 +32,33 @@ app = FastAPI(
 )
 
 # CORS middleware
+origins = (
+    ["*"]
+    if settings.environment == "development"
+    else [
+        "https://frontend-506487697841.us-central1.run.app",
+        "https://jnet-solution.com",
+        "https://www.jnet-solution.com",
+        "http://localhost:3000",  # For local development with production API
+        "http://localhost:3100",  # For local development with production API
+    ]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3110", "http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Custom middleware
-app.add_middleware(AuthMiddleware)
+# Only add auth middleware if not disabled
+if not settings.disable_auth:
+    app.add_middleware(AuthMiddleware)
+else:
+    logger.warning("Authentication middleware is disabled!")
 
 # Include routers
 app.include_router(api_router, prefix="/api/v1")

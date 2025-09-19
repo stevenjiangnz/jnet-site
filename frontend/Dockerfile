@@ -23,6 +23,9 @@ WORKDIR /app
 # Build-time environment variables for Supabase
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+# Build-time environment variables for API
+ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXT_PUBLIC_API_KEY
 
 COPY package.json package-lock.json* ./
 COPY --from=deps /app/node_modules ./node_modules
