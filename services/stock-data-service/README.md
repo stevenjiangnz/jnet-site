@@ -150,7 +150,7 @@ The service is deployed at https://stock-data-service-506487697841.us-central1.r
 
 ### Authentication
 
-All `/api/v1/*` endpoints require API key authentication in production. Include your API key in one of these headers:
+All `/api/v1/*` endpoints require API key authentication in production. Include your API key in one of these ways:
 
 ```bash
 # Using X-API-Key header
@@ -158,7 +158,12 @@ curl -H "X-API-Key: your-api-key" https://stock-data-service-506487697841.us-cen
 
 # Using Authorization Bearer header
 curl -H "Authorization: Bearer your-api-key" https://stock-data-service-506487697841.us-central1.run.app/api/v1/list
+
+# Using query parameter
+curl "https://stock-data-service-506487697841.us-central1.run.app/api/v1/list?api_key=your-api-key"
 ```
+
+**Swagger UI Authentication**: When using the interactive API documentation at `/docs`, click the "Authorize" button and enter your API key. The authentication will persist throughout your session.
 
 Public endpoints (no authentication required):
 - `/health` - Health check

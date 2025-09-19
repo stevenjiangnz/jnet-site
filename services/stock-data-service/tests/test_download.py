@@ -1,13 +1,12 @@
 """Tests for Stock Data Downloader."""
 
 import pytest
-import os
-from datetime import date, datetime
+from datetime import date
 from unittest.mock import Mock, patch, AsyncMock
 import pandas as pd
 
 from app.services.download import StockDataDownloader
-from app.models.stock_data import StockDataFile, StockDataPoint
+from app.models.stock_data import StockDataFile
 
 
 @pytest.fixture
@@ -89,8 +88,8 @@ async def test_download_symbol_success(
     # Verify storage was called twice (daily + weekly)
     assert mock_gcs_storage.upload_json.call_count == 2
 
-    # Verify cache was invalidated
-    assert mock_cache.delete.call_count == 2
+    # Verify cache was invalidated (daily, symbol list, and weekly)
+    assert mock_cache.delete.call_count == 3
 
 
 @pytest.mark.asyncio

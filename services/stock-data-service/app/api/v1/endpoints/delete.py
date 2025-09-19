@@ -8,6 +8,7 @@ from app.services.gcs_storage import GCSStorageManager
 from app.services.storage_paths import StoragePaths
 from app.services.simple_cache import get_cache
 from app.services.cache_keys import CacheKeys
+from app.services.catalog_manager import CatalogManager
 from app.utils.validators import validate_symbol
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ class StockDataDeleter:
     def __init__(self):
         self.storage = GCSStorageManager()
         self.cache = get_cache()
+        self.catalog_manager = CatalogManager()
 
     async def delete_symbol(self, symbol: str) -> Dict[str, Any]:
         """
@@ -65,6 +67,14 @@ class StockDataDeleter:
             await self._clear_symbol_cache(symbol)
             results["cache_cleared"] = True
 
+            # Update catalog to remove this symbol
+            catalog_updated = await self.catalog_manager.update_catalog_for_symbol(
+                symbol
+            )
+            results["catalog_updated"] = catalog_updated
+            if not catalog_updated:
+                results["errors"].append("Failed to update catalog")
+
             # Update symbol index if it exists
             await self._update_symbol_index(symbol)
 
@@ -92,8 +102,9 @@ class StockDataDeleter:
             for key in cache_keys:
                 await self.cache.delete(key)
 
-            # Clear symbol list cache to force refresh
+            # Clear symbol list cache and catalog cache to force refresh
             await self.cache.delete(CacheKeys.symbol_list())
+            await self.cache.delete(CacheKeys.catalog())
 
             logger.info(f"Cleared cache entries for {symbol}")
 

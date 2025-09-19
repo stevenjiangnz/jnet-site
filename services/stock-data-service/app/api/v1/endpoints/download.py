@@ -1,7 +1,7 @@
 import logging
 from datetime import date, datetime
-from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Query
 from app.models.stock import BulkDownloadRequest
 from app.models.responses import DownloadResponse, BulkDownloadResponse
 from app.services.download import StockDataDownloader

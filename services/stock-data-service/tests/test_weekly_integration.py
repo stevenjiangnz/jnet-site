@@ -1,15 +1,12 @@
 """Integration tests for weekly data aggregation pipeline."""
 
 import pytest
-from datetime import date, datetime
-from unittest.mock import Mock, patch, AsyncMock
+from datetime import date
+from unittest.mock import patch, AsyncMock
 import pandas as pd
 
 from app.models.stock_data import (
-    StockDataFile,
     StockDataPoint,
-    DataRange,
-    StockMetadata,
 )
 from app.services.download import StockDataDownloader
 from app.services.weekly_aggregator import WeeklyAggregator
@@ -179,8 +176,8 @@ class TestWeeklyIntegration:
             weekly_data = weekly_call[0][1]
             assert weekly_data["data_type"] == "weekly"
 
-            # Verify cache was invalidated for both
-            assert mock_cache.delete.call_count == 2
+            # Verify cache was invalidated for daily, symbol list, and weekly
+            assert mock_cache.delete.call_count == 3
 
     @pytest.mark.asyncio
     async def test_weekly_data_retrieval(self, mock_gcs_storage):

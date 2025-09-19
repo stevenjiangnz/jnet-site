@@ -3,10 +3,9 @@
 import logging
 from typing import List, Dict, Any, Optional
 from datetime import date
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from app.services.download import StockDataDownloader
-from app.indicators.indicator_sets import IndicatorSetManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

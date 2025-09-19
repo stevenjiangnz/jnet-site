@@ -5,7 +5,6 @@ import json
 from unittest.mock import Mock, patch
 
 from app.services.simple_cache import SimpleCache, get_cache
-from app.config import RedisConfig
 
 
 @pytest.fixture

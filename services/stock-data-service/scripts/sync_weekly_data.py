@@ -3,16 +3,14 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 from app.services.gcs_storage import GCSStorageManager
 from app.services.storage_paths import StoragePaths
 from app.services.weekly_aggregator import WeeklyAggregator
 from app.models.stock_data import (
     StockDataFile,
-    StockDataPoint,
     WeeklyDataFile,
-    DataRange,
     StockMetadata,
 )
 

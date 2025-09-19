@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     api_key: str = "test-api-key"
 
     # Services
-    stock_data_service_url: str = "http://localhost:9001"
+    stock_data_service_url: str = "http://localhost:9000"
     supabase_url: Optional[str] = None
     supabase_service_key: Optional[str] = None
 

@@ -3,7 +3,7 @@
 from datetime import date, timedelta
 import pytest
 
-from app.models.stock_data import StockDataPoint, WeeklyDataPoint
+from app.models.stock_data import StockDataPoint
 from app.services.weekly_aggregator import WeeklyAggregator
 
 

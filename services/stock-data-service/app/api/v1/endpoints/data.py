@@ -1,11 +1,11 @@
 import logging
-import json
 from datetime import date, datetime, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
 from app.models.responses import SymbolListResponse
 from app.services.download import StockDataDownloader
+from app.services.catalog_manager import CatalogManager
 from app.services.simple_cache import get_cache
 from app.services.cache_keys import CacheKeys
 from app.config import RedisConfig
@@ -238,6 +238,61 @@ async def list_indicators():
         ],
         "indicator_sets": INDICATOR_SETS,
     }
+
+
+@router.get("/catalog")
+async def get_data_catalog():
+    """
+    Get the complete data catalog with all symbols and their date ranges.
+    This provides a quick overview of all available data.
+    """
+    cache = get_cache()
+
+    # Check cache first
+    cache_key = CacheKeys.catalog()
+    cached_catalog = await cache.get_json(cache_key)
+
+    if cached_catalog:
+        logger.info("Cache hit for data catalog")
+        return JSONResponse(content=cached_catalog)
+
+    # Get from catalog manager
+    catalog_manager = CatalogManager()
+    catalog = await catalog_manager.get_catalog()
+
+    if catalog:
+        catalog_dict = catalog.to_dict()
+        # Cache the catalog
+        await cache.set_json(
+            cache_key, catalog_dict, redis_config.cache_ttl_symbol_list
+        )
+        return JSONResponse(content=catalog_dict)
+    else:
+        raise HTTPException(status_code=404, detail="Catalog not found")
+
+
+@router.get("/catalog/rebuild")
+async def rebuild_catalog():
+    """
+    Rebuild the entire catalog by scanning all stored data.
+    This is useful for fixing inconsistencies or after manual data changes.
+    """
+    catalog_manager = CatalogManager()
+    catalog = await catalog_manager.rebuild_catalog()
+
+    if catalog:
+        # Invalidate cache
+        cache = get_cache()
+        await cache.delete(CacheKeys.catalog())
+        await cache.delete(CacheKeys.symbol_list())
+
+        return {
+            "status": "success",
+            "message": f"Catalog rebuilt with {catalog.symbol_count} symbols",
+            "catalog": catalog.to_dict(),
+        }
+    else:
+        raise HTTPException(status_code=500, detail="Failed to rebuild catalog")
 
 
 @router.get("/data/{symbol}/latest")

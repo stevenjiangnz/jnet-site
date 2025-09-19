@@ -2,11 +2,10 @@
 
 import pytest
 import json
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from google.cloud.exceptions import NotFound
 
 from app.services.gcs_storage import GCSStorageManager
-from app.config import GCSConfig
 
 
 @pytest.fixture
@@ -265,5 +264,5 @@ def test_no_credentials():
     ):
         with patch("app.services.gcs_storage.storage.Client") as mock_client:
             # Should use default credentials
-            manager = GCSStorageManager()
+            GCSStorageManager()
             mock_client.assert_called_with(project="test-project")

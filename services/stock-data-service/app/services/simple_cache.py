@@ -114,7 +114,7 @@ class SimpleCache:
         try:
             # Note: Upstash supports pattern-based operations differently
             # For now, we'll skip this as it requires scanning all keys
-            logger.warning(f"Pattern-based deletion not implemented for Upstash Redis")
+            logger.warning("Pattern-based deletion not implemented for Upstash Redis")
         except Exception as e:
             logger.warning(f"Cache clear failed for pattern {pattern}: {str(e)}")
 

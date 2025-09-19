@@ -44,6 +44,15 @@ docker-compose up api-service
 - Swagger UI: http://localhost:8002/docs
 - ReDoc: http://localhost:8002/redoc
 
+### API Key Authentication
+
+The API requires authentication using an API key. You can provide the API key in two ways:
+
+1. **Query Parameter**: `?api_key=YOUR_API_KEY`
+2. **Header**: `X-API-Key: YOUR_API_KEY`
+
+In Swagger UI, click the "Authorize" button and enter your API key. The authentication will persist throughout your session.
+
 ## Testing
 
 Run tests:
@@ -96,6 +105,10 @@ Deploy to production:
 - `GET /api/v1/stock/{symbol}/quote` - Get current quote
 - `POST /api/v1/stock/{symbol}/chart` - Get chart data with indicators
 - `POST /api/v1/stock/batch/quotes` - Get multiple quotes
+- `GET /api/v1/stock/catalog` - Get catalog of all available stock data
+- `GET /api/v1/stock/catalog/symbol/{symbol}` - Get catalog info for specific symbol
+- `POST /api/v1/stock/catalog/rebuild` - Rebuild the stock data catalog
+- `GET /api/v1/stock/available-symbols` - Get list of available symbols
 
 ### Alerts
 - `POST /api/v1/alerts` - Create alert

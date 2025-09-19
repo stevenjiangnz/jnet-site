@@ -63,7 +63,8 @@ graph TB
 frontend/src/
 ├── app/                  # App Router pages
 │   ├── (auth)/          # Auth-related pages
-│   ├── dashboard/       # Protected pages
+│   ├── price/           # Stock price charts
+│   ├── symbols/         # Symbol management
 │   └── api/             # API routes
 ├── providers/           # React contexts
 ├── utils/               # Utilities

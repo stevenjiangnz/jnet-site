@@ -140,3 +140,13 @@ class CacheKeys:
             Pattern string for cache clearing
         """
         return f"*:{symbol.upper()}*"
+
+    @staticmethod
+    def catalog() -> str:
+        """
+        Generate cache key for data catalog.
+
+        Returns:
+            Cache key string
+        """
+        return "metadata:catalog"
