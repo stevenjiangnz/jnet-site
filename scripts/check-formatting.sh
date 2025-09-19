@@ -18,6 +18,7 @@ FAILED=0
 check_python_service() {
     local service_name=$1
     local service_path=$2
+    local check_mypy=$3  # optional parameter
     
     echo -e "\n${YELLOW}Checking ${service_name}...${NC}"
     cd $service_path
@@ -41,14 +42,25 @@ check_python_service() {
         FAILED=1
     fi
     
+    # Check MyPy if requested
+    if [ "$check_mypy" = "true" ]; then
+        if uv run mypy app > /dev/null 2>&1; then
+            echo -e "${GREEN}✓ ${service_name} type checking passed${NC}"
+        else
+            echo -e "${RED}✗ ${service_name} has type errors${NC}"
+            echo "  Run: cd ${service_path} && uv run mypy app"
+            FAILED=1
+        fi
+    fi
+    
     cd - > /dev/null
 }
 
-# Check stock-data-service
-check_python_service "stock-data-service" "services/stock-data-service"
+# Check stock-data-service (no MyPy)
+check_python_service "stock-data-service" "services/stock-data-service" "false"
 
-# Check api-service
-check_python_service "api-service" "services/api-service"
+# Check api-service (with MyPy)
+check_python_service "api-service" "services/api-service" "true"
 
 # Check frontend (if needed)
 # Add more services as needed

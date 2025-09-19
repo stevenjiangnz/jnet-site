@@ -219,7 +219,7 @@ async def get_batch_quotes(symbols: List[str]) -> Dict[str, Any]:
 
 
 @router.get("/catalog")
-async def get_stock_catalog():
+async def get_stock_catalog() -> Dict[str, Any]:
     """
     Get the complete catalog of available stock data.
 
@@ -233,7 +233,8 @@ async def get_stock_catalog():
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url)
             response.raise_for_status()
-            return response.json()
+            result: Dict[str, Any] = response.json()
+            return result
     except httpx.HTTPStatusError as e:
         logger.error(f"HTTP error from stock data service: {e}")
         if e.response.status_code == 404:
@@ -273,7 +274,8 @@ async def get_symbol_info(symbol: str) -> Dict[str, Any]:
 
         # Find the specific symbol
         symbol_upper = symbol.upper()
-        for symbol_info in catalog.get("symbols", []):
+        symbols_list: List[Dict[str, Any]] = catalog.get("symbols", [])
+        for symbol_info in symbols_list:
             if symbol_info["symbol"] == symbol_upper:
                 return symbol_info
 
@@ -312,8 +314,9 @@ async def rebuild_catalog() -> Dict[str, Any]:
                 f"{settings.stock_data_service_url}/api/v1/catalog/rebuild"
             )
             response.raise_for_status()
-            return response.json()
-    except httpx.TimeoutError:
+            result: Dict[str, Any] = response.json()
+            return result
+    except (httpx.ReadTimeout, httpx.ConnectTimeout):
         raise HTTPException(
             status_code=504,
             detail="Catalog rebuild timed out. The operation may still be running in the background.",

@@ -1,6 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Dict
+from typing import Any, AsyncGenerator, Dict
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,7 +57,7 @@ async def health() -> Dict[str, str]:
     return {"status": "healthy", "environment": settings.environment}
 
 
-def custom_openapi():
+def custom_openapi() -> Dict[str, Any]:
     if app.openapi_schema:
         return app.openapi_schema
 
@@ -95,4 +95,5 @@ def custom_openapi():
     return app.openapi_schema
 
 
-app.openapi = custom_openapi
+# Override the OpenAPI method
+app.openapi = custom_openapi  # type: ignore[method-assign]
