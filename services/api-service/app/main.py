@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Starting API Service in {settings.environment} mode")
+    logger.info(f"Version: {getattr(settings, 'version', '0.0.8-fix')}")
+    logger.info(f"Stock Data Service URL: {settings.stock_data_service_url}")
     yield
     logger.info("Shutting down API Service")
 
