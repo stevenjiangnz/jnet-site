@@ -73,6 +73,35 @@ export GITHUB_PERSONAL_ACCESS_TOKEN="your-pat-token"
 
 Mac runners automatically detect architecture (Intel x64 or Apple Silicon arm64). See `setup/mac-runner/README.md` for detailed instructions.
 
+## CI/CD Workflow
+
+### GitHub Actions Deployment Process
+
+The project uses a two-environment deployment strategy:
+
+1. **Development Environment** (develop branch):
+   - Automatic build and test on push
+   - Manual approval required for deployment
+   - Deploys to `-develop` suffixed Cloud Run services
+   - Configure approval in GitHub Settings → Environments → development
+
+2. **Production Environment** (main branch):
+   - Automatic build, test, versioning, and release on push
+   - Manual approval required for deployment
+   - Deploys to production Cloud Run services
+   - Configure approval in GitHub Settings → Environments → production
+
+### Environment Protection Rules
+
+To set up environment protection:
+1. Go to GitHub repository Settings → Environments
+2. Create `development` and `production` environments
+3. For each environment, configure:
+   - Required reviewers (who can approve deployments)
+   - Deployment branch restrictions
+   - Environment secrets (if different from repository secrets)
+   - Wait timers (optional delay before deployment)
+
 ## Commands
 
 ### Initial Setup

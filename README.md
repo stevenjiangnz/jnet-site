@@ -158,6 +158,8 @@ cd services/api-service && ./scripts/run_local.sh  # API service on port 8002
 ### Required GitHub Secrets
 
 Add these secrets to your GitHub repository for CI/CD:
+
+**Core Secrets:**
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `GCP_PROJECT_ID`: Your Google Cloud project ID
@@ -165,9 +167,19 @@ Add these secrets to your GitHub repository for CI/CD:
 - `DOCKER_HUB_TOKEN`: Docker Hub access token
 - `DOCKER_USERNAME`: Docker Hub username (optional, defaults to 'stevenjiangnz')
 
+**API Service Secrets:**
+- `API_SERVICE_KEY`: API key for api-service authentication
+- `STOCK_DATA_SERVICE_URL`: URL of the stock-data-service (e.g., https://stock-data-service-506487697841.us-central1.run.app)
+- `STOCK_DATA_SERVICE_API_KEY`: API key for stock-data-service authentication
+- `API_KEY`: Frontend API key for accessing api-service
+- `API_BASE_URL`: API service base URL (e.g., https://api-service-506487697841.us-central1.run.app)
+
+**Stock Data Service Secrets:**
+- `GCS_BUCKET_NAME`: Google Cloud Storage bucket name for stock data
+
 ### CI/CD with GitHub Actions
 
-The project uses GitHub Actions for continuous integration and deployment:
+The project uses GitHub Actions for continuous integration and deployment with environment protections:
 
 #### Develop Branch
 - Triggers on push to `develop` branch when service files are changed
@@ -175,6 +187,9 @@ The project uses GitHub Actions for continuous integration and deployment:
 - Builds and pushes Docker images with tags:
   - `develop`
   - `develop-{git-sha}`
+- **Deployment**: Requires manual approval via `development` environment
+  - Deploys to Cloud Run services suffixed with `-develop`
+  - Uses development-specific environment variables
 
 #### Main Branch (Production)
 - Triggers on push to `main` branch when service files are changed
@@ -184,7 +199,20 @@ The project uses GitHub Actions for continuous integration and deployment:
   - `latest`
   - Semantic version (e.g., `1.2.3`)
 - Creates a GitHub release
-- Deploys to Google Cloud Run (if configured)
+- **Deployment**: Requires manual approval via `production` environment
+  - Deploys to production Cloud Run services
+  - Uses production environment variables
+
+#### Environment Configuration
+Configure deployment environments in GitHub Settings → Environments:
+- **development**: Controls develop branch deployments
+- **production**: Controls main branch deployments
+
+For each environment, you can configure:
+- Required reviewers for manual approval
+- Deployment branch restrictions
+- Environment-specific secrets
+- Deployment protection rules
 
 #### Manual Deployment
 
