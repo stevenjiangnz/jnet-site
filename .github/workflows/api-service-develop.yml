@@ -90,20 +90,20 @@ jobs:
         
       - name: Deploy API Service to Cloud Run (Development)
         run: |
-          gcloud run deploy api-service-develop \
+          gcloud run deploy api-service \
             --image docker.io/${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }} \
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
             --service-account 506487697841-compute@developer.gserviceaccount.com \
-            --set-env-vars="ENVIRONMENT=development,LOG_LEVEL=DEBUG,API_KEY=${{ secrets.API_SERVICE_KEY }},STOCK_DATA_SERVICE_URL=https://stock-data-service-develop-506487697841.us-central1.run.app,STOCK_DATA_SERVICE_API_KEY=${{ secrets.STOCK_DATA_SERVICE_API_KEY }}" \
+            --set-env-vars="ENVIRONMENT=development,LOG_LEVEL=DEBUG,API_KEY=${{ secrets.API_SERVICE_KEY }},STOCK_DATA_SERVICE_URL=https://stock-data-service-506487697841.us-central1.run.app,STOCK_DATA_SERVICE_API_KEY=${{ secrets.STOCK_DATA_SERVICE_API_KEY }}" \
             --memory 512Mi \
             --cpu 1 \
             --port 8002
             
       - name: Get Service URL
         run: |
-          SERVICE_URL=$(gcloud run services describe api-service-develop \
+          SERVICE_URL=$(gcloud run services describe api-service \
             --region us-central1 \
             --format 'value(status.url)')
           echo "API Service (Development) deployed to: $SERVICE_URL"

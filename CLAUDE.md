@@ -77,19 +77,24 @@ Mac runners automatically detect architecture (Intel x64 or Apple Silicon arm64)
 
 ### GitHub Actions Deployment Process
 
-The project uses a two-environment deployment strategy:
+The project uses a unified deployment strategy with manual approval:
 
 1. **Development Environment** (develop branch):
    - Automatic build and test on push
    - Manual approval required for deployment
-   - Deploys to `-develop` suffixed Cloud Run services
+   - Deploys to production Cloud Run services with development configuration
    - Configure approval in GitHub Settings → Environments → development
 
 2. **Production Environment** (main branch):
    - Automatic build, test, versioning, and release on push
    - Manual approval required for deployment
-   - Deploys to production Cloud Run services
+   - Deploys to production Cloud Run services with production configuration
    - Configure approval in GitHub Settings → Environments → production
+
+Note: Both environments deploy to the same Cloud Run services, differentiated by:
+- Docker image tags (semantic versions for production, commit hashes for development)
+- Environment variables (development vs production settings)
+- Manual approval ensures controlled deployments
 
 ### Environment Protection Rules
 

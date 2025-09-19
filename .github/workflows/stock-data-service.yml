@@ -218,7 +218,7 @@ jobs:
         
       - name: Deploy Stock Data Service to Cloud Run (Development)
         run: |
-          gcloud run deploy stock-data-service-develop \
+          gcloud run deploy stock-data-service \
             --image docker.io/${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }} \
             --region us-central1 \
             --platform managed \
@@ -231,7 +231,7 @@ jobs:
             
       - name: Get Service URL
         run: |
-          SERVICE_URL=$(gcloud run services describe stock-data-service-develop \
+          SERVICE_URL=$(gcloud run services describe stock-data-service \
             --region us-central1 \
             --format 'value(status.url)')
           echo "Stock Data Service (Development) deployed to: $SERVICE_URL"

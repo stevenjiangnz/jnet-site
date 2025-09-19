@@ -4,19 +4,21 @@ This guide describes the continuous integration and deployment process for the J
 
 ## Overview
 
-The project uses GitHub Actions for automated testing, building, versioning, and deployment to Google Cloud Run. The workflow is designed with two distinct environments:
+The project uses GitHub Actions for automated testing, building, versioning, and deployment to Google Cloud Run. The workflow uses a unified deployment strategy with manual approval gates:
 
 - **Development**: For testing and staging (develop branch)
 - **Production**: For live deployment (main branch)
+
+Both environments deploy to the same Cloud Run services, differentiated by Docker image tags and environment variables.
 
 ## Workflow Architecture
 
 ### Branch Strategy
 
 ```
-develop branch → Development Environment → Cloud Run (services suffixed with -develop)
+develop branch → Development Environment → Cloud Run (with dev config)
     ↓ (merge)
-main branch → Production Environment → Cloud Run (production services)
+main branch → Production Environment → Cloud Run (with prod config)
 ```
 
 ## GitHub Actions Workflows
@@ -119,7 +121,7 @@ GCS_BUCKET_NAME: your-bucket-name
    - Pushes to Docker Hub
 3. Deployment job waits for manual approval
 4. Approve deployment in GitHub Actions UI
-5. Service deploys to Cloud Run with `-develop` suffix
+5. Service deploys to Cloud Run with development configuration
 
 ### Production Deployment
 
@@ -135,15 +137,15 @@ GCS_BUCKET_NAME: your-bucket-name
 
 ## Cloud Run Services
 
-### Development Services
-- `frontend-develop`
-- `api-service-develop`
-- `stock-data-service-develop`
+The project uses a unified deployment approach with the following services:
+- `frontend` - Next.js frontend application
+- `api-service` - API backend service
+- `stock-data-service` - Stock/ETF data service
 
-### Production Services
-- `frontend`
-- `api-service`
-- `stock-data-service`
+Both development and production deployments use these same services, with different:
+- Docker image tags (develop-{sha} vs semantic versions)
+- Environment variables (development vs production settings)
+- Configuration values (debug logging vs info logging)
 
 ## Manual Deployment
 

@@ -179,7 +179,7 @@ Add these secrets to your GitHub repository for CI/CD:
 
 ### CI/CD with GitHub Actions
 
-The project uses GitHub Actions for continuous integration and deployment with environment protections:
+The project uses GitHub Actions for continuous integration and deployment with environment protections and a unified deployment strategy:
 
 #### Develop Branch
 - Triggers on push to `develop` branch when service files are changed
@@ -188,8 +188,8 @@ The project uses GitHub Actions for continuous integration and deployment with e
   - `develop`
   - `develop-{git-sha}`
 - **Deployment**: Requires manual approval via `development` environment
-  - Deploys to Cloud Run services suffixed with `-develop`
-  - Uses development-specific environment variables
+  - Deploys to the same Cloud Run services as production
+  - Uses development-specific environment variables and configurations
 
 #### Main Branch (Production)
 - Triggers on push to `main` branch when service files are changed
@@ -200,8 +200,19 @@ The project uses GitHub Actions for continuous integration and deployment with e
   - Semantic version (e.g., `1.2.3`)
 - Creates a GitHub release
 - **Deployment**: Requires manual approval via `production` environment
-  - Deploys to production Cloud Run services
-  - Uses production environment variables
+  - Deploys to Cloud Run services
+  - Uses production environment variables and configurations
+
+#### Unified Deployment Strategy
+Both development and production environments deploy to the same Cloud Run services:
+- **api-service**: API backend service
+- **frontend**: Next.js frontend application  
+- **stock-data-service**: Stock/ETF data service
+
+The environments are differentiated by:
+- Docker image tags (semantic versions for production, commit hashes for development)
+- Environment variables (development vs production settings)
+- Manual approval requirements ensure controlled deployments
 
 #### Environment Configuration
 Configure deployment environments in GitHub Settings → Environments:
