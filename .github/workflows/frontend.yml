@@ -156,7 +156,7 @@ jobs:
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars="NODE_ENV=production,VERSION=${{ needs.version.outputs.semVer }},NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }},NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }},API_BASE_URL=${{ secrets.API_SERVICE_URL }},API_KEY=${{ secrets.API_SERVICE_KEY }}"
+            --set-env-vars="NODE_ENV=production,VERSION=${{ needs.version.outputs.semVer }},NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }},NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }},API_BASE_URL=${{ secrets.API_BASE_URL }},API_KEY=${{ secrets.API_SERVICE_KEY }}"
             
       - name: Get Service URL
         run: |
