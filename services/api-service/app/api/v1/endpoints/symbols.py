@@ -29,9 +29,10 @@ STOCK_SERVICE_URL = settings.stock_data_service_url or "http://stock-data-servic
 async def list_symbols() -> SymbolListResponse:
     """List all available symbols."""
     try:
+        headers = {"X-API-Key": settings.stock_data_service_api_key}
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{STOCK_SERVICE_URL}/api/v1/list", timeout=30.0
+                f"{STOCK_SERVICE_URL}/api/v1/list", headers=headers, timeout=30.0
             )
             response.raise_for_status()
             data = response.json()
@@ -47,9 +48,12 @@ async def add_symbol(
 ) -> Dict[str, Any]:
     """Add a new symbol by downloading its data."""
     try:
+        headers = {"X-API-Key": settings.stock_data_service_api_key}
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{STOCK_SERVICE_URL}/api/v1/download/{symbol.upper()}", timeout=60.0
+                f"{STOCK_SERVICE_URL}/api/v1/download/{symbol.upper()}",
+                headers=headers,
+                timeout=60.0,
             )
             response.raise_for_status()
             return response.json()  # type: ignore[no-any-return]
@@ -66,10 +70,12 @@ async def add_symbol(
 async def bulk_download(request: BulkDownloadRequest) -> BulkDownloadResponse:
     """Download data for multiple symbols with date range."""
     try:
+        headers = {"X-API-Key": settings.stock_data_service_api_key}
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{STOCK_SERVICE_URL}/api/v1/bulk-download",
                 json=request.dict(),
+                headers=headers,
                 timeout=300.0,  # 5 minutes for bulk operations
             )
             response.raise_for_status()
@@ -84,9 +90,12 @@ async def bulk_download(request: BulkDownloadRequest) -> BulkDownloadResponse:
 async def delete_symbol(symbol: str) -> Dict[str, str]:
     """Delete a single symbol's data."""
     try:
+        headers = {"X-API-Key": settings.stock_data_service_api_key}
         async with httpx.AsyncClient() as client:
             response = await client.delete(
-                f"{STOCK_SERVICE_URL}/api/v1/symbol/{symbol.upper()}", timeout=30.0
+                f"{STOCK_SERVICE_URL}/api/v1/symbol/{symbol.upper()}",
+                headers=headers,
+                timeout=30.0,
             )
             response.raise_for_status()
             return {"message": f"Symbol {symbol} deleted successfully"}
@@ -103,12 +112,14 @@ async def delete_symbol(symbol: str) -> Dict[str, str]:
 async def delete_symbols(request: DeleteSymbolsRequest) -> Dict[str, str]:
     """Delete multiple symbols' data."""
     try:
+        headers = {"X-API-Key": settings.stock_data_service_api_key}
         async with httpx.AsyncClient() as client:
             # The stock-data-service expects a list in the body
             response = await client.request(
                 "DELETE",
                 f"{STOCK_SERVICE_URL}/api/v1/symbols",
                 json=request.symbols,
+                headers=headers,
                 timeout=60.0,
             )
             response.raise_for_status()
@@ -122,9 +133,12 @@ async def delete_symbols(request: DeleteSymbolsRequest) -> Dict[str, str]:
 async def get_symbol_price(symbol: str) -> SymbolPriceResponse:
     """Get latest price for a symbol."""
     try:
+        headers = {"X-API-Key": settings.stock_data_service_api_key}
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"{STOCK_SERVICE_URL}/api/v1/data/{symbol.upper()}/latest", timeout=30.0
+                f"{STOCK_SERVICE_URL}/api/v1/data/{symbol.upper()}/latest",
+                headers=headers,
+                timeout=30.0,
             )
             response.raise_for_status()
             data = response.json()
@@ -165,6 +179,7 @@ async def get_symbol_chart(
 ) -> SymbolChartResponse:
     """Get chart data for a symbol."""
     try:
+        headers = {"X-API-Key": settings.stock_data_service_api_key}
         async with httpx.AsyncClient() as client:
             params: Dict[str, Any] = {"period": period}
             if indicators:
@@ -173,6 +188,7 @@ async def get_symbol_chart(
             response = await client.get(
                 f"{STOCK_SERVICE_URL}/api/v1/chart/{symbol.upper()}",
                 params=params,
+                headers=headers,
                 timeout=30.0,
             )
             response.raise_for_status()

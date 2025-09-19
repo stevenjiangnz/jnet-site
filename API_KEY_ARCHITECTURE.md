@@ -44,15 +44,15 @@ The following secrets must be configured in GitHub repository settings:
    - Purpose: Authenticate api-service requests to stock-data-service
    - Example: `BQ1kpkId36uCXmq_HfXQLOfvY3jZJKiQ2bjSP2oU1XY`
 
-3. **API_SERVICE_URL**
+3. **API_BASE_URL**
    - Used by: frontend
    - Purpose: Base URL for api-service
-   - Example: `https://api-service-506487697841.us-central1.run.app`
+   - Example: `https://api-service-3qpatnkdma-uc.a.run.app`
 
 4. **STOCK_DATA_SERVICE_URL**
    - Used by: api-service
    - Purpose: Base URL for stock-data-service
-   - Example: `https://stock-data-service-506487697841.us-central1.run.app`
+   - Example: `https://stock-data-service-3qpatnkdma-uc.a.run.app`
 
 ## Environment Variables per Service
 
@@ -94,13 +94,23 @@ const response = await fetch(`${API_BASE_URL}/api/v1/symbols/list`, {
 
 ### API Service Stock Data Client
 ```python
-# api-service/app/services/stock_data.py
-class StockDataService:
-    def __init__(self) -> None:
-        self.base_url = settings.stock_data_service_url
-        self.headers = {"X-API-Key": settings.stock_data_service_api_key}
-        self.client = httpx.AsyncClient(timeout=30.0, headers=self.headers)
+# api-service/app/api/v1/endpoints/symbols.py
+# All endpoints must include the API key header when calling stock-data-service
+async def list_symbols() -> SymbolListResponse:
+    """List all available symbols."""
+    try:
+        headers = {"X-API-Key": settings.stock_data_service_api_key}
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{STOCK_SERVICE_URL}/api/v1/list", 
+                headers=headers,
+                timeout=30.0
+            )
+            response.raise_for_status()
+            # ... rest of the code
 ```
+
+**Important**: All API service endpoints that call stock-data-service MUST include the API key header. This was the root cause of the 401 errors - the headers were missing in the endpoint implementations.
 
 ## Security Best Practices
 
@@ -115,12 +125,17 @@ class StockDataService:
 ### API Key Mismatch Errors
 If you see authentication errors between services:
 
-1. Check that GitHub secrets are properly set
-2. Verify environment variables in Cloud Run:
+1. **Check that the API key headers are included in all requests** - This is the most common cause of 401 errors
+2. Check that GitHub secrets are properly set
+3. Verify environment variables in Cloud Run:
    ```bash
    gcloud run services describe <service-name> --region us-central1 --format=yaml | grep -A5 "env:"
    ```
-3. Ensure CI/CD workflows are using the correct secret names
+4. Check service logs for authentication errors:
+   ```bash
+   gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=api-service AND severity>=ERROR" --limit=20
+   ```
+5. Ensure CI/CD workflows are using the correct secret names
 
 ### Manual Fix (Emergency)
 ```bash
@@ -136,3 +151,17 @@ The API keys are automatically deployed through GitHub Actions workflows:
 - `.github/workflows/frontend.yml` - Uses `API_SERVICE_KEY`
 - `.github/workflows/api-service-main.yml` - Uses both keys
 - `.github/workflows/stock-data-service.yml` - Uses `STOCK_DATA_SERVICE_API_KEY`
+
+## Recent Issues and Fixes
+
+### September 2025 - Missing API Key Headers
+**Issue**: The symbols page was returning 500 errors because the API service was getting 401 Unauthorized when calling stock-data-service.
+
+**Root Cause**: The API service endpoints in `symbols.py` were not including the required `X-API-Key` header when making requests to stock-data-service.
+
+**Fix**: Updated all endpoints in `services/api-service/app/api/v1/endpoints/symbols.py` to include the API key header:
+```python
+headers = {"X-API-Key": settings.stock_data_service_api_key}
+```
+
+**Lesson**: Always ensure that service-to-service API calls include the required authentication headers, even if the API key is configured in the environment variables.
