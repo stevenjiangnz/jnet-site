@@ -220,20 +220,20 @@ jobs:
         
       - name: Deploy Frontend to Cloud Run (Development)
         run: |
-          gcloud run deploy frontend-develop \
+          gcloud run deploy frontend \
             --image docker.io/${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }} \
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
             --service-account 506487697841-compute@developer.gserviceaccount.com \
-            --set-env-vars="NODE_ENV=development,API_BASE_URL=${{ secrets.API_BASE_URL || 'https://api-service-develop-506487697841.us-central1.run.app' }},API_KEY=${{ secrets.API_KEY }}" \
+            --set-env-vars="NODE_ENV=development,API_BASE_URL=${{ secrets.API_BASE_URL || 'https://api-service-506487697841.us-central1.run.app' }},API_KEY=${{ secrets.API_SERVICE_KEY }},NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }},NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
             --memory 512Mi \
             --cpu 1 \
             --port 3000
             
       - name: Get Service URL
         run: |
-          SERVICE_URL=$(gcloud run services describe frontend-develop \
+          SERVICE_URL=$(gcloud run services describe frontend \
             --region us-central1 \
             --format 'value(status.url)')
           echo "Frontend (Development) deployed to: $SERVICE_URL"
