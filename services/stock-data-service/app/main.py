@@ -22,12 +22,12 @@ async def lifespan(app: FastAPI):
 
     # Initialize GCS storage
     if settings.gcs_bucket_name:
-        storage = GCSStorageManager()
+        GCSStorageManager()
         logger.info("GCS Storage initialized")
 
     # Initialize cache if enabled
     if settings.cache_enabled and settings.upstash_redis_url:
-        cache = SimpleCache()
+        SimpleCache()
         logger.info("Redis cache initialized")
 
     yield

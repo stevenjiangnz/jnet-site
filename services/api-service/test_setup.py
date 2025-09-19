@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Quick test to verify API service setup"""
 
-import httpx
 import asyncio
+
+import httpx
 
 API_KEY = "dev-api-key"
 BASE_URL = "http://localhost:8002"

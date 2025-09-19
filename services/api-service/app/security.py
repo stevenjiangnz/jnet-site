@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fastapi import HTTPException, Security, status
-from fastapi.security import APIKeyQuery, APIKeyHeader
+from fastapi.security import APIKeyHeader, APIKeyQuery
 
 from app.config import settings
 

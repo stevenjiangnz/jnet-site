@@ -1,10 +1,9 @@
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Dict, List
+from typing import AsyncGenerator, Dict
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.models import APIKey, APIKeyIn, SecurityScheme
 from fastapi.openapi.utils import get_openapi
 
 from app.api.v1.router import api_router

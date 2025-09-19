@@ -1,7 +1,5 @@
 """Indicator configuration and presets."""
 
-from typing import Dict, List, Any
-
 # Default indicators calculated for all symbols
 DEFAULT_INDICATORS = [
     "SMA_20",  # 20-day Simple Moving Average

@@ -1,7 +1,6 @@
 """API endpoints for syncing weekly data."""
 
 import logging
-from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
 from app.models.responses import APIResponse
 from app.services.download import StockDataDownloader

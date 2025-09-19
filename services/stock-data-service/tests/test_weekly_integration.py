@@ -1,15 +1,12 @@
 """Integration tests for weekly data aggregation pipeline."""
 
 import pytest
-from datetime import date, datetime
-from unittest.mock import Mock, patch, AsyncMock
+from datetime import date
+from unittest.mock import patch, AsyncMock
 import pandas as pd
 
 from app.models.stock_data import (
-    StockDataFile,
     StockDataPoint,
-    DataRange,
-    StockMetadata,
 )
 from app.services.download import StockDataDownloader
 from app.services.weekly_aggregator import WeeklyAggregator

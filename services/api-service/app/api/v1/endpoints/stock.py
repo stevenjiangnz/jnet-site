@@ -2,10 +2,11 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
+import httpx
 from fastapi import APIRouter, HTTPException
 from fastapi import Query as QueryParam
-import httpx
 
+from app.config import settings
 from app.core.analysis.indicators import IndicatorCalculator
 from app.models.stock import (
     OHLCV,
@@ -15,7 +16,6 @@ from app.models.stock import (
     StockDataResponse,
 )
 from app.services.stock_data import StockDataService
-from app.config import settings
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

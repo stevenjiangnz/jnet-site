@@ -1,6 +1,6 @@
 """Predefined indicator sets for different use cases."""
 
-from typing import List, Dict
+from typing import List
 from .config import INDICATOR_SETS
 
 

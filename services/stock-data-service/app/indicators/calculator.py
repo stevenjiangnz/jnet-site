@@ -2,9 +2,7 @@
 
 import logging
 from typing import Dict, List, Optional, Any
-from datetime import date
 import pandas as pd
-import numpy as np
 import ta
 
 from .models import IndicatorData, IndicatorValue

@@ -1,7 +1,6 @@
 import logging
-import json
 from datetime import date, datetime, timedelta
-from typing import Optional, List, Dict, Any
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
 from app.models.responses import SymbolListResponse

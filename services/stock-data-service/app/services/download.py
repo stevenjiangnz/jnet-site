@@ -1,8 +1,8 @@
 """Stock data download service with GCS storage."""
 
 import logging
-from datetime import datetime, date, timedelta
-from typing import List, Dict, Any, Optional
+from datetime import datetime, date
+from typing import List, Dict, Optional
 import yfinance as yf
 import pandas as pd
 
@@ -12,7 +12,6 @@ from app.models.stock_data import (
     DataRange,
     StockMetadata,
     WeeklyDataFile,
-    WeeklyDataPoint,
 )
 from app.services.gcs_storage import GCSStorageManager
 from app.services.storage_paths import StoragePaths
@@ -100,7 +99,7 @@ class StockDataDownloader:
                 logger.info(f"Successfully stored {symbol} data to GCS")
 
                 # Process and store weekly data
-                has_weekly = await self._process_weekly_data(stock_data)
+                await self._process_weekly_data(stock_data)
 
                 # Update catalog by rescanning this symbol's data
                 await self.catalog_manager.update_catalog_for_symbol(symbol)
@@ -402,46 +401,3 @@ class StockDataDownloader:
                 f"Error processing weekly data for {daily_data.symbol}: {str(e)}"
             )
             return False
-
-    async def get_weekly_data(self, symbol: str) -> Optional[WeeklyDataFile]:
-        """
-        Retrieve weekly data for a symbol from GCS.
-
-        Args:
-            symbol: Stock symbol
-
-        Returns:
-            WeeklyDataFile object or None if not found
-        """
-        try:
-            storage_path = StoragePaths.get_weekly_path(symbol)
-            data_dict = await self.storage.download_json(storage_path)
-
-            if data_dict:
-                # Convert date strings back to date objects
-                for point in data_dict["data_points"]:
-                    point["week_ending"] = datetime.fromisoformat(
-                        point["week_ending"]
-                    ).date()
-                    point["week_start"] = datetime.fromisoformat(
-                        point["week_start"]
-                    ).date()
-
-                data_dict["data_range"]["start"] = datetime.fromisoformat(
-                    data_dict["data_range"]["start"]
-                ).date()
-                data_dict["data_range"]["end"] = datetime.fromisoformat(
-                    data_dict["data_range"]["end"]
-                ).date()
-
-                data_dict["last_updated"] = datetime.fromisoformat(
-                    data_dict["last_updated"]
-                )
-
-                return WeeklyDataFile(**data_dict)
-
-            return None
-
-        except Exception as e:
-            logger.error(f"Error retrieving weekly data for {symbol}: {str(e)}")
-            return None

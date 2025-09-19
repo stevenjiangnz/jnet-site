@@ -3,7 +3,6 @@
 import pytest
 import asyncio
 import os
-from unittest.mock import AsyncMock, MagicMock
 from datetime import date, datetime, timedelta
 from app.services.download import StockDataDownloader
 from app.models.stock_data import (

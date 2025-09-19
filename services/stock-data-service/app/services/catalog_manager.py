@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Optional
 
 from app.models.summary import DataCatalog, SymbolSummary
-from app.models.stock_data import StockDataFile, WeeklyDataFile
 from app.services.gcs_storage import GCSStorageManager
 from app.services.storage_paths import StoragePaths
 
@@ -133,9 +132,9 @@ class CatalogManager:
             )
 
             if success:
-                logger.info(f"Successfully saved updated catalog")
+                logger.info("Successfully saved updated catalog")
             else:
-                logger.error(f"Failed to save updated catalog")
+                logger.error("Failed to save updated catalog")
 
             return success
 

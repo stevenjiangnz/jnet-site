@@ -3,7 +3,7 @@ import logging
 import time
 from typing import List, Dict, Any, Optional
 from google.cloud import storage
-from google.cloud.exceptions import NotFound, Conflict
+from google.cloud.exceptions import NotFound
 from google.api_core import retry
 import google.auth.exceptions
 
@@ -260,7 +260,6 @@ class GCSStorageManager:
 
             # Copy to final location
             temp_blob = self._bucket.blob(temp_blob_name)
-            final_blob = self._bucket.blob(blob_name)
 
             # Use copy_blob for atomic replacement
             self._bucket.copy_blob(

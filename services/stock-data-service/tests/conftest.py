@@ -1,7 +1,6 @@
 import pytest
 import tempfile
 import shutil
-import os
 from unittest.mock import patch, MagicMock, AsyncMock
 from fastapi.testclient import TestClient
 

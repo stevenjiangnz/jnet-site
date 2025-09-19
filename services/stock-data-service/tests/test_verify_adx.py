@@ -15,7 +15,7 @@ def test_adx_metadata():
     assert "ADX_14" in INDICATOR_METADATA
     adx_meta = INDICATOR_METADATA["ADX_14"]
 
-    print(f"\n✓ ADX_14 metadata:")
+    print("\n✓ ADX_14 metadata:")
     print(f"  - Display name: {adx_meta['display_name']}")
     print(f"  - Category: {adx_meta['category']}")
     print(f"  - Description: {adx_meta['description']}")
@@ -76,7 +76,7 @@ async def test_adx_calculation_outputs():
     # Check a value after warmup period
     test_value = adx_data.values[40]  # Well after warmup
 
-    print(f"\n✓ Sample ADX calculation (Day 40):")
+    print("\n✓ Sample ADX calculation (Day 40):")
     print(f"  - Date: {test_value.date}")
     print(f"  - ADX: {test_value.values.get('ADX')}")
     print(f"  - DI+: {test_value.values.get('DI+')}")

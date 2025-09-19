@@ -1,6 +1,4 @@
-from datetime import date
 from unittest.mock import patch, MagicMock, AsyncMock
-import os
 
 
 def test_health_check(client):

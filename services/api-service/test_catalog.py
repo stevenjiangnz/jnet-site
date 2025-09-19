@@ -3,8 +3,9 @@ import sys
 
 sys.path.insert(0, ".")
 
-from app.api.v1.endpoints.stock import get_stock_catalog
 import asyncio
+
+from app.api.v1.endpoints.stock import get_stock_catalog
 
 
 async def test():

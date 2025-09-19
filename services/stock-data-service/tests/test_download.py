@@ -1,13 +1,12 @@
 """Tests for Stock Data Downloader."""
 
 import pytest
-import os
-from datetime import date, datetime
+from datetime import date
 from unittest.mock import Mock, patch, AsyncMock
 import pandas as pd
 
 from app.services.download import StockDataDownloader
-from app.models.stock_data import StockDataFile, StockDataPoint
+from app.models.stock_data import StockDataFile
 
 
 @pytest.fixture

@@ -4,10 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Git and Code Quality
 
-- Always perform Black formatting check before pushing code to GitHub, as formatting issues can cause time-consuming review bounces
-- Use `./scripts/check-formatting.sh` to check formatting before committing
-- Use `./scripts/fix-formatting.sh` to automatically fix all formatting issues
-- A pre-commit hook is installed to prevent commits with formatting errors
+- Always perform Black formatting and Ruff linting checks before pushing code to GitHub, as these issues can cause time-consuming review bounces
+- Use `./scripts/check-formatting.sh` to check both formatting and linting before committing
+- Use `./scripts/fix-formatting.sh` to automatically fix all formatting and auto-fixable linting issues
+- A pre-commit hook is installed to prevent commits with formatting or linting errors
+- The check includes:
+  - Black formatting (Python code style)
+  - Ruff linting (import sorting, unused imports, code quality)
 
 ## GitHub Actions Runners
 

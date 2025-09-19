@@ -3,7 +3,7 @@
 import pytest
 from datetime import date, datetime, timedelta
 from app.indicators.calculator import IndicatorCalculator
-from app.indicators.config import DEFAULT_INDICATORS, INDICATOR_SETS
+from app.indicators.config import DEFAULT_INDICATORS
 from app.indicators.models import IndicatorData, IndicatorValue
 from app.models.stock_data import (
     StockDataFile,
