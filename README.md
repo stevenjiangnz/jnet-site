@@ -11,6 +11,7 @@ Personal public site with microservices architecture, built with modern web tech
 - **Stock Data Service**: Python FastAPI with uv for stock/ETF EOD data downloading
 - **API Service**: Python FastAPI for business logic (backtesting, scanning, analysis, notifications)
 - **Local Database**: PostgreSQL 15 (for non-auth services)
+- **API Security**: Layered API key authentication (see [API Key Architecture](API_KEY_ARCHITECTURE.md))
 
 ## 🚀 Quick Start
 

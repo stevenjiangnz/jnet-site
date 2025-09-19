@@ -12,6 +12,7 @@ class Settings(BaseSettings):
 
     # Services
     stock_data_service_url: str = "http://localhost:9000"
+    stock_data_service_api_key: str = "dev-api-key"
     supabase_url: Optional[str] = None
     supabase_service_key: Optional[str] = None
 
