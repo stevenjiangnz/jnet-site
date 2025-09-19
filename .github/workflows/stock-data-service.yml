@@ -222,7 +222,7 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --service-account 506487697841-compute@developer.gserviceaccount.com \
-            --set-env-vars="ENVIRONMENT=development,LOG_LEVEL=DEBUG,GCS_BUCKET_NAME=${{ secrets.DEV_GCS_BUCKET_NAME || 'jnet-stock-data-dev' }},GCS_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},API_KEY=${{ secrets.DEV_STOCK_DATA_SERVICE_API_KEY || 'dev-api-key' }}" \
+            --set-env-vars="ENVIRONMENT=development,LOG_LEVEL=DEBUG,GCS_BUCKET_NAME=${{ secrets.GCS_BUCKET_NAME }},GCS_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},API_KEY=${{ secrets.STOCK_DATA_SERVICE_API_KEY }}" \
             --memory 512Mi \
             --cpu 1 \
             --port 9000
