@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 class StockDataService:
     def __init__(self) -> None:
         self.base_url = settings.stock_data_service_url
-        self.client = httpx.AsyncClient(timeout=30.0)
+        self.headers = {"X-API-Key": settings.stock_data_service_api_key}
+        self.client = httpx.AsyncClient(timeout=30.0, headers=self.headers)
 
     async def get_stock_data(
         self,
@@ -115,7 +116,8 @@ class StockDataService:
 
 async def check_stock_data_service() -> bool:
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        headers = {"X-API-Key": settings.stock_data_service_api_key}
+        async with httpx.AsyncClient(timeout=5.0, headers=headers) as client:
             response = await client.get(f"{settings.stock_data_service_url}/health")
             return response.status_code == 200
     except Exception:
