@@ -1,0 +1,47 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/utils/supabase/server';
+
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8002';
+const API_KEY = process.env.API_KEY || 'dev-api-key';
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { symbol: string } }
+) {
+  try {
+    // Verify user is authenticated
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const symbol = params.symbol;
+
+    // Call the API service with server-side API key
+    const response = await fetch(`${API_BASE_URL}/api/v1/symbols/${symbol}`, {
+      method: 'DELETE',
+      headers: {
+        'X-API-Key': API_KEY,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      return NextResponse.json(
+        { error: errorData.detail || 'Failed to delete symbol' },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json({ message: `Symbol ${symbol} deleted successfully` });
+  } catch (error) {
+    console.error('Error deleting symbol:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete symbol' },
+      { status: 500 }
+    );
+  }
+}

@@ -2,6 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## API Security Architecture
+
+The frontend uses a secure proxy architecture where all API calls go through Next.js API routes:
+
+- **Browser** → **Next.js API Routes** (Supabase Auth) → **API Service** (X-API-Key)
+- API keys are NEVER exposed to the browser
+- All API routes require Supabase authentication
+- See [Frontend API Architecture](frontend/API_ARCHITECTURE.md) for details
+
+### Environment Variables
+- Server-side: `API_BASE_URL`, `API_KEY` (never use NEXT_PUBLIC_ prefix)
+- Client-side: Only `NEXT_PUBLIC_SUPABASE_*` variables
+
 ## Git and Code Quality
 
 - Always perform Black formatting and Ruff linting checks before pushing code to GitHub, as these issues can cause time-consuming review bounces

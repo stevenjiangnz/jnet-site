@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
     api_key: str = "test-api-key"
+    disable_auth: bool = False
 
     # Services
     stock_data_service_url: str = "http://localhost:9000"

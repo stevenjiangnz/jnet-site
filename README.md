@@ -5,6 +5,7 @@ Personal public site with microservices architecture, built with modern web tech
 ## 🏗️ Architecture
 
 - **Frontend**: Next.js 15+ with React, TypeScript, and Tailwind CSS
+  - Secure API proxy architecture (see [API Architecture](frontend/API_ARCHITECTURE.md))
 - **Authentication**: Supabase Auth (Email/Password and Google OAuth)
 - **Database**: Supabase (PostgreSQL)
 - **Stock Data Service**: Python FastAPI with uv for stock/ETF EOD data downloading
