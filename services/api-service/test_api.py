@@ -1,6 +1,7 @@
 import asyncio
 import httpx
 
+
 async def test_endpoints():
     print("Testing stock-data-service directly...")
     try:
@@ -11,7 +12,7 @@ async def test_endpoints():
                 print(f"Response: {response.json()}")
     except Exception as e:
         print(f"Error: {e}")
-    
+
     print("\nTesting api-service...")
     try:
         async with httpx.AsyncClient() as client:
@@ -23,6 +24,7 @@ async def test_endpoints():
                 print(f"Error response: {response.text}")
     except Exception as e:
         print(f"Error: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(test_endpoints())

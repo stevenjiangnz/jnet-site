@@ -22,7 +22,7 @@ class GCSStorageManager:
         self._config = GCSConfig()
         self._is_test_mode = settings.environment == "test"
         self._initialize_client()
-        
+
     @property
     def is_test_mode(self) -> bool:
         """Check if running in test mode."""
@@ -34,7 +34,7 @@ class GCSStorageManager:
         if settings.environment == "test":
             logger.info("Running in test environment, skipping GCS initialization")
             return
-            
+
         try:
             if self._config.credentials_path:
                 # Use service account credentials
@@ -84,7 +84,7 @@ class GCSStorageManager:
         if settings.environment == "test":
             logger.info(f"Test mode: Would upload {blob_name} to GCS")
             return True
-            
+
         try:
             blob = self._bucket.blob(blob_name)
 

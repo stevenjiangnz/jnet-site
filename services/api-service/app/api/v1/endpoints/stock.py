@@ -222,14 +222,14 @@ async def get_batch_quotes(symbols: List[str]) -> Dict[str, Any]:
 async def get_stock_catalog():
     """
     Get the complete catalog of available stock data.
-    
+
     Returns:
         Catalog with all symbols, their date ranges, and availability information.
     """
     try:
         url = f"{settings.stock_data_service_url}/api/v1/catalog"
         logger.info(f"Fetching catalog from: {url}")
-        
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url)
             response.raise_for_status()
@@ -239,20 +239,20 @@ async def get_stock_catalog():
         if e.response.status_code == 404:
             raise HTTPException(status_code=404, detail="Catalog not found")
         raise HTTPException(
-            status_code=e.response.status_code, 
-            detail=f"Stock data service error: {e.response.text}"
+            status_code=e.response.status_code,
+            detail=f"Stock data service error: {e.response.text}",
         )
     except httpx.ConnectError as e:
         logger.error(f"Connection error to stock data service: {e}")
         raise HTTPException(
-            status_code=503, 
-            detail=f"Cannot connect to stock data service at {settings.stock_data_service_url}"
+            status_code=503,
+            detail=f"Cannot connect to stock data service at {settings.stock_data_service_url}",
         )
     except Exception as e:
         logger.error(f"Failed to fetch catalog: {type(e).__name__}: {e}")
         raise HTTPException(
-            status_code=500, 
-            detail=f"Failed to fetch catalog from stock data service: {str(e)}"
+            status_code=500,
+            detail=f"Failed to fetch catalog from stock data service: {str(e)}",
         )
 
 
@@ -260,34 +260,32 @@ async def get_stock_catalog():
 async def get_symbol_info(symbol: str) -> Dict[str, Any]:
     """
     Get catalog information for a specific symbol.
-    
+
     Args:
         symbol: Stock symbol to get information for
-        
+
     Returns:
         Symbol information including date range and availability
     """
     try:
         # First get the full catalog
         catalog = await get_stock_catalog()
-        
+
         # Find the specific symbol
         symbol_upper = symbol.upper()
         for symbol_info in catalog.get("symbols", []):
             if symbol_info["symbol"] == symbol_upper:
                 return symbol_info
-                
+
         raise HTTPException(
-            status_code=404, 
-            detail=f"Symbol {symbol_upper} not found in catalog"
+            status_code=404, detail=f"Symbol {symbol_upper} not found in catalog"
         )
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to fetch symbol info for {symbol}: {e}")
         raise HTTPException(
-            status_code=500, 
-            detail="Failed to fetch symbol information"
+            status_code=500, detail="Failed to fetch symbol information"
         )
 
 
@@ -295,19 +293,21 @@ async def get_symbol_info(symbol: str) -> Dict[str, Any]:
 async def rebuild_catalog() -> Dict[str, Any]:
     """
     Rebuild the stock data catalog by scanning all stored data.
-    
+
     This is useful for:
     - Fixing inconsistencies after manual data operations
     - Initial setup after bulk data import
     - Recovering from catalog corruption
-    
+
     Note: This operation may take some time for large datasets.
-    
+
     Returns:
         Status and summary of the rebuild operation
     """
     try:
-        async with httpx.AsyncClient(timeout=300.0) as client:  # 5 minute timeout for rebuild
+        async with httpx.AsyncClient(
+            timeout=300.0
+        ) as client:  # 5 minute timeout for rebuild
             response = await client.get(
                 f"{settings.stock_data_service_url}/api/v1/catalog/rebuild"
             )
@@ -315,45 +315,39 @@ async def rebuild_catalog() -> Dict[str, Any]:
             return response.json()
     except httpx.TimeoutError:
         raise HTTPException(
-            status_code=504, 
-            detail="Catalog rebuild timed out. The operation may still be running in the background."
+            status_code=504,
+            detail="Catalog rebuild timed out. The operation may still be running in the background.",
         )
     except httpx.HTTPStatusError as e:
         raise HTTPException(
-            status_code=e.response.status_code, 
-            detail=f"Stock data service error: {e.response.text}"
+            status_code=e.response.status_code,
+            detail=f"Stock data service error: {e.response.text}",
         )
     except Exception as e:
         logger.error(f"Failed to rebuild catalog: {e}")
-        raise HTTPException(
-            status_code=500, 
-            detail="Failed to rebuild catalog"
-        )
+        raise HTTPException(status_code=500, detail="Failed to rebuild catalog")
 
 
 @router.get("/available-symbols")
 async def get_available_symbols() -> Dict[str, Any]:
     """
     Get a simple list of available symbols.
-    
+
     This is a convenience endpoint that returns just the symbol names
     from the catalog for use in dropdowns, autocomplete, etc.
-    
+
     Returns:
         List of available symbols and total count
     """
     try:
         catalog = await get_stock_catalog()
         symbols = [s["symbol"] for s in catalog.get("symbols", [])]
-        
+
         return {
             "symbols": sorted(symbols),
             "count": len(symbols),
-            "last_updated": catalog.get("last_updated")
+            "last_updated": catalog.get("last_updated"),
         }
     except Exception as e:
         logger.error(f"Failed to fetch available symbols: {e}")
-        raise HTTPException(
-            status_code=500, 
-            detail="Failed to fetch available symbols"
-        )
+        raise HTTPException(status_code=500, detail="Failed to fetch available symbols")

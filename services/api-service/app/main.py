@@ -61,40 +61,37 @@ async def health() -> Dict[str, str]:
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
-    
+
     openapi_schema = get_openapi(
         title=app.title,
         version=app.version,
         description=app.description,
         routes=app.routes,
     )
-    
+
     # Add security schemes
     openapi_schema["components"]["securitySchemes"] = {
         "apiKeyQuery": {
             "type": "apiKey",
             "in": "query",
             "name": "api_key",
-            "description": "API key passed as a query parameter"
+            "description": "API key passed as a query parameter",
         },
         "apiKeyHeader": {
             "type": "apiKey",
             "in": "header",
             "name": "X-API-Key",
-            "description": "API key passed as a header"
-        }
+            "description": "API key passed as a header",
+        },
     }
-    
+
     # Apply security to all endpoints except docs and health
     for path, methods in openapi_schema.get("paths", {}).items():
         if path not in ["/", "/health", "/docs", "/redoc", "/openapi.json"]:
             for method in methods.values():
                 if isinstance(method, dict):
-                    method["security"] = [
-                        {"apiKeyQuery": []},
-                        {"apiKeyHeader": []}
-                    ]
-    
+                    method["security"] = [{"apiKeyQuery": []}, {"apiKeyHeader": []}]
+
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 

@@ -5,6 +5,7 @@ import os
 from unittest.mock import patch, MagicMock, AsyncMock
 from fastapi.testclient import TestClient
 
+
 # Mock GCS before importing the app
 @pytest.fixture(scope="session", autouse=True)
 def mock_gcs_for_tests():
@@ -23,7 +24,7 @@ def mock_gcs_for_tests():
         mock_bucket = MagicMock()
         mock_storage_client.bucket.return_value = mock_bucket
         mock_bucket.reload.return_value = None
-        
+
         with patch("google.cloud.storage.Client", return_value=mock_storage_client):
             yield
 
@@ -31,6 +32,7 @@ def mock_gcs_for_tests():
 @pytest.fixture
 def client():
     from app.main import app
+
     return TestClient(app)
 
 
@@ -38,6 +40,7 @@ def client():
 def temp_data_dir():
     """Create a temporary data directory for testing"""
     from app.config import settings
+
     temp_dir = tempfile.mkdtemp()
     original_dir = settings.data_directory
     settings.data_directory = temp_dir
