@@ -140,7 +140,7 @@ class CacheKeys:
             Pattern string for cache clearing
         """
         return f"*:{symbol.upper()}*"
-    
+
     @staticmethod
     def catalog() -> str:
         """

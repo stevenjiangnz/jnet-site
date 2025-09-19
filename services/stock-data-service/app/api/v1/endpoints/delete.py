@@ -68,7 +68,9 @@ class StockDataDeleter:
             results["cache_cleared"] = True
 
             # Update catalog to remove this symbol
-            catalog_updated = await self.catalog_manager.update_catalog_for_symbol(symbol)
+            catalog_updated = await self.catalog_manager.update_catalog_for_symbol(
+                symbol
+            )
             results["catalog_updated"] = catalog_updated
             if not catalog_updated:
                 results["errors"].append("Failed to update catalog")

@@ -248,23 +248,25 @@ async def get_data_catalog():
     This provides a quick overview of all available data.
     """
     cache = get_cache()
-    
+
     # Check cache first
     cache_key = CacheKeys.catalog()
     cached_catalog = await cache.get_json(cache_key)
-    
+
     if cached_catalog:
         logger.info("Cache hit for data catalog")
         return JSONResponse(content=cached_catalog)
-    
+
     # Get from catalog manager
     catalog_manager = CatalogManager()
     catalog = await catalog_manager.get_catalog()
-    
+
     if catalog:
         catalog_dict = catalog.to_dict()
         # Cache the catalog
-        await cache.set_json(cache_key, catalog_dict, redis_config.cache_ttl_symbol_list)
+        await cache.set_json(
+            cache_key, catalog_dict, redis_config.cache_ttl_symbol_list
+        )
         return JSONResponse(content=catalog_dict)
     else:
         raise HTTPException(status_code=404, detail="Catalog not found")
@@ -278,17 +280,17 @@ async def rebuild_catalog():
     """
     catalog_manager = CatalogManager()
     catalog = await catalog_manager.rebuild_catalog()
-    
+
     if catalog:
         # Invalidate cache
         cache = get_cache()
         await cache.delete(CacheKeys.catalog())
         await cache.delete(CacheKeys.symbol_list())
-        
+
         return {
             "status": "success",
             "message": f"Catalog rebuilt with {catalog.symbol_count} symbols",
-            "catalog": catalog.to_dict()
+            "catalog": catalog.to_dict(),
         }
     else:
         raise HTTPException(status_code=500, detail="Failed to rebuild catalog")
