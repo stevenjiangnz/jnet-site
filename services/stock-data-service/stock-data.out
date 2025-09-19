@@ -1,0 +1,354 @@
+INFO:     Will watch for changes in these directories: ['/home/sjiang/devlocal/jnet-site/services/stock-data-service']
+INFO:     Uvicorn running on http://127.0.0.1:9000 (Press CTRL+C to quit)
+INFO:     Started reloader process [167713] using WatchFiles
+INFO:     Started server process [167715]
+INFO:     Waiting for application startup.
+WARNING:app.middleware.auth:API Key authentication disabled - no API_KEY environment variable set
+INFO:app.main:Starting Stock Data Service...
+INFO:app.main:GCS Bucket: jnet-site-stock-data
+INFO:app.main:Cache Enabled: True
+DEBUG:urllib3.util.retry:Converted retries value: 3 -> Retry(total=3, connect=None, read=None, redirect=None, status=None)
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): oauth2.googleapis.com:443
+DEBUG:urllib3.connectionpool:https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): storage.googleapis.com:443
+DEBUG:urllib3.connectionpool:https://storage.googleapis.com:443 "GET /storage/v1/b/jnet-site-stock-data?projection=noAcl&prettyPrint=false HTTP/1.1" 200 664
+INFO:app.services.gcs_storage:Successfully connected to GCS bucket: jnet-site-stock-data
+INFO:app.main:GCS Storage initialized
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b5717dbfd0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a180> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b5717dbf50>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'21'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:07:44 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.simple_cache:Successfully connected to Upstash Redis cache
+INFO:app.main:Redis cache initialized
+INFO:     Application startup complete.
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b5717fe510>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57164fbd0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'21'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:11:47 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.simple_cache:Successfully connected to Upstash Redis cache
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:11:47 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:38484 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57165ed90>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57165ee50>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:14:11 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:34330 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57166d290>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57166d190>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:19:20 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:43820 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57166f690>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57166f590>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:27:02 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:49594 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57164f510>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57164f590>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:31:09 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:47664 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:31:09 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:47672 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:31:09 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:47688 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57165f910>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57165da10>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:43:06 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:43776 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b571675310>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b571675210>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:43:30 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:43544 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b571677250>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b571677150>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:43:46 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:33260 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:43:46 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:33262 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:43:47 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:33266 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57164f350>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57164f2d0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 11:47:44 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:33600 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b571674710>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b571674110>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 12:15:53 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:43928 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpcore.connection:connect_tcp.started host='sensible-fox-15727.upstash.io' port=443 local_address=None timeout=None socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57165d1d0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x79b57176a840> server_hostname='sensible-fox-15727.upstash.io' timeout=None
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79b57165fc10>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 12:17:01 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:37446 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 12:17:02 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:42484 - "GET /api/v1/list HTTP/1.1" 200 OK
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Access-Control-Allow-Credentials', b'true'), (b'Content-Length', b'73'), (b'Content-Type', b'application/json; charset=utf-8'), (b'Date', b'Fri, 19 Sep 2025 12:17:03 GMT'), (b'Server', b'Upstash Redis Database (1.14.4)'), (b'Upstash-Sync-Token', b'0')])
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'POST']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:app.services.simple_cache:Cache hit for key: symbols:list
+INFO:app.api.v1.endpoints.data:Cache hit for symbol list
+INFO:     127.0.0.1:42492 - "GET /api/v1/list HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:Shutting down Stock Data Service...
+INFO:     Application shutdown complete.
+INFO:     Finished server process [167715]
+INFO:     Stopping reloader process [167713]
