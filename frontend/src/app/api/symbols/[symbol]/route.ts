@@ -6,7 +6,7 @@ const API_KEY = process.env.API_KEY || 'dev-api-key';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { symbol: string } }
+  { params }: { params: Promise<{ symbol: string }> }
 ) {
   try {
     // Verify user is authenticated
@@ -17,7 +17,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const symbol = params.symbol;
+    const { symbol } = await params;
 
     // Call the API service with server-side API key
     const response = await fetch(`${API_BASE_URL}/api/v1/symbols/${symbol}`, {

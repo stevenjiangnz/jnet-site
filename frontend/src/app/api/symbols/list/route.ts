@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8002';
 const API_KEY = process.env.API_KEY || 'dev-api-key';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Verify user is authenticated
     const supabase = await createClient();
