@@ -10,6 +10,7 @@ The frontend uses a secure proxy architecture where all API calls go through Nex
 - API keys are NEVER exposed to the browser
 - All API routes require Supabase authentication
 - See [Frontend API Architecture](frontend/API_ARCHITECTURE.md) for details
+- The architecture always goes from: client browser frontend client → nextjs api frontend server side → api-service → other services e.g. stock-data-service
 
 ### Environment Variables
 - Server-side: `API_BASE_URL`, `API_KEY` (never use NEXT_PUBLIC_ prefix)

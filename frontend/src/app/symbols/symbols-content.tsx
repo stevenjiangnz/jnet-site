@@ -2,6 +2,15 @@
 
 import { useState, useEffect } from 'react';
 
+interface SymbolCatalogInfo {
+  symbol: string;
+  start_date: string;
+  end_date: string;
+  total_days: number;
+  has_weekly: boolean;
+  last_updated: string;
+}
+
 // API client that uses Next.js API routes (server-side proxy)
 const fetchSymbols = async () => {
   const response = await fetch('/api/symbols/list');
@@ -24,12 +33,20 @@ const deleteSymbol = async (symbol: string) => {
   if (!response.ok) throw new Error('Failed to delete symbol');
 };
 
+const fetchSymbolCatalogInfo = async (symbol: string): Promise<SymbolCatalogInfo> => {
+  const response = await fetch(`/api/symbols/${symbol}/catalog`);
+  if (!response.ok) throw new Error('Failed to fetch symbol catalog info');
+  return response.json();
+};
+
 export default function SymbolsPageContent() {
   const [activeView, setActiveView] = useState('list');
   const [symbols, setSymbols] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [newSymbol, setNewSymbol] = useState('');
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+  const [selectedSymbolInfo, setSelectedSymbolInfo] = useState<SymbolCatalogInfo | null>(null);
+  const [loadingSymbolInfo, setLoadingSymbolInfo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const menuItems = [
@@ -43,6 +60,14 @@ export default function SymbolsPageContent() {
     loadSymbols();
   }, []);
 
+  useEffect(() => {
+    if (selectedSymbol) {
+      loadSymbolInfo(selectedSymbol);
+    } else {
+      setSelectedSymbolInfo(null);
+    }
+  }, [selectedSymbol]);
+
   const loadSymbols = async () => {
     try {
       setLoading(true);
@@ -54,6 +79,19 @@ export default function SymbolsPageContent() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadSymbolInfo = async (symbol: string) => {
+    try {
+      setLoadingSymbolInfo(true);
+      const info = await fetchSymbolCatalogInfo(symbol);
+      setSelectedSymbolInfo(info);
+    } catch (err) {
+      console.error('Failed to load symbol info:', err);
+      setSelectedSymbolInfo(null);
+    } finally {
+      setLoadingSymbolInfo(false);
     }
   };
 
@@ -186,18 +224,65 @@ export default function SymbolsPageContent() {
                             </div>
                             
                             <div className="space-y-2 text-sm">
-                              <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                                <span className="main-subtitle">Status</span>
-                                <span className="font-medium main-title">Active</span>
-                              </div>
-                              <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                                <span className="main-subtitle">Data Points</span>
-                                <span className="font-medium main-title">~252/year</span>
-                              </div>
-                              <div className="flex justify-between py-3">
-                                <span className="main-subtitle">Storage</span>
-                                <span className="font-medium main-title">~0.5 MB</span>
-                              </div>
+                              {loadingSymbolInfo ? (
+                                <div className="text-center py-4">
+                                  <span className="text-gray-500">Loading symbol information...</span>
+                                </div>
+                              ) : selectedSymbolInfo ? (
+                                <>
+                                  <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                                    <span className="main-subtitle">Total Days of Data</span>
+                                    <span className="font-medium main-title">{selectedSymbolInfo.total_days}</span>
+                                  </div>
+                                  <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                                    <span className="main-subtitle">Date Range</span>
+                                    <span className="font-medium main-title text-sm">
+                                      {new Date(selectedSymbolInfo.start_date).toLocaleDateString()} - {new Date(selectedSymbolInfo.end_date).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                                    <span className="main-subtitle">Last Updated</span>
+                                    <span className="font-medium main-title">
+                                      {new Date(selectedSymbolInfo.last_updated).toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                                    <span className="main-subtitle">Weekly Data</span>
+                                    <span className="font-medium main-title">
+                                      {selectedSymbolInfo.has_weekly ? 'Available' : 'Not Available'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between py-3">
+                                    <span className="main-subtitle">Data Completeness</span>
+                                    <span className="font-medium main-title">
+                                      {(() => {
+                                        const start = new Date(selectedSymbolInfo.start_date);
+                                        const end = new Date(selectedSymbolInfo.end_date);
+                                        const diffTime = Math.abs(end.getTime() - start.getTime());
+                                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                        const tradingDays = Math.floor(diffDays * 5 / 7); // Rough estimate
+                                        const completeness = Math.round((selectedSymbolInfo.total_days / tradingDays) * 100);
+                                        return `~${completeness}%`;
+                                      })()}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                                    <span className="main-subtitle">Status</span>
+                                    <span className="font-medium main-title">Active</span>
+                                  </div>
+                                  <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                                    <span className="main-subtitle">Data Points</span>
+                                    <span className="font-medium main-title">~252/year</span>
+                                  </div>
+                                  <div className="flex justify-between py-3">
+                                    <span className="main-subtitle">Storage</span>
+                                    <span className="font-medium main-title">~0.5 MB</span>
+                                  </div>
+                                </>
+                              )}
                             </div>
 
                             <div className="pt-4 space-y-2">

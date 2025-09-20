@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Authentication import error in symbol page (changed from `@/contexts/auth-context` to `@/providers/auth-provider`)
 - Port configuration for stock-data-service (correct Docker port mapping 9001:9000)
+- Brisbane timezone display issue - UTC timestamps from backend now correctly converted to Brisbane time (UTC+10)
+  - Updated `toBrisbaneTime()` and `toBrisbaneDateOnly()` functions to properly detect timezone indicators
+  - Timestamps without timezone info (e.g., `2025-09-20T02:54:19.188223`) are now correctly interpreted as UTC
 
 ## [1.1.0] - 2025-09-15
 
