@@ -118,3 +118,23 @@ The CI/CD pipeline sets these environment variables in Cloud Run:
 - `API_KEY`: Stored as a GitHub secret
 
 **Important**: Never commit API keys to the repository!
+
+## Timezone Handling
+
+### Brisbane Time Display (Updated September 2025)
+
+All timestamps from the backend are in UTC format. The frontend converts these to Brisbane time (UTC+10) for display.
+
+#### Implementation
+- Timezone conversion functions are in `src/utils/dateUtils.ts`
+- Functions: `toBrisbaneTime()`, `toBrisbaneDateOnly()`, `getCurrentBrisbaneTime()`
+- Backend timestamps without timezone indicators (e.g., `2025-09-20T02:54:19.188223`) are treated as UTC
+
+#### Example Usage
+```typescript
+import { toBrisbaneTime } from '@/utils/dateUtils';
+
+// Backend returns: "2025-09-20T02:54:19.188223"
+// Display shows: "20/09/2025, 12:54:19 pm" (Brisbane time)
+const brisbaneTime = toBrisbaneTime(data.last_updated);
+```

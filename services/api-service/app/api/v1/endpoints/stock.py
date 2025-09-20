@@ -348,3 +348,48 @@ async def get_available_symbols() -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Failed to fetch available symbols: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch available symbols")
+
+
+@router.get("/download/{symbol}")
+async def download_symbol_data(
+    symbol: str,
+    period: str = QueryParam(
+        "1y",
+        description="Download period (1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max)",
+    ),
+    start_date: Optional[str] = QueryParam(None, description="Start date (YYYY-MM-DD)"),
+    end_date: Optional[str] = QueryParam(None, description="End date (YYYY-MM-DD)"),
+) -> Dict[str, Any]:
+    """
+    Download historical data for a stock symbol.
+
+    This proxies the request to the stock-data-service download endpoint.
+    """
+    try:
+        # Build query parameters
+        params = {"period": period}
+        if start_date:
+            params["start_date"] = start_date
+        if end_date:
+            params["end_date"] = end_date
+
+        response = await stock_data_client.get(
+            f"/api/v1/download/{symbol.upper()}",
+            params=params,
+            timeout=60.0,  # Longer timeout for downloads
+        )
+        result: Dict[str, Any] = response.json()
+        return result
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error downloading {symbol}: {e}")
+        if e.response.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=f"Failed to download symbol: {e.response.text}",
+        )
+    except Exception as e:
+        logger.error(f"Failed to download symbol {symbol}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to download symbol {symbol}"
+        )
