@@ -3,6 +3,20 @@
 import { useState, useEffect } from 'react';
 import { toBrisbaneTime, toBrisbaneDateOnly } from '@/utils/dateUtils';
 import toast from 'react-hot-toast';
+import dynamic from 'next/dynamic';
+
+// Dynamically import PriceChart to avoid SSR issues with Highcharts
+const PriceChart = dynamic(() => import('@/components/charts/PriceChart'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex justify-center items-center h-96">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading chart component...</p>
+      </div>
+    </div>
+  )
+});
 
 interface SymbolCatalogInfo {
   symbol: string;
@@ -20,16 +34,6 @@ const fetchSymbols = async () => {
   return response.json();
 };
 
-const addSymbol = async (symbol: string) => {
-  const response = await fetch(`/api/symbols/add?symbol=${symbol}`, {
-    method: 'POST',
-  });
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || 'Failed to add symbol');
-  }
-  return response.json();
-};
 
 const deleteSymbol = async (symbol: string) => {
   const response = await fetch(`/api/symbols/${symbol}`, {
@@ -61,6 +65,7 @@ export default function SymbolsPageContent() {
   } | null>(null);
   const [deletingSymbol, setDeletingSymbol] = useState<string | null>(null);
   const [downloadingSymbol, setDownloadingSymbol] = useState<string | null>(null);
+  const [showPriceChart, setShowPriceChart] = useState(false);
 
   const menuItems = [
     { id: 'list', label: 'Symbol List', icon: '📋' },
@@ -74,8 +79,10 @@ export default function SymbolsPageContent() {
   useEffect(() => {
     if (selectedSymbol) {
       loadSymbolInfo(selectedSymbol);
+      setShowPriceChart(false); // Reset chart visibility when switching symbols
     } else {
       setSelectedSymbolInfo(null);
+      setShowPriceChart(false);
     }
   }, [selectedSymbol]);
 
@@ -514,11 +521,11 @@ export default function SymbolsPageContent() {
                                 )}
                               </button>
                               <button
-                                className="col-span-2 px-3 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-gray-700 flex items-center justify-center"
-                                disabled
+                                onClick={() => setShowPriceChart(!showPriceChart)}
+                                className="col-span-2 px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 flex items-center justify-center transition-colors duration-200"
                               >
                                 <span className="mr-1.5 text-sm">📊</span>
-                                <span className="text-xs">View Price Chart (Coming Soon)</span>
+                                <span className="text-xs">{showPriceChart ? 'Hide' : 'View'} Price Chart</span>
                               </button>
                             </div>
                           </div>
@@ -535,6 +542,16 @@ export default function SymbolsPageContent() {
                 )}
               </div>
             </div>
+
+            {/* Price Chart */}
+            {selectedSymbol && (
+              <div className="mt-6">
+                <PriceChart 
+                  symbol={selectedSymbol} 
+                  isVisible={showPriceChart} 
+                />
+              </div>
+            )}
           </div>
         )}
 

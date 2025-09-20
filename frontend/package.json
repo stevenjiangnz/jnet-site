@@ -13,6 +13,7 @@
     "@supabase/supabase-js": "^2.57.4",
     "@tanstack/react-query": "^5.89.0",
     "clsx": "^2.1.1",
+    "highcharts": "^12.4.0",
     "lightningcss": "^1.30.1",
     "lucide-react": "^0.544.0",
     "next": "15.4.4",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/highcharts": "^5.0.44",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
