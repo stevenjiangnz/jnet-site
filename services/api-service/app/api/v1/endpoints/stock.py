@@ -8,6 +8,7 @@ from fastapi import Query as QueryParam
 
 from app.config import settings
 from app.core.analysis.indicators import IndicatorCalculator
+from app.core.http_client import stock_data_client
 from app.models.stock import (
     OHLCV,
     ChartDataRequest,
@@ -227,14 +228,10 @@ async def get_stock_catalog() -> Dict[str, Any]:
         Catalog with all symbols, their date ranges, and availability information.
     """
     try:
-        url = f"{settings.stock_data_service_url}/api/v1/catalog"
-        logger.info(f"Fetching catalog from: {url}")
-
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-            result: Dict[str, Any] = response.json()
-            return result
+        logger.info("Fetching stock catalog")
+        response = await stock_data_client.get("/api/v1/catalog")
+        result: Dict[str, Any] = response.json()
+        return result
     except httpx.HTTPStatusError as e:
         logger.error(f"HTTP error from stock data service: {e}")
         if e.response.status_code == 404:
@@ -307,15 +304,12 @@ async def rebuild_catalog() -> Dict[str, Any]:
         Status and summary of the rebuild operation
     """
     try:
-        async with httpx.AsyncClient(
-            timeout=300.0
-        ) as client:  # 5 minute timeout for rebuild
-            response = await client.get(
-                f"{settings.stock_data_service_url}/api/v1/catalog/rebuild"
-            )
-            response.raise_for_status()
-            result: Dict[str, Any] = response.json()
-            return result
+        # Use POST method since this is a rebuild operation, with longer timeout
+        response = await stock_data_client.post(
+            "/api/v1/catalog/rebuild", timeout=300.0  # 5 minute timeout for rebuild
+        )
+        result: Dict[str, Any] = response.json()
+        return result
     except (httpx.ReadTimeout, httpx.ConnectTimeout):
         raise HTTPException(
             status_code=504,

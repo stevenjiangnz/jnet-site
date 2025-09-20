@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 from fastapi import APIRouter, HTTPException, Query
 
-from app.config import settings
+from app.core.http_client import stock_data_client
 from app.models.symbol import (
     BulkDownloadRequest,
     BulkDownloadResponse,
@@ -21,22 +21,14 @@ from app.models.symbol import (
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Stock data service URL
-STOCK_SERVICE_URL = settings.stock_data_service_url or "http://stock-data-service:9000"
-
 
 @router.get("/list", response_model=SymbolListResponse)
 async def list_symbols() -> SymbolListResponse:
     """List all available symbols."""
     try:
-        headers = {"X-API-Key": settings.stock_data_service_api_key}
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{STOCK_SERVICE_URL}/api/v1/list", headers=headers, timeout=30.0
-            )
-            response.raise_for_status()
-            data = response.json()
-            return SymbolListResponse(**data)
+        response = await stock_data_client.get("/api/v1/list")
+        data = response.json()
+        return SymbolListResponse(**data)
     except httpx.HTTPError as e:
         logger.error(f"Error listing symbols: {e}")
         raise HTTPException(status_code=500, detail="Failed to list symbols")
@@ -48,15 +40,11 @@ async def add_symbol(
 ) -> Dict[str, Any]:
     """Add a new symbol by downloading its data."""
     try:
-        headers = {"X-API-Key": settings.stock_data_service_api_key}
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{STOCK_SERVICE_URL}/api/v1/download/{symbol.upper()}",
-                headers=headers,
-                timeout=60.0,
-            )
-            response.raise_for_status()
-            return response.json()  # type: ignore[no-any-return]
+        response = await stock_data_client.get(
+            f"/api/v1/download/{symbol.upper()}",
+            timeout=60.0,
+        )
+        return response.json()  # type: ignore[no-any-return]
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
@@ -70,17 +58,13 @@ async def add_symbol(
 async def bulk_download(request: BulkDownloadRequest) -> BulkDownloadResponse:
     """Download data for multiple symbols with date range."""
     try:
-        headers = {"X-API-Key": settings.stock_data_service_api_key}
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{STOCK_SERVICE_URL}/api/v1/bulk-download",
-                json=request.dict(),
-                headers=headers,
-                timeout=300.0,  # 5 minutes for bulk operations
-            )
-            response.raise_for_status()
-            data = response.json()
-            return BulkDownloadResponse(**data)
+        response = await stock_data_client.post(
+            "/api/v1/bulk-download",
+            json=request.dict(),
+            timeout=300.0,  # 5 minutes for bulk operations
+        )
+        data = response.json()
+        return BulkDownloadResponse(**data)
     except httpx.HTTPError as e:
         logger.error(f"Error in bulk download: {e}")
         raise HTTPException(status_code=500, detail="Failed to perform bulk download")
@@ -90,15 +74,8 @@ async def bulk_download(request: BulkDownloadRequest) -> BulkDownloadResponse:
 async def delete_symbol(symbol: str) -> Dict[str, str]:
     """Delete a single symbol's data."""
     try:
-        headers = {"X-API-Key": settings.stock_data_service_api_key}
-        async with httpx.AsyncClient() as client:
-            response = await client.delete(
-                f"{STOCK_SERVICE_URL}/api/v1/symbol/{symbol.upper()}",
-                headers=headers,
-                timeout=30.0,
-            )
-            response.raise_for_status()
-            return {"message": f"Symbol {symbol} deleted successfully"}
+        await stock_data_client.delete(f"/api/v1/symbol/{symbol.upper()}")
+        return {"message": f"Symbol {symbol} deleted successfully"}
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
@@ -112,18 +89,14 @@ async def delete_symbol(symbol: str) -> Dict[str, str]:
 async def delete_symbols(request: DeleteSymbolsRequest) -> Dict[str, str]:
     """Delete multiple symbols' data."""
     try:
-        headers = {"X-API-Key": settings.stock_data_service_api_key}
-        async with httpx.AsyncClient() as client:
-            # The stock-data-service expects a list in the body
-            response = await client.request(
-                "DELETE",
-                f"{STOCK_SERVICE_URL}/api/v1/symbols",
-                json=request.symbols,
-                headers=headers,
-                timeout=60.0,
-            )
-            response.raise_for_status()
-            return {"message": f"Deleted {len(request.symbols)} symbols successfully"}
+        # The stock-data-service expects a list in the body
+        await stock_data_client.request(
+            "DELETE",
+            "/api/v1/symbols",
+            json=request.symbols,
+            timeout=60.0,
+        )
+        return {"message": f"Deleted {len(request.symbols)} symbols successfully"}
     except httpx.HTTPError as e:
         logger.error(f"Error deleting symbols: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete symbols")
@@ -133,31 +106,24 @@ async def delete_symbols(request: DeleteSymbolsRequest) -> Dict[str, str]:
 async def get_symbol_price(symbol: str) -> SymbolPriceResponse:
     """Get latest price for a symbol."""
     try:
-        headers = {"X-API-Key": settings.stock_data_service_api_key}
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{STOCK_SERVICE_URL}/api/v1/data/{symbol.upper()}/latest",
-                headers=headers,
-                timeout=30.0,
-            )
-            response.raise_for_status()
-            data = response.json()
+        response = await stock_data_client.get(f"/api/v1/data/{symbol.upper()}/latest")
+        data = response.json()
 
-            # Transform the response to our model
-            if isinstance(data, list) and len(data) > 0:
-                latest = data[0]
-                return SymbolPriceResponse(
-                    symbol=symbol.upper(),
-                    price=latest.get("close"),
-                    change=latest.get("change"),
-                    changePercent=latest.get("change_percent"),
-                    volume=latest.get("volume"),
-                    timestamp=latest.get("date"),
-                )
-            else:
-                raise HTTPException(
-                    status_code=404, detail=f"No price data for symbol {symbol}"
-                )
+        # Transform the response to our model
+        if isinstance(data, list) and len(data) > 0:
+            latest = data[0]
+            return SymbolPriceResponse(
+                symbol=symbol.upper(),
+                price=latest.get("close"),
+                change=latest.get("change"),
+                changePercent=latest.get("change_percent"),
+                volume=latest.get("volume"),
+                timestamp=latest.get("date"),
+            )
+        else:
+            raise HTTPException(
+                status_code=404, detail=f"No price data for symbol {symbol}"
+            )
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
@@ -179,21 +145,16 @@ async def get_symbol_chart(
 ) -> SymbolChartResponse:
     """Get chart data for a symbol."""
     try:
-        headers = {"X-API-Key": settings.stock_data_service_api_key}
-        async with httpx.AsyncClient() as client:
-            params: Dict[str, Any] = {"period": period}
-            if indicators:
-                params["indicators"] = ",".join(indicators)
+        params: Dict[str, Any] = {"period": period}
+        if indicators:
+            params["indicators"] = ",".join(indicators)
 
-            response = await client.get(
-                f"{STOCK_SERVICE_URL}/api/v1/chart/{symbol.upper()}",
-                params=params,
-                headers=headers,
-                timeout=30.0,
-            )
-            response.raise_for_status()
-            data = response.json()
-            return SymbolChartResponse(**data)
+        response = await stock_data_client.get(
+            f"/api/v1/chart/{symbol.upper()}",
+            params=params,
+        )
+        data = response.json()
+        return SymbolChartResponse(**data)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
