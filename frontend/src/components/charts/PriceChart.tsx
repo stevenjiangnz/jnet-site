@@ -92,7 +92,30 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
         },
 
         rangeSelector: {
-          selected: 1
+          buttons: [{
+            type: 'month',
+            count: 1,
+            text: '1m'
+          }, {
+            type: 'month',
+            count: 3,
+            text: '3m'
+          }, {
+            type: 'month',
+            count: 6,
+            text: '6m'
+          }, {
+            type: 'ytd',
+            text: 'YTD'
+          }, {
+            type: 'year',
+            count: 1,
+            text: '1y'
+          }, {
+            type: 'all',
+            text: 'All'
+          }],
+          selected: 2  // Default to 6 months (index 2)
         },
 
         title: {
@@ -217,16 +240,16 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     setError(null);
 
     try {
-      // Calculate date range (1 year of data by default)
+      // Calculate date range (2 years of data)
       const endDate = new Date();
       const startDate = new Date();
-      startDate.setFullYear(startDate.getFullYear() - 1);
+      startDate.setFullYear(startDate.getFullYear() - 2);
 
       const params = new URLSearchParams({
         interval: '1d',
         start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],
-        limit: '365'
+        limit: '730'  // 2 years worth of trading days
       });
 
       // Only log in development
