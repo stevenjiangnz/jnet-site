@@ -66,11 +66,28 @@ export default function SymbolsPageContent() {
   const [deletingSymbol, setDeletingSymbol] = useState<string | null>(null);
   const [downloadingSymbol, setDownloadingSymbol] = useState<string | null>(null);
   const [showPriceChart, setShowPriceChart] = useState(false);
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(() => {
+    // Load collapsed state from localStorage
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('symbolsPanelCollapsed');
+      return saved === 'true';
+    }
+    return false;
+  });
 
   const menuItems = [
     { id: 'list', label: 'Symbol List', icon: '📋' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
   ];
+
+  const togglePanelCollapse = () => {
+    const newState = !isPanelCollapsed;
+    setIsPanelCollapsed(newState);
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('symbolsPanelCollapsed', newState.toString());
+    }
+  };
 
   useEffect(() => {
     loadSymbols();
@@ -293,20 +310,37 @@ export default function SymbolsPageContent() {
                   Manage your tracked stock symbols
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setShowAddForm(true);
-                  setSelectedSymbol(null);
-                }}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
-              >
-                <span className="text-lg">➕</span>
-                <span>Add New Symbol</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setShowAddForm(true);
+                    setSelectedSymbol(null);
+                  }}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                >
+                  <span className="text-lg">➕</span>
+                  <span>Add New Symbol</span>
+                </button>
+                <button
+                  onClick={togglePanelCollapse}
+                  className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  title={isPanelCollapsed ? "Expand panels" : "Collapse panels"}
+                >
+                  {isPanelCollapsed ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
-            <div className="symbol-list-card rounded-lg shadow-sm">
-              <div className="p-6">
+            <div className={`symbol-list-card rounded-lg shadow-sm transition-all duration-300 ${isPanelCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`}>
+              <div className={`${isPanelCollapsed ? 'hidden' : 'p-6'}`}>
                 {loading ? (
                   <div className="text-center py-8">Loading symbols...</div>
                 ) : symbols.length === 0 ? (
@@ -545,10 +579,10 @@ export default function SymbolsPageContent() {
 
             {/* Price Chart */}
             {selectedSymbol && (
-              <div className="mt-6">
+              <div className={`mt-6 transition-all duration-300 ${isPanelCollapsed ? 'mt-0' : ''}`}>
                 <PriceChart 
                   symbol={selectedSymbol} 
-                  isVisible={showPriceChart} 
+                  isVisible={showPriceChart || isPanelCollapsed} 
                 />
               </div>
             )}
