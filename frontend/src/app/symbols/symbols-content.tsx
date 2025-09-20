@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { toBrisbaneTime, toBrisbaneDateOnly } from '@/utils/dateUtils';
+import toast from 'react-hot-toast';
 
 interface SymbolCatalogInfo {
   symbol: string;
@@ -22,7 +24,10 @@ const addSymbol = async (symbol: string) => {
   const response = await fetch(`/api/symbols/add?symbol=${symbol}`, {
     method: 'POST',
   });
-  if (!response.ok) throw new Error('Failed to add symbol');
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to add symbol');
+  }
   return response.json();
 };
 
@@ -48,10 +53,16 @@ export default function SymbolsPageContent() {
   const [selectedSymbolInfo, setSelectedSymbolInfo] = useState<SymbolCatalogInfo | null>(null);
   const [loadingSymbolInfo, setLoadingSymbolInfo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [isAddingSymbol, setIsAddingSymbol] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState<{
+    percentage: number;
+    message: string;
+  } | null>(null);
+  const [deletingSymbol, setDeletingSymbol] = useState<string | null>(null);
 
   const menuItems = [
     { id: 'list', label: 'Symbol List', icon: '📋' },
-    { id: 'add', label: 'Add Symbol', icon: '➕' },
     { id: 'download', label: 'Download Data', icon: '📥' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
   ];
@@ -99,15 +110,64 @@ export default function SymbolsPageContent() {
     e.preventDefault();
     if (!newSymbol.trim()) return;
 
+    const symbolUpper = newSymbol.toUpperCase();
+    setIsAddingSymbol(true);
+
     try {
-      await addSymbol(newSymbol.toUpperCase());
-      setNewSymbol('');
+      // Check if symbol already exists
+      if (symbols.includes(symbolUpper)) {
+        toast.error(`Symbol ${symbolUpper} already exists in your list`);
+        return;
+      }
+
+      // Add symbol and download historical data
+      toast.loading(`Adding symbol ${symbolUpper}...`, { id: 'add-symbol' });
+      setDownloadProgress({ percentage: 0, message: 'Adding symbol...' });
+      
+      const response = await fetch(`/api/symbols/add?symbol=${symbolUpper}`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to add symbol');
+      }
+
+      const result = await response.json();
+
+      // Update progress to show downloading
+      if (result.download?.success) {
+        setDownloadProgress({ percentage: 100, message: 'Download complete!' });
+      }
+
+      // Success message based on whether download succeeded
+      if (result.download?.success) {
+        toast.success(
+          `Successfully added ${symbolUpper} with ${result.download.records_downloaded || 0} trading days of data`,
+          { id: 'add-symbol' }
+        );
+      } else {
+        toast.success(
+          `Added ${symbolUpper} to your list. ${result.download?.message || 'Historical data will be downloaded later.'}`,
+          { id: 'add-symbol' }
+        );
+      }
+      
+      // Refresh the symbols list
       await loadSymbols();
-      setActiveView('list');
+
+      setNewSymbol('');
+      setShowAddForm(false);
+      setSelectedSymbol(symbolUpper);
+      await loadSymbols();
       setError(null);
     } catch (err) {
-      setError('Failed to add symbol');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add symbol';
+      toast.error(errorMessage, { id: 'add-symbol' });
       console.error(err);
+    } finally {
+      setIsAddingSymbol(false);
+      setDownloadProgress(null);
     }
   };
 
@@ -115,13 +175,19 @@ export default function SymbolsPageContent() {
     if (!confirm(`Delete ${symbol}?`)) return;
 
     try {
+      setDeletingSymbol(symbol);
       await deleteSymbol(symbol);
+      toast.success(`Symbol ${symbol} removed from your list`);
       await loadSymbols();
-      setSelectedSymbol(null);
+      if (selectedSymbol === symbol) {
+        setSelectedSymbol(null);
+      }
       setError(null);
     } catch (err) {
-      setError('Failed to delete symbol');
+      toast.error('Failed to delete symbol');
       console.error(err);
+    } finally {
+      setDeletingSymbol(null);
     }
   };
 
@@ -174,11 +240,23 @@ export default function SymbolsPageContent() {
         {/* Symbol List View */}
         {activeView === 'list' && (
           <div>
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold main-title">Symbol List</h1>
-              <p className="main-subtitle mt-1">
-                Manage your tracked stock symbols
-              </p>
+            <div className="mb-6 flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-bold main-title">Symbol List</h1>
+                <p className="main-subtitle mt-1">
+                  Manage your tracked stock symbols
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowAddForm(true);
+                  setSelectedSymbol(null);
+                }}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+              >
+                <span className="text-lg">➕</span>
+                <span>Add New Symbol</span>
+              </button>
             </div>
 
             <div className="symbol-list-card rounded-lg shadow-sm">
@@ -198,7 +276,10 @@ export default function SymbolsPageContent() {
                         {symbols.map((symbol) => (
                           <div
                             key={symbol}
-                            onClick={() => setSelectedSymbol(symbol)}
+                            onClick={() => {
+                              setSelectedSymbol(symbol);
+                              setShowAddForm(false);
+                            }}
                             className={`p-3 rounded-lg cursor-pointer transition-colors symbol-item ${
                               selectedSymbol === symbol ? 'selected' : ''
                             }`}
@@ -212,10 +293,80 @@ export default function SymbolsPageContent() {
                       </div>
                     </div>
 
-                    {/* Symbol Details */}
+                    {/* Symbol Details / Add Form */}
                     <div className="symbol-item-card rounded-lg p-4">
-                      <h3 className="font-semibold mb-3 main-title">Symbol Details</h3>
-                      {selectedSymbol ? (
+                      {showAddForm ? (
+                        <>
+                          <h3 className="font-semibold mb-3 main-title">Add New Symbol</h3>
+                          <form onSubmit={handleAddSymbol}>
+                            <div className="space-y-4">
+                              <div>
+                                <label className="block text-sm font-semibold mb-2 main-subtitle">
+                                  Stock Symbol
+                                </label>
+                                <input
+                                  type="text"
+                                  value={newSymbol}
+                                  onChange={(e) => setNewSymbol(e.target.value.toUpperCase())}
+                                  placeholder="Enter symbol (e.g., AAPL)"
+                                  className="w-full px-4 py-2 rounded-lg form-input"
+                                  required
+                                  disabled={isAddingSymbol}
+                                />
+                                <p className="mt-2 text-sm main-subtitle">
+                                  Enter the ticker symbol of the stock you want to track
+                                </p>
+                              </div>
+
+                              {downloadProgress && (
+                                <div className="space-y-2">
+                                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                                    <div 
+                                      className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
+                                      style={{ width: `${downloadProgress.percentage}%` }}
+                                    ></div>
+                                  </div>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {downloadProgress.message}
+                                  </p>
+                                </div>
+                              )}
+
+                              <div className="flex gap-3">
+                                <button
+                                  type="submit"
+                                  disabled={!newSymbol.trim() || isAddingSymbol}
+                                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-colors flex items-center gap-2"
+                                >
+                                  {isAddingSymbol ? (
+                                    <>
+                                      <span className="animate-spin">⏳</span>
+                                      <span>Adding...</span>
+                                    </>
+                                  ) : (
+                                    'Add Symbol'
+                                  )}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setNewSymbol('');
+                                    setShowAddForm(false);
+                                    setDownloadProgress(null);
+                                  }}
+                                  disabled={isAddingSymbol}
+                                  className="px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          </form>
+                        </>
+                      ) : (
+                        <>
+                          <h3 className="font-semibold mb-3 main-title">Symbol Details</h3>
+                          {selectedSymbol ? (
                         <div>
                           <div className="space-y-4">
                             <div className="symbol-stats-card p-4 rounded-lg">
@@ -237,13 +388,13 @@ export default function SymbolsPageContent() {
                                   <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
                                     <span className="main-subtitle">Date Range</span>
                                     <span className="font-medium main-title text-sm">
-                                      {new Date(selectedSymbolInfo.start_date).toLocaleDateString()} - {new Date(selectedSymbolInfo.end_date).toLocaleDateString()}
+                                      {toBrisbaneDateOnly(selectedSymbolInfo.start_date)} - {toBrisbaneDateOnly(selectedSymbolInfo.end_date)}
                                     </span>
                                   </div>
                                   <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                                    <span className="main-subtitle">Last Updated</span>
+                                    <span className="main-subtitle">Last Updated (Brisbane)</span>
                                     <span className="font-medium main-title">
-                                      {new Date(selectedSymbolInfo.last_updated).toLocaleString()}
+                                      {toBrisbaneTime(selectedSymbolInfo.last_updated)}
                                     </span>
                                   </div>
                                   <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
@@ -288,9 +439,17 @@ export default function SymbolsPageContent() {
                             <div className="pt-4 space-y-2">
                               <button
                                 onClick={() => handleDeleteSymbol(selectedSymbol)}
-                                className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                                disabled={deletingSymbol === selectedSymbol}
+                                className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed flex items-center justify-center"
                               >
-                                Delete Symbol
+                                {deletingSymbol === selectedSymbol ? (
+                                  <>
+                                    <span className="mr-2">🗑️</span>
+                                    Deleting...
+                                  </>
+                                ) : (
+                                  'Delete Symbol'
+                                )}
                               </button>
                               <button
                                 className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700"
@@ -306,6 +465,8 @@ export default function SymbolsPageContent() {
                           Select a symbol to view details
                         </div>
                       )}
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
@@ -314,62 +475,6 @@ export default function SymbolsPageContent() {
           </div>
         )}
 
-        {/* Add Symbol View */}
-        {activeView === 'add' && (
-          <div>
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold main-title">Add New Symbol</h1>
-              <p className="main-subtitle mt-1">
-                Add a new stock symbol to track
-              </p>
-            </div>
-
-            <div className="symbol-list-card rounded-lg shadow-sm max-w-lg">
-              <div className="p-6">
-                <form onSubmit={handleAddSymbol}>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 main-subtitle">
-                        Stock Symbol
-                      </label>
-                      <input
-                        type="text"
-                        value={newSymbol}
-                        onChange={(e) => setNewSymbol(e.target.value.toUpperCase())}
-                        placeholder="Enter symbol (e.g., AAPL)"
-                        className="w-full px-4 py-2 rounded-lg form-input"
-                        required
-                      />
-                      <p className="mt-2 text-sm main-subtitle">
-                        Enter the ticker symbol of the stock you want to track
-                      </p>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <button
-                        type="submit"
-                        disabled={!newSymbol.trim()}
-                        className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-colors"
-                      >
-                        Add Symbol
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setNewSymbol('');
-                          setActiveView('list');
-                        }}
-                        className="px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Download Data View */}
         {activeView === 'download' && (
