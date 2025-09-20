@@ -30,6 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integration between Frontend → API Service → Stock Data Service
 
 ### Changed
+- Extended PriceChart data retrieval from 2 years to 5 years (1825 trading days)
+- Disabled automatic data grouping in Highcharts to always show daily data points
+  - Previously would automatically switch to weekly/monthly grouping for longer time ranges
+  - Now maintains daily granularity for all time ranges
+  - Added configurable options for data grouping behavior
 - Enhanced dark mode colors with deeper blacks and better contrast
   - Main content areas now use `bg-black` in dark mode
   - UI elements use deeper grays (`gray-950`, `gray-900`)
