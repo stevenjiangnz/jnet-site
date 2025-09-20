@@ -365,9 +365,9 @@ export default function SymbolsPageContent() {
                           type="text"
                           value={symbolFilter}
                           onChange={(e) => setSymbolFilter(e.target.value)}
-                          placeholder="Filter..."
-                          className="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                          style={{ width: '120px' }}
+                          placeholder="Filter symbols..."
+                          className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                          style={{ width: '140px' }}
                         />
                       </div>
                       <div className="space-y-2 max-h-96 overflow-y-auto">
