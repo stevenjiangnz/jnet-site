@@ -1,10 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import type * as Highcharts from 'highcharts';
 
 interface PriceChartProps {
   symbol: string;
   isVisible: boolean;
+}
+
+interface PriceData {
+  timestamp: string | Date | number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
 }
 
 export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
@@ -15,7 +25,7 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     setIsClient(true);
   }, []);
   const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<any>(null);
+  const chartRef = useRef<Highcharts.Chart | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [highchartsLoaded, setHighchartsLoaded] = useState(false);
@@ -25,11 +35,11 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     if (!isClient) return;
     
     const loadHighcharts = async () => {
-      if (typeof window !== 'undefined' && !(window as any).Highcharts) {
+      if (typeof window !== 'undefined' && !(window as Window & { Highcharts?: typeof Highcharts }).Highcharts) {
         const Highcharts = (await import('highcharts/highstock')).default;
-        (window as any).Highcharts = Highcharts;
+        (window as Window & { Highcharts: typeof Highcharts }).Highcharts = Highcharts;
         setHighchartsLoaded(true);
-      } else if ((window as any).Highcharts) {
+      } else if ((window as Window & { Highcharts?: typeof Highcharts }).Highcharts) {
         setHighchartsLoaded(true);
       }
     };
@@ -45,151 +55,14 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     };
   }, [isClient]);
 
-  useEffect(() => {
-    if (!isClient) return;
-    
-    if (!isVisible && chartRef.current) {
-      // Destroy chart when hidden
-      chartRef.current.destroy();
-      chartRef.current = null;
-      return;
-    }
-    
-    if (highchartsLoaded && isVisible && symbol && chartContainerRef.current) {
-      loadChartData();
-    }
-  }, [symbol, isVisible, highchartsLoaded, isClient]);
-
-  const loadChartData = async () => {
-    // Don't load if not visible
-    if (!isVisible) return;
-    
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Calculate date range (1 year of data by default)
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setFullYear(startDate.getFullYear() - 1);
-
-      const params = new URLSearchParams({
-        interval: '1d',
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
-        limit: '365'
-      });
-
-      // Only log in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[PriceChart] Fetching data for ${symbol}`);
-      }
-
-      const response = await fetch(`/api/symbols/${symbol}/prices?${params}`);
-      
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('[PriceChart] API Error:', response.status, errorData);
-        throw new Error(`API returned ${response.status}: ${errorData}`);
-      }
-
-      const result = await response.json();
-      
-      // Keep minimal logging in production
-      if (result.data && result.data.length > 0) {
-        console.log(`[PriceChart] Loaded ${result.data.length} data points for ${symbol}`);
-      }
-      
-      if (result.data && result.data.length > 0) {
-        // Use setTimeout to ensure the container is mounted
-        setTimeout(() => {
-          renderChart(result.data);
-        }, 100);
-      } else {
-        setError('No price data available for this symbol');
-      }
-    } catch (err) {
-      console.error('Error loading chart data:', err);
-      setError('Failed to load price data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderChart = (data: any[]) => {
-    if (!chartContainerRef.current || !(window as any).Highcharts) {
-      console.error('[PriceChart] Cannot render - missing requirements:', {
-        hasContainer: !!chartContainerRef.current,
-        hasHighcharts: !!(window as any).Highcharts
-      });
-      return;
-    }
-
-
-    // Prepare data for Highcharts
-    const ohlc: number[][] = [];
-    const volume: number[][] = [];
-
-    data.forEach((item, index) => {
-      // Simple timestamp conversion - let JavaScript Date handle it
-      let timestamp: number;
-      
-      // The API returns ISO strings, potentially with microseconds
-      // JavaScript Date constructor handles ISO 8601 format correctly
-      if (typeof item.timestamp === 'string') {
-        // If the timestamp has microseconds (more than 3 decimal places), truncate them
-        let timestampStr = item.timestamp;
-        const microsecondsMatch = timestampStr.match(/\.\d{6,}/);
-        if (microsecondsMatch) {
-          // Replace microseconds with milliseconds (keep only 3 digits)
-          timestampStr = timestampStr.replace(/(\.\d{3})\d*/, '$1');
-        }
-        
-        // Ensure the timestamp ends with 'Z' for UTC
-        if (!timestampStr.endsWith('Z') && !timestampStr.includes('+') && !timestampStr.includes('-')) {
-          timestampStr += 'Z';
-        }
-        
-        timestamp = new Date(timestampStr).getTime();
-      } else if (item.timestamp instanceof Date) {
-        timestamp = item.timestamp.getTime();
-      } else {
-        // If it's already a number, assume it's milliseconds
-        timestamp = Number(item.timestamp);
-      }
-      
-      
-      if (isNaN(timestamp)) {
-        console.error('[PriceChart] Invalid timestamp at index', index, item);
-        return; // Skip this data point
-      }
-      
-      ohlc.push([
-        timestamp,
-        item.open,
-        item.high,
-        item.low,
-        item.close
-      ]);
-      volume.push([
-        timestamp,
-        item.volume
-      ]);
-    });
-
-
-    createChart(ohlc, volume);
-  };
-
-  const createChart = (ohlc: any[], volume: any[]) => {
-    if (!chartContainerRef.current || !(window as any).Highcharts) {
+  const createChart = useCallback((ohlc: number[][], volume: number[][]) => {
+    if (!chartContainerRef.current || !(window as Window & { Highcharts?: typeof Highcharts }).Highcharts) {
       console.error('[PriceChart] Missing requirements:', {
         hasContainer: !!chartContainerRef.current,
-        hasHighcharts: !!(window as any).Highcharts
+        hasHighcharts: !!(window as Window & { Highcharts?: typeof Highcharts }).Highcharts
       });
       return;
     }
-
 
     // Destroy existing chart if any
     if (chartRef.current) {
@@ -197,11 +70,11 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
       chartRef.current = null;
     }
 
-    const Highcharts = (window as any).Highcharts;
-    const groupingUnits = [
+    const Highcharts = (window as Window & { Highcharts: typeof Highcharts }).Highcharts;
+    const groupingUnits: Highcharts.DataGroupingUnitsOptions = [
       ['week', [1]],
       ['month', [1, 2, 3, 4, 6]]
-    ] as any;
+    ];
 
     // Create the chart
     try {
@@ -262,9 +135,143 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
       });
     } catch (error) {
       console.error('[PriceChart] Error creating chart:', error);
-      setError('Failed to render chart: ' + (error as any).message);
+      setError('Failed to render chart: ' + (error as Error).message);
     }
-  };
+  }, [symbol]);
+
+  const renderChart = useCallback((data: PriceData[]) => {
+    if (!chartContainerRef.current || !(window as Window & { Highcharts?: typeof Highcharts }).Highcharts) {
+      console.error('[PriceChart] Cannot render - missing requirements:', {
+        hasContainer: !!chartContainerRef.current,
+        hasHighcharts: !!(window as Window & { Highcharts?: typeof Highcharts }).Highcharts
+      });
+      return;
+    }
+
+    // Prepare data for Highcharts
+    const ohlc: number[][] = [];
+    const volume: number[][] = [];
+
+    data.forEach((item, index) => {
+      // Simple timestamp conversion - let JavaScript Date handle it
+      let timestamp: number;
+      
+      // The API returns ISO strings, potentially with microseconds
+      // JavaScript Date constructor handles ISO 8601 format correctly
+      if (typeof item.timestamp === 'string') {
+        // If the timestamp has microseconds (more than 3 decimal places), truncate them
+        let timestampStr = item.timestamp;
+        const microsecondsMatch = timestampStr.match(/\.\d{6,}/);
+        if (microsecondsMatch) {
+          // Replace microseconds with milliseconds (keep only 3 digits)
+          timestampStr = timestampStr.replace(/(\.\d{3})\d*/, '$1');
+        }
+        
+        // Ensure the timestamp ends with 'Z' for UTC
+        if (!timestampStr.endsWith('Z') && !timestampStr.includes('+') && !timestampStr.includes('-')) {
+          timestampStr += 'Z';
+        }
+        
+        timestamp = new Date(timestampStr).getTime();
+      } else if (item.timestamp instanceof Date) {
+        timestamp = item.timestamp.getTime();
+      } else {
+        // If it's already a number, assume it's milliseconds
+        timestamp = Number(item.timestamp);
+      }
+      
+      
+      if (isNaN(timestamp)) {
+        console.error('[PriceChart] Invalid timestamp at index', index, item);
+        return; // Skip this data point
+      }
+      
+      ohlc.push([
+        timestamp,
+        item.open,
+        item.high,
+        item.low,
+        item.close
+      ]);
+      volume.push([
+        timestamp,
+        item.volume
+      ]);
+    });
+
+    createChart(ohlc, volume);
+  }, [createChart]);
+
+  const loadChartData = useCallback(async () => {
+    // Don't load if not visible
+    if (!isVisible) return;
+    
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Calculate date range (1 year of data by default)
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setFullYear(startDate.getFullYear() - 1);
+
+      const params = new URLSearchParams({
+        interval: '1d',
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+        limit: '365'
+      });
+
+      // Only log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[PriceChart] Fetching data for ${symbol}`);
+      }
+
+      const response = await fetch(`/api/symbols/${symbol}/prices?${params}`);
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('[PriceChart] API Error:', response.status, errorData);
+        throw new Error(`API returned ${response.status}: ${errorData}`);
+      }
+
+      const result = await response.json();
+      
+      // Keep minimal logging in production
+      if (result.data && result.data.length > 0) {
+        console.log(`[PriceChart] Loaded ${result.data.length} data points for ${symbol}`);
+      }
+      
+      if (result.data && result.data.length > 0) {
+        // Use setTimeout to ensure the container is mounted
+        setTimeout(() => {
+          renderChart(result.data);
+        }, 100);
+      } else {
+        setError('No price data available for this symbol');
+      }
+    } catch (err) {
+      console.error('Error loading chart data:', err);
+      setError('Failed to load price data');
+    } finally {
+      setLoading(false);
+    }
+  }, [isVisible, symbol, renderChart]);
+
+  useEffect(() => {
+    if (!isClient) return;
+    
+    if (!isVisible && chartRef.current) {
+      // Destroy chart when hidden
+      chartRef.current.destroy();
+      chartRef.current = null;
+      return;
+    }
+    
+    if (highchartsLoaded && isVisible && symbol && chartContainerRef.current) {
+      loadChartData();
+    }
+  }, [symbol, isVisible, highchartsLoaded, isClient, loadChartData]);
 
   // Don't render anything on the server
   if (!isClient || !isVisible) {
