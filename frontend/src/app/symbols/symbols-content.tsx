@@ -60,10 +60,10 @@ export default function SymbolsPageContent() {
     message: string;
   } | null>(null);
   const [deletingSymbol, setDeletingSymbol] = useState<string | null>(null);
+  const [downloadingSymbol, setDownloadingSymbol] = useState<string | null>(null);
 
   const menuItems = [
     { id: 'list', label: 'Symbol List', icon: '📋' },
-    { id: 'download', label: 'Download Data', icon: '📥' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
   ];
 
@@ -188,6 +188,45 @@ export default function SymbolsPageContent() {
       console.error(err);
     } finally {
       setDeletingSymbol(null);
+    }
+  };
+
+  const handleDownloadPrices = async (symbol: string) => {
+    setDownloadingSymbol(symbol);
+    try {
+      const response = await fetch(`/api/symbols/${symbol}/download-incremental`, {
+        method: 'POST',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Download failed');
+      }
+      
+      const result = await response.json();
+      
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      
+      // Show success message with details
+      if (result.status === 'no_new_data') {
+        toast.success(`No new data available for ${symbol}`);
+      } else if (result.status === 'fallback_full_download') {
+        toast.success(`Downloaded ${result.new_data_points || 0} data points for ${symbol} (full download)`);
+      } else {
+        toast.success(`Downloaded ${result.new_data_points || 0} new price points for ${symbol}`);
+      }
+      
+      // Refresh symbol info to show updated data
+      if (selectedSymbol === symbol) {
+        await loadSymbolInfo(symbol);
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error(`Failed to download prices for ${symbol}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setDownloadingSymbol(null);
     }
   };
 
@@ -436,26 +475,50 @@ export default function SymbolsPageContent() {
                               )}
                             </div>
 
-                            <div className="pt-4 space-y-2">
+                            <div className="pt-4 grid grid-cols-2 gap-2">
                               <button
-                                onClick={() => handleDeleteSymbol(selectedSymbol)}
-                                disabled={deletingSymbol === selectedSymbol}
-                                className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed flex items-center justify-center"
+                                onClick={() => handleDownloadPrices(selectedSymbol)}
+                                disabled={downloadingSymbol === selectedSymbol}
+                                className="px-3 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed flex items-center justify-center transition-colors duration-200"
                               >
-                                {deletingSymbol === selectedSymbol ? (
+                                {downloadingSymbol === selectedSymbol ? (
                                   <>
-                                    <span className="mr-2">🗑️</span>
-                                    Deleting...
+                                    <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span className="text-xs">Downloading...</span>
                                   </>
                                 ) : (
-                                  'Delete Symbol'
+                                  <>
+                                    <span className="mr-1.5 text-sm">📥</span>
+                                    <span className="text-xs">Download Prices</span>
+                                  </>
                                 )}
                               </button>
                               <button
-                                className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-700"
+                                onClick={() => handleDeleteSymbol(selectedSymbol)}
+                                disabled={deletingSymbol === selectedSymbol}
+                                className="px-3 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed flex items-center justify-center"
+                              >
+                                {deletingSymbol === selectedSymbol ? (
+                                  <>
+                                    <span className="mr-1.5 text-sm">🗑️</span>
+                                    <span className="text-xs">Deleting...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="mr-1.5 text-sm">🗑️</span>
+                                    <span className="text-xs">Delete</span>
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                className="col-span-2 px-3 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-gray-700 flex items-center justify-center"
                                 disabled
                               >
-                                View Price Chart (Coming Soon)
+                                <span className="mr-1.5 text-sm">📊</span>
+                                <span className="text-xs">View Price Chart (Coming Soon)</span>
                               </button>
                             </div>
                           </div>
@@ -475,22 +538,6 @@ export default function SymbolsPageContent() {
           </div>
         )}
 
-
-        {/* Download Data View */}
-        {activeView === 'download' && (
-          <div>
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold main-title">Download Historical Data</h1>
-              <p className="main-subtitle mt-1">
-                Download historical price data for symbols
-              </p>
-            </div>
-
-            <div className="symbol-list-card rounded-lg shadow-sm p-6">
-              <p className="main-subtitle">Download functionality coming soon...</p>
-            </div>
-          </div>
-        )}
 
         {/* Analytics View */}
         {activeView === 'analytics' && (

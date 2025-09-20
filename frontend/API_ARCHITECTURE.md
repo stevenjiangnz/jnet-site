@@ -25,11 +25,16 @@ All API routes are located in `/src/app/api/` and follow Next.js App Router conv
 /src/app/api/
 ├── symbols/
 │   ├── list/route.ts      # GET /api/symbols/list
-│   ├── add/route.ts       # POST /api/symbols/add?symbol=AAPL
+│   ├── add/route.ts       # POST /api/symbols/add?symbol=AAPL (includes download)
 │   └── [symbol]/route.ts  # DELETE /api/symbols/MSFT
 ├── health/route.ts        # GET /api/health
 └── test/route.ts          # GET /api/test
 ```
+
+### Key Features:
+- **Add Symbol**: Now includes automatic historical data download with `period=max`
+- **Toast Notifications**: User-friendly feedback using react-hot-toast
+- **Loading States**: Visual indicators for long-running operations
 
 ## Environment Variables
 
