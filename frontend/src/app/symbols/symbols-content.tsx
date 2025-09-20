@@ -18,6 +18,11 @@ const PriceChart = dynamic(() => import('@/components/charts/PriceChart'), {
   )
 });
 
+// Dynamically import PriceList
+const PriceList = dynamic(() => import('@/components/charts/PriceList'), {
+  ssr: false
+});
+
 interface SymbolCatalogInfo {
   symbol: string;
   start_date: string;
@@ -577,13 +582,25 @@ export default function SymbolsPageContent() {
               </div>
             </div>
 
-            {/* Price Chart */}
-            {selectedSymbol && (
+            {/* Price Chart and List */}
+            {selectedSymbol && (showPriceChart || isPanelCollapsed) && (
               <div className={`mt-6 transition-all duration-300 ${isPanelCollapsed ? 'mt-0' : ''}`}>
-                <PriceChart 
-                  symbol={selectedSymbol} 
-                  isVisible={showPriceChart || isPanelCollapsed} 
-                />
+                <div className="flex flex-col lg:flex-row gap-4">
+                  {/* Chart Section */}
+                  <div className="flex-1 min-w-0">
+                    <PriceChart 
+                      symbol={selectedSymbol} 
+                      isVisible={showPriceChart || isPanelCollapsed} 
+                    />
+                  </div>
+                  {/* List Section */}
+                  <div className="w-full lg:w-2/5 xl:w-1/3">
+                    <PriceList 
+                      symbol={selectedSymbol} 
+                      isVisible={showPriceChart || isPanelCollapsed} 
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>

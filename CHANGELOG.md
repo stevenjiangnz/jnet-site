@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Price List View** alongside price chart for comprehensive data visualization
+  - Displays price data in a sortable table format with columns: Trade Date, Open, Close, High, Low, Volume
+  - Sorted by trade date in descending order (most recent first)
+  - Color-coded closing prices (green for gains, red for losses)
+  - Volume formatting for readability (e.g., 1.5M, 250K)
+  - Collapsible/expandable panel with horizontal toggle
+  - Responsive layout that stacks vertically on mobile and shows side-by-side on desktop
+  - Synchronized data fetching with the price chart
 - Symbol Management page with comprehensive features
   - List all tracked symbols with master-detail view
   - **Add New Symbol button** above symbol list for improved discoverability
