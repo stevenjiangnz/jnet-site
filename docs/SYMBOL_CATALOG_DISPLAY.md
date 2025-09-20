@@ -4,6 +4,8 @@
 
 The symbol management page now displays comprehensive catalog information for each tracked symbol, providing detailed insights into the available data directly from the Google Cloud Storage catalog.
 
+**Status**: ✅ Fully implemented and working in production
+
 ## Features
 
 ### Enhanced Symbol Details
@@ -48,11 +50,21 @@ Browser → Next.js API Routes → API Service → Stock Data Service → GCS Ca
 
 2. **Frontend State Management**: Added catalog info state and loading indicators:
    ```typescript
-   const [selectedSymbolInfo, setSelectedSymbolInfo] = useState<any>(null);
+   interface SymbolCatalogInfo {
+     symbol: string;
+     start_date: string;
+     end_date: string;
+     total_days: number;
+     has_weekly: boolean;
+     last_updated: string;
+   }
+   const [selectedSymbolInfo, setSelectedSymbolInfo] = useState<SymbolCatalogInfo | null>(null);
    const [loadingSymbolInfo, setLoadingSymbolInfo] = useState(false);
    ```
 
 3. **Automatic Data Fetching**: Catalog info loads automatically when a symbol is selected
+
+4. **API Authentication**: Implemented centralized HTTP client pattern to ensure all API service endpoints include proper authentication headers when calling stock data service
 
 ## User Experience
 
@@ -67,9 +79,23 @@ Browser → Next.js API Routes → API Service → Stock Data Service → GCS Ca
 3. **Better Planning**: Date ranges help users plan their analysis timeframes
 4. **System Health**: Last updated timestamp shows data freshness
 
+## Deployment Notes
+
+### Services to Deploy
+1. **API Service**: Contains the centralized HTTP client with authentication fixes
+2. **Frontend**: Already deployed with the catalog display components
+
+### Key Files Modified
+- `/services/api-service/app/core/http_client.py` - New centralized HTTP client
+- `/services/api-service/app/api/v1/endpoints/stock.py` - Refactored to use HTTP client
+- `/services/api-service/app/api/v1/endpoints/symbols.py` - Refactored to use HTTP client
+- `/frontend/src/app/symbols/symbols-content.tsx` - Enhanced UI with catalog display
+- `/frontend/src/app/api/symbols/[symbol]/catalog/route.ts` - New API route for catalog data
+
 ## Future Enhancements
 
 - Add data download functionality based on available date ranges
 - Show data quality metrics and gap analysis
 - Enable data range filtering in price charts
 - Add catalog refresh functionality
+- Implement real-time catalog updates via WebSocket
