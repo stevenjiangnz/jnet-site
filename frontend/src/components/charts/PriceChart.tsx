@@ -104,7 +104,6 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
 
     // Create the chart
     try {
-      // @ts-expect-error - Highcharts types are not fully compatible with DOM elements
       chartRef.current = window.Highcharts.stockChart(chartContainerRef.current, {
         chart: {
           backgroundColor: '#ffffff',
