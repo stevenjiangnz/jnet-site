@@ -42,6 +42,7 @@ async def add_symbol(
     try:
         response = await stock_data_client.get(
             f"/api/v1/download/{symbol.upper()}",
+            params={"period": "max"},
             timeout=60.0,
         )
         return response.json()  # type: ignore[no-any-return]
