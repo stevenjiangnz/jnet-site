@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import type * as Highcharts from 'highcharts';
+import type Highcharts from 'highcharts';
 
 interface PriceChartProps {
   symbol: string;
@@ -15,6 +15,13 @@ interface PriceData {
   low: number;
   close: number;
   volume: number;
+}
+
+// Extend Window to include Highcharts
+declare global {
+  interface Window {
+    Highcharts?: typeof Highcharts;
+  }
 }
 
 export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
@@ -35,11 +42,11 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     if (!isClient) return;
     
     const loadHighcharts = async () => {
-      if (typeof window !== 'undefined' && !(window as Window & { Highcharts?: typeof Highcharts }).Highcharts) {
-        const Highcharts = (await import('highcharts/highstock')).default;
-        (window as Window & { Highcharts: typeof Highcharts }).Highcharts = Highcharts;
+      if (typeof window !== 'undefined' && !window.Highcharts) {
+        const HighchartsModule = (await import('highcharts/highstock')).default;
+        window.Highcharts = HighchartsModule;
         setHighchartsLoaded(true);
-      } else if ((window as Window & { Highcharts?: typeof Highcharts }).Highcharts) {
+      } else if (window.Highcharts) {
         setHighchartsLoaded(true);
       }
     };
@@ -56,10 +63,10 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
   }, [isClient]);
 
   const createChart = useCallback((ohlc: number[][], volume: number[][]) => {
-    if (!chartContainerRef.current || !(window as Window & { Highcharts?: typeof Highcharts }).Highcharts) {
+    if (!chartContainerRef.current || !window.Highcharts) {
       console.error('[PriceChart] Missing requirements:', {
         hasContainer: !!chartContainerRef.current,
-        hasHighcharts: !!(window as Window & { Highcharts?: typeof Highcharts }).Highcharts
+        hasHighcharts: !!window.Highcharts
       });
       return;
     }
@@ -70,15 +77,15 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
       chartRef.current = null;
     }
 
-    const Highcharts = (window as Window & { Highcharts: typeof Highcharts }).Highcharts;
-    const groupingUnits: Highcharts.DataGroupingUnitsOptions = [
+    const groupingUnits = [
       ['week', [1]],
       ['month', [1, 2, 3, 4, 6]]
     ];
 
     // Create the chart
     try {
-      chartRef.current = Highcharts.stockChart(chartContainerRef.current, {
+      // @ts-expect-error - Highcharts types are not fully compatible with DOM elements
+      chartRef.current = window.Highcharts.stockChart(chartContainerRef.current, {
         chart: {
           backgroundColor: '#ffffff',
           height: 600
@@ -140,10 +147,10 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
   }, [symbol]);
 
   const renderChart = useCallback((data: PriceData[]) => {
-    if (!chartContainerRef.current || !(window as Window & { Highcharts?: typeof Highcharts }).Highcharts) {
+    if (!chartContainerRef.current || !window.Highcharts) {
       console.error('[PriceChart] Cannot render - missing requirements:', {
         hasContainer: !!chartContainerRef.current,
-        hasHighcharts: !!(window as Window & { Highcharts?: typeof Highcharts }).Highcharts
+        hasHighcharts: !!window.Highcharts
       });
       return;
     }
