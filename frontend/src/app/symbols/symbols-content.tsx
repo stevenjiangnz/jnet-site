@@ -71,6 +71,7 @@ export default function SymbolsPageContent() {
   const [deletingSymbol, setDeletingSymbol] = useState<string | null>(null);
   const [downloadingSymbol, setDownloadingSymbol] = useState<string | null>(null);
   const [showPriceChart, setShowPriceChart] = useState(false);
+  const [symbolFilter, setSymbolFilter] = useState('');
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(() => {
     // Load collapsed state from localStorage
     if (typeof window !== 'undefined') {
@@ -356,9 +357,23 @@ export default function SymbolsPageContent() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Symbol List */}
                     <div className="symbol-item-card rounded-lg p-4">
-                      <h3 className="font-semibold mb-3 main-title">All Symbols ({symbols.length})</h3>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold main-title">
+                          All Symbols ({symbols.filter(s => s.toLowerCase().includes(symbolFilter.toLowerCase())).length})
+                        </h3>
+                        <input
+                          type="text"
+                          value={symbolFilter}
+                          onChange={(e) => setSymbolFilter(e.target.value)}
+                          placeholder="Filter..."
+                          className="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          style={{ width: '120px' }}
+                        />
+                      </div>
                       <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {symbols.map((symbol) => (
+                        {symbols
+                          .filter(symbol => symbol.toLowerCase().includes(symbolFilter.toLowerCase()))
+                          .map((symbol) => (
                           <div
                             key={symbol}
                             onClick={() => {
@@ -375,6 +390,11 @@ export default function SymbolsPageContent() {
                             </div>
                           </div>
                         ))}
+                        {symbols.filter(symbol => symbol.toLowerCase().includes(symbolFilter.toLowerCase())).length === 0 && (
+                          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                            No symbols match "{symbolFilter}"
+                          </div>
+                        )}
                       </div>
                     </div>
 

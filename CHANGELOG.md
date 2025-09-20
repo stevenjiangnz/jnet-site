@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Dynamic Symbol Filtering** in symbol list
+  - Filter input field next to "All Symbols" label
+  - Real-time filtering as you type
+  - Case-insensitive partial matching
+  - Shows filtered count in the label
+  - Displays "No symbols match" message when no results
 - **Price List View** alongside price chart for comprehensive data visualization
   - Displays price data in a sortable table format with columns: Trade Date, Open, Close, High, Low, Volume
   - Sorted by trade date in descending order (most recent first)
