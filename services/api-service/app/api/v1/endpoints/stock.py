@@ -228,7 +228,6 @@ async def get_stock_catalog() -> Dict[str, Any]:
         Catalog with all symbols, their date ranges, and availability information.
     """
     try:
-        logger.info("Fetching stock catalog")
         response = await stock_data_client.get("/api/v1/catalog")
         result: Dict[str, Any] = response.json()
         return result
