@@ -2,6 +2,15 @@
 
 import { useState, useEffect } from 'react';
 
+interface SymbolCatalogInfo {
+  symbol: string;
+  start_date: string;
+  end_date: string;
+  total_days: number;
+  has_weekly: boolean;
+  last_updated: string;
+}
+
 // API client that uses Next.js API routes (server-side proxy)
 const fetchSymbols = async () => {
   const response = await fetch('/api/symbols/list');
@@ -24,7 +33,7 @@ const deleteSymbol = async (symbol: string) => {
   if (!response.ok) throw new Error('Failed to delete symbol');
 };
 
-const fetchSymbolCatalogInfo = async (symbol: string) => {
+const fetchSymbolCatalogInfo = async (symbol: string): Promise<SymbolCatalogInfo> => {
   const response = await fetch(`/api/symbols/${symbol}/catalog`);
   if (!response.ok) throw new Error('Failed to fetch symbol catalog info');
   return response.json();
@@ -36,7 +45,7 @@ export default function SymbolsPageContent() {
   const [loading, setLoading] = useState(true);
   const [newSymbol, setNewSymbol] = useState('');
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
-  const [selectedSymbolInfo, setSelectedSymbolInfo] = useState<any>(null);
+  const [selectedSymbolInfo, setSelectedSymbolInfo] = useState<SymbolCatalogInfo | null>(null);
   const [loadingSymbolInfo, setLoadingSymbolInfo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
