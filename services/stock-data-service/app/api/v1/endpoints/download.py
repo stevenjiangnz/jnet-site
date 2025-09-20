@@ -1,6 +1,6 @@
 import logging
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Query
 from app.models.stock import BulkDownloadRequest
 from app.models.responses import DownloadResponse, BulkDownloadResponse
@@ -126,3 +126,41 @@ async def bulk_download(request: BulkDownloadRequest):
         failed=failed,
         download_time=datetime.now(),
     )
+
+
+@router.post("/download/{symbol}/incremental")
+async def download_incremental_symbol(symbol: str) -> Dict[str, Any]:
+    """
+    Download and append new price data to existing files.
+    Downloads from (latest_date - 1) to tomorrow to ensure no gaps.
+
+    Args:
+        symbol: Stock symbol (e.g., 'AAPL')
+
+    Returns:
+        Dict with status, new_data_points count, date_range, and any warnings
+    """
+    # Validate symbol format
+    if not validate_symbol(symbol):
+        raise HTTPException(status_code=400, detail="Invalid symbol format")
+
+    downloader = StockDataDownloader()
+
+    try:
+        result = await downloader.download_incremental_for_symbol(symbol)
+
+        if result["status"] == "error":
+            raise HTTPException(
+                status_code=500,
+                detail=f"Incremental download failed: {result['warnings'][0] if result['warnings'] else 'Unknown error'}",
+            )
+
+        return result
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in incremental download for {symbol}: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to download incremental data: {str(e)}"
+        )

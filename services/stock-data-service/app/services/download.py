@@ -1,8 +1,8 @@
 """Stock data download service with GCS storage."""
 
 import logging
-from datetime import datetime, date
-from typing import List, Dict, Optional
+from datetime import datetime, date, timedelta
+from typing import List, Dict, Optional, Tuple
 import yfinance as yf
 import pandas as pd
 
@@ -326,6 +326,289 @@ class StockDataDownloader:
         except Exception as e:
             logger.error(f"Error downloading latest data for {symbol}: {str(e)}")
             return False
+
+    async def download_incremental_for_symbol(self, symbol: str) -> Dict[str, any]:
+        """
+        Download and append new price data to existing files.
+        Downloads from (latest_date - 1) to tomorrow to ensure no gaps.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            Dict with status, new_data_points count, date_range, and any warnings
+        """
+        try:
+            logger.info(f"Starting incremental download for {symbol}")
+
+            # Get existing data
+            existing_data = await self.get_symbol_data(symbol)
+            if not existing_data or not existing_data.data_points:
+                logger.warning(
+                    f"No existing data for {symbol}, falling back to full download"
+                )
+                result = await self.download_symbol(symbol, period="1y")
+                return {
+                    "status": "fallback_full_download",
+                    "new_data_points": len(result.data_points) if result else 0,
+                    "date_range": None,
+                    "warnings": ["No existing data found, performed full download"],
+                }
+
+            # Calculate download range
+            latest_date = existing_data.data_points[-1].date
+            start_date, end_date = self._calculate_incremental_range(latest_date)
+
+            logger.info(f"Downloading {symbol} from {start_date} to {end_date}")
+
+            # Download new data
+            ticker = yf.Ticker(symbol)
+            df = ticker.history(start=start_date, end=end_date)
+
+            if df.empty:
+                logger.info(f"No new data available for {symbol}")
+                return {
+                    "status": "no_new_data",
+                    "new_data_points": 0,
+                    "date_range": f"{start_date} to {end_date}",
+                    "warnings": [],
+                }
+
+            # Convert new data to our format
+            new_data_points = self._convert_dataframe_to_points(df)
+
+            # Merge with existing data
+            merged_data, stats = self._merge_price_data(
+                existing_data.data_points, new_data_points
+            )
+
+            # Update the existing data structure
+            updated_data = StockDataFile(
+                symbol=existing_data.symbol,
+                data_type=existing_data.data_type,
+                last_updated=datetime.utcnow(),
+                data_range=DataRange(
+                    start=merged_data[0].date, end=merged_data[-1].date
+                ),
+                data_points=merged_data,
+                metadata=StockMetadata(
+                    total_records=len(merged_data),
+                    trading_days=len(merged_data),
+                    source="yahoo_finance",
+                ),
+                indicators=existing_data.indicators,  # Preserve existing indicators
+            )
+
+            # Recalculate indicators if enabled and we have new data
+            if self.calculate_indicators_enabled and stats["new_points"] > 0:
+                logger.info(f"Recalculating indicators for {symbol}")
+                indicators = await self.indicator_calculator.calculate_for_data(
+                    updated_data, self.default_indicators
+                )
+                updated_data.indicators = {
+                    name: indicator_data.model_dump(mode="json")
+                    for name, indicator_data in indicators.items()
+                }
+
+            # Store updated data in GCS
+            storage_path = StoragePaths.get_daily_path(symbol)
+            success = await self.storage.upload_json(
+                storage_path, updated_data.to_dict()
+            )
+
+            if not success:
+                logger.error(f"Failed to store updated data for {symbol}")
+                return {
+                    "status": "storage_error",
+                    "new_data_points": 0,
+                    "date_range": f"{start_date} to {end_date}",
+                    "warnings": ["Failed to store updated data"],
+                }
+
+            # Process weekly data if we have new points
+            if stats["new_points"] > 0:
+                await self._process_weekly_data(updated_data)
+
+            # Update catalog
+            await self.catalog_manager.update_catalog_for_symbol(symbol)
+
+            # Invalidate cache
+            cache = get_cache()
+            cache_key = CacheKeys.daily_data(symbol)
+            await cache.delete(cache_key)
+            await cache.delete(CacheKeys.symbol_list())
+            await cache.delete(CacheKeys.catalog())
+
+            logger.info(
+                f"Successfully completed incremental download for {symbol}: {stats['new_points']} new points"
+            )
+
+            return {
+                "status": "success",
+                "new_data_points": stats["new_points"],
+                "date_range": f"{start_date} to {end_date}",
+                "warnings": stats["warnings"],
+                "duplicates_removed": stats["duplicates"],
+                "total_points": len(merged_data),
+            }
+
+        except Exception as e:
+            logger.error(f"Error in incremental download for {symbol}: {str(e)}")
+            return {
+                "status": "error",
+                "new_data_points": 0,
+                "date_range": None,
+                "warnings": [f"Download failed: {str(e)}"],
+            }
+
+    def _calculate_incremental_range(self, latest_date: date) -> Tuple[date, date]:
+        """
+        Calculate the date range for incremental download.
+        Start from (latest_date - 1) to ensure overlap and catch any missed data.
+        End at tomorrow to get the most recent data available.
+
+        Args:
+            latest_date: Last date in existing data
+
+        Returns:
+            Tuple of (start_date, end_date)
+        """
+        start_date = latest_date - timedelta(days=1)
+        end_date = date.today() + timedelta(days=1)
+        return start_date, end_date
+
+    def _convert_dataframe_to_points(self, df: pd.DataFrame) -> List[StockDataPoint]:
+        """
+        Convert pandas DataFrame to list of StockDataPoint objects.
+
+        Args:
+            df: DataFrame from yfinance
+
+        Returns:
+            List of StockDataPoint objects
+        """
+        data_points = []
+
+        for idx, row in df.iterrows():
+            # Skip rows with NaN values
+            if row.isna().any():
+                continue
+
+            point = StockDataPoint(
+                date=idx.date(),
+                open=round(row["Open"], 2),
+                high=round(row["High"], 2),
+                low=round(row["Low"], 2),
+                close=round(row["Close"], 2),
+                adj_close=round(row.get("Adj Close", row["Close"]), 2),
+                volume=int(row["Volume"]),
+            )
+            data_points.append(point)
+
+        return data_points
+
+    def _merge_price_data(
+        self, existing_points: List[StockDataPoint], new_points: List[StockDataPoint]
+    ) -> Tuple[List[StockDataPoint], Dict[str, any]]:
+        """
+        Merge new data with existing data, removing duplicates and ensuring chronological order.
+
+        Args:
+            existing_points: Existing data points
+            new_points: New data points to merge
+
+        Returns:
+            Tuple of (merged_data_points, statistics)
+        """
+        # Create a dictionary of existing points by date for fast lookup
+        existing_by_date = {point.date: point for point in existing_points}
+
+        # Track statistics
+        duplicates_removed = 0
+        new_points_added = 0
+        warnings = []
+
+        # Add new points, skipping duplicates
+        for new_point in new_points:
+            if new_point.date in existing_by_date:
+                # Check if the data is significantly different
+                existing_point = existing_by_date[new_point.date]
+                if self._is_significantly_different(existing_point, new_point):
+                    # Update with newer data
+                    existing_by_date[new_point.date] = new_point
+                    warnings.append(
+                        f"Updated data for {new_point.date} (significant difference detected)"
+                    )
+                else:
+                    duplicates_removed += 1
+            else:
+                existing_by_date[new_point.date] = new_point
+                new_points_added += 1
+
+        # Convert back to sorted list
+        merged_points = sorted(existing_by_date.values(), key=lambda x: x.date)
+
+        # Check for gaps in trading days (optional warning)
+        gaps = self._check_for_gaps(merged_points)
+        if gaps:
+            warnings.extend(
+                [f"Potential gap detected: {gap}" for gap in gaps[:3]]
+            )  # Limit warnings
+
+        stats = {
+            "new_points": new_points_added,
+            "duplicates": duplicates_removed,
+            "warnings": warnings,
+            "total_points": len(merged_points),
+        }
+
+        return merged_points, stats
+
+    def _is_significantly_different(
+        self, point1: StockDataPoint, point2: StockDataPoint
+    ) -> bool:
+        """
+        Check if two data points for the same date are significantly different.
+
+        Args:
+            point1: First data point
+            point2: Second data point
+
+        Returns:
+            True if significantly different
+        """
+        # Consider 1% difference in close price as significant
+        close_diff = abs(point1.close - point2.close) / point1.close
+        volume_diff = abs(point1.volume - point2.volume) / max(point1.volume, 1)
+
+        return close_diff > 0.01 or volume_diff > 0.1
+
+    def _check_for_gaps(self, data_points: List[StockDataPoint]) -> List[str]:
+        """
+        Check for unusual gaps in trading days (more than 5 days between consecutive points).
+
+        Args:
+            data_points: Sorted list of data points
+
+        Returns:
+            List of gap descriptions
+        """
+        gaps = []
+
+        for i in range(1, len(data_points)):
+            prev_date = data_points[i - 1].date
+            curr_date = data_points[i].date
+            gap_days = (curr_date - prev_date).days
+
+            # Only report gaps longer than 5 days (likely holidays/weekends are normal)
+            if gap_days > 5:
+                gaps.append(f"{prev_date} to {curr_date} ({gap_days} days)")
+
+            # Limit to prevent too many warnings
+            if len(gaps) >= 5:
+                break
+
+        return gaps
 
     async def _process_weekly_data(self, daily_data: StockDataFile) -> bool:
         """

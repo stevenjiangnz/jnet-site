@@ -393,3 +393,37 @@ async def download_symbol_data(
         raise HTTPException(
             status_code=500, detail=f"Failed to download symbol {symbol}"
         )
+
+
+@router.post("/download/{symbol}/incremental")
+async def download_incremental_symbol_data(symbol: str) -> Dict[str, Any]:
+    """
+    Download and append new price data to existing files.
+
+    This proxies the request to the stock-data-service incremental download endpoint.
+    Downloads from (latest_date - 1) to tomorrow to ensure no gaps.
+    """
+    try:
+        response = await stock_data_client.post(
+            f"/api/v1/download/{symbol.upper()}/incremental",
+            timeout=60.0,  # Longer timeout for downloads
+        )
+        result: Dict[str, Any] = response.json()
+        return result
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error in incremental download for {symbol}: {e}")
+        if e.response.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
+        elif e.response.status_code == 400:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid symbol format: {symbol}"
+            )
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=f"Failed to download incremental data: {e.response.text}",
+        )
+    except Exception as e:
+        logger.error(f"Failed to download incremental data for {symbol}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to download incremental data for {symbol}"
+        )
