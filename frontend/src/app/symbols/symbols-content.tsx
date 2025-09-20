@@ -392,7 +392,7 @@ export default function SymbolsPageContent() {
                         ))}
                         {symbols.filter(symbol => symbol.toLowerCase().includes(symbolFilter.toLowerCase())).length === 0 && (
                           <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                            No symbols match "{symbolFilter}"
+                            No symbols match &quot;{symbolFilter}&quot;
                           </div>
                         )}
                       </div>

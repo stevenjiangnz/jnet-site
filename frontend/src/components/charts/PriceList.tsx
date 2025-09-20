@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { toBrisbaneTime } from '@/utils/dateUtils';
+import { useState, useEffect, useCallback } from 'react';
+// import { toBrisbaneTime } from '@/utils/dateUtils';
 
 interface PriceListProps {
   symbol: string;
@@ -23,7 +23,7 @@ export default function PriceList({ symbol, isVisible }: PriceListProps) {
   const [priceData, setPriceData] = useState<PriceData[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const loadPriceData = async () => {
+  const loadPriceData = useCallback(async () => {
     if (!isVisible) return;
     
     setLoading(true);
@@ -67,13 +67,13 @@ export default function PriceList({ symbol, isVisible }: PriceListProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [symbol, isVisible]);
 
   useEffect(() => {
     if (isVisible && symbol) {
       loadPriceData();
     }
-  }, [symbol, isVisible]);
+  }, [symbol, isVisible, loadPriceData]);
 
   if (!isVisible) {
     return null;

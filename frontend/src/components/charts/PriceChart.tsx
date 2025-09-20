@@ -82,22 +82,22 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     const disableDataGrouping = { enabled: false };
     
     // Option 2: Force daily grouping only (prevents automatic weekly/monthly grouping)
-    const dailyGroupingOnly = {
-      units: [['day', [1]]],
-      // Optional: force grouping even when all points fit in view
-      // forced: true
-    };
+    // const dailyGroupingOnly = {
+    //   units: [['day', [1]]],
+    //   // Optional: force grouping even when all points fit in view
+    //   // forced: true
+    // };
     
     // Option 3: Allow multiple grouping levels but control when they activate
-    const controlledGrouping = {
-      units: [
-        ['day', [1]],
-        ['week', [1]], 
-        ['month', [1, 2, 3, 4, 6]]
-      ],
-      // Increase this value to require more data points before grouping activates
-      groupPixelWidth: 10  // Default is 2
-    };
+    // const controlledGrouping = {
+    //   units: [
+    //     ['day', [1]],
+    //     ['week', [1]], 
+    //     ['month', [1, 2, 3, 4, 6]]
+    //   ],
+    //   // Increase this value to require more data points before grouping activates
+    //   groupPixelWidth: 10  // Default is 2
+    // };
     
     // Choose your preferred configuration
     const dataGroupingConfig = disableDataGrouping; // Change this to use different options
