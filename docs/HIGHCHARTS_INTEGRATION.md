@@ -20,6 +20,49 @@ The application uses Highcharts Stock for displaying interactive financial chart
 4. **Stock Data Service** (`/api/v1/data/{symbol}`) → 
 5. **Google Cloud Storage**
 
+## Data Grouping Configuration
+
+The PriceChart component provides three configurable options for data grouping behavior:
+
+### Option 1: Disable Data Grouping (Default)
+```javascript
+const disableDataGrouping = { enabled: false };
+```
+- Shows all individual daily data points
+- No automatic grouping regardless of time range
+- Best for detailed analysis
+
+### Option 2: Force Daily Grouping Only
+```javascript
+const dailyGroupingOnly = {
+  units: [['day', [1]]],
+  forced: true // Optional
+};
+```
+- Prevents weekly/monthly grouping
+- Still groups within days if multiple data points exist
+- Maintains daily granularity
+
+### Option 3: Controlled Grouping
+```javascript
+const controlledGrouping = {
+  units: [
+    ['day', [1]],
+    ['week', [1]], 
+    ['month', [1, 2, 3, 4, 6]]
+  ],
+  groupPixelWidth: 10  // Default is 2
+};
+```
+- Allows multiple grouping levels
+- Higher `groupPixelWidth` delays when grouping activates
+- Provides balance between performance and detail
+
+To change the configuration, modify the `dataGroupingConfig` assignment in PriceChart.tsx:
+```javascript
+const dataGroupingConfig = disableDataGrouping; // Change to use different options
+```
+
 ## Key Implementation Details
 
 ### Dynamic Import (symbols-content.tsx)
@@ -73,8 +116,9 @@ The API service transforms the stock-data-service response:
 ## Performance Considerations
 
 1. **Lazy Loading**: Charts are only loaded when visible
-2. **Data Limiting**: Default to 1 year of daily data (365 points)
+2. **Data Limiting**: Default to 5 years of daily data (1825 points)
 3. **Minimal Logging**: Production logs only show essential information
+4. **Data Grouping**: Disabled by default to show all daily data points
 
 ## Troubleshooting
 
@@ -100,3 +144,8 @@ The API service transforms the stock-data-service response:
 2. **Removed Mock Data**: All dummy data generation code has been removed
 3. **Cleaned Up Logging**: Reduced verbose debug logging to essential production logs only
 4. **Improved Error Handling**: Better error messages for users when data is unavailable
+5. **Extended Data Range**: Increased default data retrieval from 2 years to 5 years (1825 trading days)
+6. **Disabled Data Grouping**: Removed automatic weekly/monthly grouping to always show daily data points
+   - Previously, Highcharts would automatically group daily data into weekly or monthly periods for longer time ranges
+   - Now all individual daily data points are displayed regardless of the selected time range
+   - Configuration options are available to re-enable grouping if needed

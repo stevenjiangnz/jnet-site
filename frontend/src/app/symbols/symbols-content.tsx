@@ -18,6 +18,11 @@ const PriceChart = dynamic(() => import('@/components/charts/PriceChart'), {
   )
 });
 
+// Dynamically import PriceList
+const PriceList = dynamic(() => import('@/components/charts/PriceList'), {
+  ssr: false
+});
+
 interface SymbolCatalogInfo {
   symbol: string;
   start_date: string;
@@ -66,11 +71,29 @@ export default function SymbolsPageContent() {
   const [deletingSymbol, setDeletingSymbol] = useState<string | null>(null);
   const [downloadingSymbol, setDownloadingSymbol] = useState<string | null>(null);
   const [showPriceChart, setShowPriceChart] = useState(false);
+  const [symbolFilter, setSymbolFilter] = useState('');
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(() => {
+    // Load collapsed state from localStorage
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('symbolsPanelCollapsed');
+      return saved === 'true';
+    }
+    return false;
+  });
 
   const menuItems = [
     { id: 'list', label: 'Symbol List', icon: '📋' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
   ];
+
+  const togglePanelCollapse = () => {
+    const newState = !isPanelCollapsed;
+    setIsPanelCollapsed(newState);
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('symbolsPanelCollapsed', newState.toString());
+    }
+  };
 
   useEffect(() => {
     loadSymbols();
@@ -293,20 +316,37 @@ export default function SymbolsPageContent() {
                   Manage your tracked stock symbols
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setShowAddForm(true);
-                  setSelectedSymbol(null);
-                }}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
-              >
-                <span className="text-lg">➕</span>
-                <span>Add New Symbol</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setShowAddForm(true);
+                    setSelectedSymbol(null);
+                  }}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                >
+                  <span className="text-lg">➕</span>
+                  <span>Add New Symbol</span>
+                </button>
+                <button
+                  onClick={togglePanelCollapse}
+                  className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  title={isPanelCollapsed ? "Expand panels" : "Collapse panels"}
+                >
+                  {isPanelCollapsed ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
-            <div className="symbol-list-card rounded-lg shadow-sm">
-              <div className="p-6">
+            <div className={`symbol-list-card rounded-lg shadow-sm transition-all duration-300 ${isPanelCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`}>
+              <div className={`${isPanelCollapsed ? 'hidden' : 'p-6'}`}>
                 {loading ? (
                   <div className="text-center py-8">Loading symbols...</div>
                 ) : symbols.length === 0 ? (
@@ -317,9 +357,23 @@ export default function SymbolsPageContent() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Symbol List */}
                     <div className="symbol-item-card rounded-lg p-4">
-                      <h3 className="font-semibold mb-3 main-title">All Symbols ({symbols.length})</h3>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold main-title">
+                          All Symbols ({symbols.filter(s => s.toLowerCase().includes(symbolFilter.toLowerCase())).length})
+                        </h3>
+                        <input
+                          type="text"
+                          value={symbolFilter}
+                          onChange={(e) => setSymbolFilter(e.target.value)}
+                          placeholder="Filter symbols..."
+                          className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
+                          style={{ width: '140px' }}
+                        />
+                      </div>
                       <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {symbols.map((symbol) => (
+                        {symbols
+                          .filter(symbol => symbol.toLowerCase().includes(symbolFilter.toLowerCase()))
+                          .map((symbol) => (
                           <div
                             key={symbol}
                             onClick={() => {
@@ -336,6 +390,11 @@ export default function SymbolsPageContent() {
                             </div>
                           </div>
                         ))}
+                        {symbols.filter(symbol => symbol.toLowerCase().includes(symbolFilter.toLowerCase())).length === 0 && (
+                          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                            No symbols match &quot;{symbolFilter}&quot;
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -543,13 +602,25 @@ export default function SymbolsPageContent() {
               </div>
             </div>
 
-            {/* Price Chart */}
-            {selectedSymbol && (
-              <div className="mt-6">
-                <PriceChart 
-                  symbol={selectedSymbol} 
-                  isVisible={showPriceChart} 
-                />
+            {/* Price Chart and List */}
+            {selectedSymbol && (showPriceChart || isPanelCollapsed) && (
+              <div className={`mt-6 transition-all duration-300 ${isPanelCollapsed ? 'mt-0' : ''}`}>
+                <div className="flex flex-col lg:flex-row gap-4">
+                  {/* Chart Section */}
+                  <div className="flex-1 min-w-0">
+                    <PriceChart 
+                      symbol={selectedSymbol} 
+                      isVisible={showPriceChart || isPanelCollapsed} 
+                    />
+                  </div>
+                  {/* List Section */}
+                  <div className="w-full lg:w-2/5 xl:w-1/3">
+                    <PriceList 
+                      symbol={selectedSymbol} 
+                      isVisible={showPriceChart || isPanelCollapsed} 
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>

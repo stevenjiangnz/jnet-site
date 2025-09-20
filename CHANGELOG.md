@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Dynamic Symbol Filtering** in symbol list
+  - Filter input field next to "All Symbols" label
+  - Real-time filtering as you type
+  - Case-insensitive partial matching
+  - Shows filtered count in the label
+  - Displays "No symbols match" message when no results
+- **Price List View** alongside price chart for comprehensive data visualization
+  - Displays price data in a sortable table format with columns: Trade Date, Open, Close, High, Low, Volume
+  - Sorted by trade date in descending order (most recent first)
+  - Color-coded closing prices (green for gains, red for losses)
+  - Volume formatting for readability (e.g., 1.5M, 250K)
+  - Collapsible/expandable panel with horizontal toggle
+  - Responsive layout that stacks vertically on mobile and shows side-by-side on desktop
+  - Synchronized data fetching with the price chart
 - Symbol Management page with comprehensive features
   - List all tracked symbols with master-detail view
   - **Add New Symbol button** above symbol list for improved discoverability
@@ -30,6 +44,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Integration between Frontend → API Service → Stock Data Service
 
 ### Changed
+- Extended PriceChart data retrieval from 2 years to 5 years (1825 trading days)
+- Disabled automatic data grouping in Highcharts to always show daily data points
+  - Previously would automatically switch to weekly/monthly grouping for longer time ranges
+  - Now maintains daily granularity for all time ranges
+  - Added configurable options for data grouping behavior
 - Enhanced dark mode colors with deeper blacks and better contrast
   - Main content areas now use `bg-black` in dark mode
   - UI elements use deeper grays (`gray-950`, `gray-900`)

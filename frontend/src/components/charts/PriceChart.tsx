@@ -77,14 +77,33 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
       chartRef.current = null;
     }
 
-    const groupingUnits = [
-      ['week', [1]],
-      ['month', [1, 2, 3, 4, 6]]
-    ];
+    // Data grouping configuration
+    // Option 1: Disable data grouping completely (always show individual daily points)
+    const disableDataGrouping = { enabled: false };
+    
+    // Option 2: Force daily grouping only (prevents automatic weekly/monthly grouping)
+    // const dailyGroupingOnly = {
+    //   units: [['day', [1]]],
+    //   // Optional: force grouping even when all points fit in view
+    //   // forced: true
+    // };
+    
+    // Option 3: Allow multiple grouping levels but control when they activate
+    // const controlledGrouping = {
+    //   units: [
+    //     ['day', [1]],
+    //     ['week', [1]], 
+    //     ['month', [1, 2, 3, 4, 6]]
+    //   ],
+    //   // Increase this value to require more data points before grouping activates
+    //   groupPixelWidth: 10  // Default is 2
+    // };
+    
+    // Choose your preferred configuration
+    const dataGroupingConfig = disableDataGrouping; // Change this to use different options
 
     // Create the chart
     try {
-      // @ts-expect-error - Highcharts types are not fully compatible with DOM elements
       chartRef.current = window.Highcharts.stockChart(chartContainerRef.current, {
         chart: {
           backgroundColor: '#ffffff',
@@ -92,7 +111,30 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
         },
 
         rangeSelector: {
-          selected: 1
+          buttons: [{
+            type: 'month',
+            count: 1,
+            text: '1m'
+          }, {
+            type: 'month',
+            count: 3,
+            text: '3m'
+          }, {
+            type: 'month',
+            count: 6,
+            text: '6m'
+          }, {
+            type: 'ytd',
+            text: 'YTD'
+          }, {
+            type: 'year',
+            count: 1,
+            text: '1y'
+          }, {
+            type: 'all',
+            text: 'All'
+          }],
+          selected: 2  // Default to 6 months (index 2)
         },
 
         title: {
@@ -127,17 +169,13 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
           type: 'candlestick',
           name: symbol,
           data: ohlc,
-          dataGrouping: {
-            units: groupingUnits
-          }
+          dataGrouping: dataGroupingConfig
         }, {
           type: 'column',
           name: 'Volume',
           data: volume,
           yAxis: 1,
-          dataGrouping: {
-            units: groupingUnits
-          }
+          dataGrouping: dataGroupingConfig
         }]
       });
     } catch (error) {
@@ -217,16 +255,16 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     setError(null);
 
     try {
-      // Calculate date range (1 year of data by default)
+      // Calculate date range (5 years of data)
       const endDate = new Date();
       const startDate = new Date();
-      startDate.setFullYear(startDate.getFullYear() - 1);
+      startDate.setFullYear(startDate.getFullYear() - 5);
 
       const params = new URLSearchParams({
         interval: '1d',
         start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],
-        limit: '365'
+        limit: '1825'  // 5 years worth of trading days (365 * 5)
       });
 
       // Only log in development
