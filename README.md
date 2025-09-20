@@ -13,6 +13,16 @@ Personal public site with microservices architecture, built with modern web tech
 - **Local Database**: PostgreSQL 15 (for non-auth services)
 - **API Security**: Layered API key authentication (see [API Key Architecture](API_KEY_ARCHITECTURE.md))
 
+## 🌟 Key Features
+
+- **Symbol Management**: Track stock/ETF symbols with comprehensive catalog display
+  - Real-time data availability insights (total days, date ranges, completeness)
+  - Automatic catalog synchronization with Google Cloud Storage
+  - See [Symbol Catalog Display](docs/SYMBOL_CATALOG_DISPLAY.md) for details
+- **Price Data**: Historical EOD data with automatic downloads from Yahoo Finance
+- **Google Cloud Integration**: Secure storage and data management with GCS
+- **Modern UI**: Responsive design with dark mode support
+
 ## 🚀 Quick Start
 
 ### Prerequisites
