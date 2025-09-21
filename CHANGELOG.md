@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Supabase Row Level Security (RLS) limitation preventing system config updates**
+  - API service now properly uses service role key instead of anon key
+  - Service role key bypasses RLS policies for admin operations
+  - Updated `.env` configuration with correct service role key retrieved via Supabase CLI
+- **Frontend build failures in GitHub Actions**
+  - Fixed ESLint errors and TypeScript type issues in settings page
+  - Replaced `any` types with proper `ConfigValue` type union
+  - Removed unused imports (`SystemConfigUpdate` and `ConfigValue`)
+  - Fixed React Hook dependency arrays
+  - Updated API routes for Next.js 15 compatibility (Promise-based params)
+
+### Changed  
+- **GitHub Actions workflows updated to include Supabase environment variables**
+  - Added `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to Cloud Run deployments
+  - Both development and production workflows now deploy with proper Supabase configuration
+  - Environment variables properly masked in deployment logs for security
+
 ### Added
 - **Dynamic Symbol Filtering** in symbol list
   - Filter input field next to "All Symbols" label

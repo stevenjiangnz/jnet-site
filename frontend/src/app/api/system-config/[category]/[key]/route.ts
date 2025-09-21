@@ -4,7 +4,7 @@ import { getApiConfig } from '@/utils/api-config'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { category: string; key: string } }
+  { params }: { params: Promise<{ category: string; key: string }> }
 ) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -13,7 +13,7 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { category, key } = params
+  const { category, key } = await params
 
   try {
     // Get API configuration
@@ -55,7 +55,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { category: string; key: string } }
+  { params }: { params: Promise<{ category: string; key: string }> }
 ) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -67,7 +67,7 @@ export async function PUT(
   // TODO: Add admin role check here
   // For now, we'll allow any authenticated user
 
-  const { category, key } = params
+  const { category, key } = await params
 
   try {
     // Get API configuration
@@ -114,7 +114,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { category: string; key: string } }
+  { params }: { params: Promise<{ category: string; key: string }> }
 ) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -126,7 +126,7 @@ export async function DELETE(
   // TODO: Add admin role check here
   // For now, we'll allow any authenticated user
 
-  const { category, key } = params
+  const { category, key } = await params
 
   try {
     // Get API configuration

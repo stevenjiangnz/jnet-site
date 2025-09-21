@@ -1,8 +1,10 @@
+export type ConfigValue = string | number | boolean | Record<string, unknown> | unknown[]
+
 export interface SystemConfig {
   id: string
   category: string
   key: string
-  value: any
+  value: ConfigValue
   description?: string
   is_active: boolean
   created_at: string
@@ -12,13 +14,13 @@ export interface SystemConfig {
 export interface SystemConfigCreate {
   category: string
   key: string
-  value: any
+  value: ConfigValue
   description?: string
   is_active?: boolean
 }
 
 export interface SystemConfigUpdate {
-  value?: any
+  value?: ConfigValue
   description?: string
   is_active?: boolean
 }

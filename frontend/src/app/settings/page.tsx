@@ -1,13 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Save, RefreshCw, Plus, Trash2 } from 'lucide-react'
-import { SystemConfig, SystemConfigUpdate } from '@/types/system-config'
-
-interface ConfigValue {
-  [key: string]: any
-}
+import { SystemConfig } from '@/types/system-config'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -33,11 +29,12 @@ export default function SettingsPage() {
     return acc
   }, {} as { [key: string]: SystemConfig[] })
 
-  useEffect(() => {
-    fetchConfigs()
+  const showMessage = useCallback((type: 'success' | 'error', text: string) => {
+    setMessage({ type, text })
+    setTimeout(() => setMessage(null), 3000)
   }, [])
 
-  const fetchConfigs = async () => {
+  const fetchConfigs = useCallback(async () => {
     try {
       const response = await fetch('/api/system-config')
       
@@ -58,12 +55,11 @@ export default function SettingsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router, showMessage])
 
-  const showMessage = (type: 'success' | 'error', text: string) => {
-    setMessage({ type, text })
-    setTimeout(() => setMessage(null), 3000)
-  }
+  useEffect(() => {
+    fetchConfigs()
+  }, [fetchConfigs])
 
   const updateConfig = async (config: SystemConfig) => {
     setSaving(config.id)
@@ -170,7 +166,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleConfigChange = (configId: string, field: keyof SystemConfig, value: any) => {
+  const handleConfigChange = (configId: string, field: keyof SystemConfig, value: SystemConfig[keyof SystemConfig]) => {
     setConfigs(configs.map(config => 
       config.id === configId ? { ...config, [field]: value } : config
     ))
