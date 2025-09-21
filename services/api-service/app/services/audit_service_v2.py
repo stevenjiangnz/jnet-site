@@ -244,5 +244,17 @@ class AuditServiceV2:
             raise
 
 
-# Singleton instance
-audit_service_v2 = AuditServiceV2()
+# Singleton instance - lazy initialization
+_audit_service_v2: Optional[AuditServiceV2] = None
+
+
+def get_audit_service() -> AuditServiceV2:
+    """Get or create the singleton audit service instance."""
+    global _audit_service_v2
+    if _audit_service_v2 is None:
+        _audit_service_v2 = AuditServiceV2()
+    return _audit_service_v2
+
+
+# For backward compatibility
+audit_service_v2 = get_audit_service
