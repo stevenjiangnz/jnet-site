@@ -27,7 +27,7 @@ export default function SettingsContentV2() {
       try {
         const parsed = JSON5.parse(formatted);
         formatted = JSON5.stringify(parsed, null, 2);
-      } catch (e) {
+      } catch {
         // If parsing fails, use as-is
       }
     }
@@ -89,7 +89,7 @@ export default function SettingsContentV2() {
       try {
         JSON5.parse(value)
         setJsonError(null)
-      } catch (error) {
+      } catch {
         setJsonError('Invalid JSON5 format')
       }
     } else {
@@ -272,11 +272,11 @@ export default function SettingsContentV2() {
                   </div>
                   <div>
                     <dt className="inline font-mono text-blue-600 dark:text-blue-400">enabled_modules:</dt>
-                    <dd className="inline ml-2 text-gray-600 dark:text-gray-400">['stocks', 'charts', 'alerts']</dd>
+                    <dd className="inline ml-2 text-gray-600 dark:text-gray-400">[&apos;stocks&apos;, &apos;charts&apos;, &apos;alerts&apos;]</dd>
                   </div>
                   <div>
                     <dt className="inline font-mono text-blue-600 dark:text-blue-400">theme_settings:</dt>
-                    <dd className="inline ml-2 text-gray-600 dark:text-gray-400">'light' or 'dark'</dd>
+                    <dd className="inline ml-2 text-gray-600 dark:text-gray-400">&apos;light&apos; or &apos;dark&apos;</dd>
                   </div>
                 </dl>
               </div>
