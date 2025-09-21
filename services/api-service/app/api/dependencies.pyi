@@ -1,0 +1,6 @@
+from typing import Any, Dict, Optional
+
+async def get_current_user(token: str) -> Dict[str, Any]: ...
+async def get_current_user_optional(
+    token: Optional[str] = None,
+) -> Optional[Dict[str, Any]]: ...

@@ -6,9 +6,11 @@ import logging
 from typing import Any, Dict, List, Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.api.dependencies import get_current_user_optional
 from app.core.http_client import stock_data_client
+from app.models.audit import OperationResult, OperationType
 from app.models.symbol import (
     BulkDownloadRequest,
     BulkDownloadResponse,
@@ -17,6 +19,7 @@ from app.models.symbol import (
     SymbolListResponse,
     SymbolPriceResponse,
 )
+from app.services.audit_service import audit_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -36,28 +39,69 @@ async def list_symbols() -> SymbolListResponse:
 
 @router.post("/add")
 async def add_symbol(
-    symbol: str = Query(..., description="Stock symbol to add")
+    symbol: str = Query(..., description="Stock symbol to add"),
+    current_user: Optional[dict] = Depends(get_current_user_optional),
 ) -> Dict[str, Any]:
     """Add a new symbol by downloading its data."""
+    operator = current_user.get("email") if current_user else "system"
+
     try:
         response = await stock_data_client.get(
             f"/api/v1/download/{symbol.upper()}",
             params={"period": "max"},
             timeout=60.0,
         )
-        return response.json()  # type: ignore[no-any-return]
+        result = response.json()
+
+        # Log successful download
+        await audit_service.log_event(
+            operation_type=OperationType.STOCK_PRICE_DOWNLOAD,
+            result=OperationResult.SUCCESS,
+            operator=operator,
+            message=f"Successfully downloaded data for {symbol.upper()}",
+            extra_info={
+                "symbol": symbol.upper(),
+                "period": "max",
+                "records_count": result.get("records_added", 0),
+            },
+        )
+
+        return result  # type: ignore[no-any-return]
     except httpx.HTTPStatusError as e:
+        # Log failure
+        await audit_service.log_event(
+            operation_type=OperationType.STOCK_PRICE_DOWNLOAD,
+            result=OperationResult.FAILURE,
+            operator=operator,
+            message=f"Failed to download data for {symbol.upper()}: {str(e)}",
+            extra_info={"symbol": symbol.upper(), "error": str(e)},
+        )
+
         if e.response.status_code == 404:
             raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
         raise HTTPException(status_code=e.response.status_code, detail=str(e))
     except httpx.HTTPError as e:
+        # Log failure
+        await audit_service.log_event(
+            operation_type=OperationType.STOCK_PRICE_DOWNLOAD,
+            result=OperationResult.FAILURE,
+            operator=operator,
+            message=f"Failed to download data for {symbol.upper()}: {str(e)}",
+            extra_info={"symbol": symbol.upper(), "error": str(e)},
+        )
+
         logger.error(f"Error adding symbol {symbol}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to add symbol {symbol}")
 
 
 @router.post("/bulk-download", response_model=BulkDownloadResponse)
-async def bulk_download(request: BulkDownloadRequest) -> BulkDownloadResponse:
+async def bulk_download(
+    request: BulkDownloadRequest,
+    current_user: Optional[dict] = Depends(get_current_user_optional),
+) -> BulkDownloadResponse:
     """Download data for multiple symbols with date range."""
+    operator = current_user.get("email") if current_user else "system"
+
     try:
         response = await stock_data_client.post(
             "/api/v1/bulk-download",
@@ -65,8 +109,36 @@ async def bulk_download(request: BulkDownloadRequest) -> BulkDownloadResponse:
             timeout=300.0,  # 5 minutes for bulk operations
         )
         data = response.json()
-        return BulkDownloadResponse(**data)
+        result = BulkDownloadResponse(**data)
+
+        # Log successful bulk download
+        await audit_service.log_event(
+            operation_type=OperationType.STOCK_PRICE_DOWNLOAD,
+            result=OperationResult.SUCCESS,
+            operator=operator,
+            message=f"Bulk download completed for {len(request.symbols)} symbols",
+            extra_info={
+                "symbols": request.symbols,
+                "start_date": (
+                    request.start_date.isoformat() if request.start_date else None
+                ),
+                "end_date": request.end_date.isoformat() if request.end_date else None,
+                "success_count": result.successful,
+                "failed_count": result.failed,
+            },
+        )
+
+        return result
     except httpx.HTTPError as e:
+        # Log failure
+        await audit_service.log_event(
+            operation_type=OperationType.STOCK_PRICE_DOWNLOAD,
+            result=OperationResult.FAILURE,
+            operator=operator,
+            message=f"Bulk download failed: {str(e)}",
+            extra_info={"symbols": request.symbols, "error": str(e)},
+        )
+
         logger.error(f"Error in bulk download: {e}")
         raise HTTPException(status_code=500, detail="Failed to perform bulk download")
 
@@ -104,8 +176,12 @@ async def delete_symbols(request: DeleteSymbolsRequest) -> Dict[str, str]:
 
 
 @router.get("/{symbol}/price", response_model=SymbolPriceResponse)
-async def get_symbol_price(symbol: str) -> SymbolPriceResponse:
+async def get_symbol_price(
+    symbol: str, current_user: Optional[dict] = Depends(get_current_user_optional)
+) -> SymbolPriceResponse:
     """Get latest price for a symbol."""
+    operator = current_user.get("email") if current_user else "system"
+
     try:
         response = await stock_data_client.get(f"/api/v1/data/{symbol.upper()}/latest")
         data = response.json()
@@ -113,6 +189,16 @@ async def get_symbol_price(symbol: str) -> SymbolPriceResponse:
         # Transform the response to our model
         if isinstance(data, list) and len(data) > 0:
             latest = data[0]
+
+            # Log successful data retrieval
+            await audit_service.log_event(
+                operation_type=OperationType.STOCK_DATA_RETRIEVAL,
+                result=OperationResult.SUCCESS,
+                operator=operator,
+                message=f"Retrieved price data for {symbol.upper()}",
+                extra_info={"symbol": symbol.upper(), "type": "price"},
+            )
+
             return SymbolPriceResponse(
                 symbol=symbol.upper(),
                 price=latest.get("close"),

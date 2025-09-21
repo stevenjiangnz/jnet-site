@@ -17,6 +17,7 @@ export function MobileMenu({ user }: MobileMenuProps) {
     { href: "/symbols", label: "Symbols" },
     { href: "/screen", label: "Screen" },
     { href: "/analysis", label: "Analysis" },
+    { href: "/events", label: "Events" },
     { href: "/settings", label: "Settings" },
   ];
 

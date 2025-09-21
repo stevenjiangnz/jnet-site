@@ -29,6 +29,9 @@ Personal public site with microservices architecture, built with modern web tech
   - JSON5 format support with preserved comments
   - See [Configuration Management](services/api-service/docs/CONFIGURATION.md) for architecture
 - **Modern UI**: Responsive design with dark mode support
+- **Audit Events**: Comprehensive audit trail system with performance-optimized logging
+  - Fire-and-forget pattern for non-blocking operations
+  - See [Audit Events Documentation](docs/AUDIT_EVENTS.md) for details
 
 ## 🚀 Quick Start
 
