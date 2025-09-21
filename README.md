@@ -24,8 +24,10 @@ Personal public site with microservices architecture, built with modern web tech
 - **System Configuration**: Centralized settings management through UI
   - Control data loading parameters (years to load, chart data points)
   - Manage API rate limits and feature flags
-  - Admin operations bypass Row Level Security using service role key
-  - See [Settings Page](docs/SETTINGS_PAGE.md) for implementation details
+  - Redis caching with Upstash for optimal performance
+  - Configuration served through API service for centralized management
+  - JSON5 format support with preserved comments
+  - See [Configuration Management](services/api-service/docs/CONFIGURATION.md) for architecture
 - **Modern UI**: Responsive design with dark mode support
 
 ## 🚀 Quick Start

@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     alerts,
     analysis,
+    app_config,
     backtest,
     health,
     scan,
@@ -25,3 +26,4 @@ api_router.include_router(symbols.router, prefix="/symbols", tags=["symbols"])
 api_router.include_router(
     system_config.router, prefix="/system-config", tags=["system-config"]
 )
+api_router.include_router(app_config.router, tags=["app-config"])

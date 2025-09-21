@@ -1,6 +1,8 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { getApiConfig } from '@/utils/api-config';
+import { getAppConfig } from '@/utils/app-config';
+import { getAppConfigFromApi } from '@/utils/app-config-v2';
 
 export async function GET(
   request: Request,
@@ -32,37 +34,33 @@ export async function GET(
     const endDate = searchParams.get('end_date');
     let limit = searchParams.get('limit') || '500';
     
-    // If use_config is true, fetch configuration values
+    // If use_config is true, fetch configuration values from app_config
     if (searchParams.get('use_config') === 'true') {
       try {
-        // Fetch both configurations in parallel
-        const [yearsResponse, limitResponse] = await Promise.all([
-          !startDate ? fetch(
-            `${apiConfig.baseUrl}/api/v1/system-config/data_loading/symbol_years_to_load`,
-            { headers: apiConfig.headers }
-          ) : Promise.resolve(null),
-          fetch(
-            `${apiConfig.baseUrl}/api/v1/system-config/data_loading/chart_max_data_points`,
-            { headers: apiConfig.headers }
-          )
-        ]);
+        // Try to get config from API service first
+        let config = await getAppConfigFromApi();
         
-        // Process years config if needed
-        if (yearsResponse && yearsResponse.ok) {
-          const yearsData = await yearsResponse.json();
-          const yearsConfig = yearsData.config?.value?.default || 5;
-          
-          // Calculate start date based on config
-          const endDateObj = endDate ? new Date(endDate) : new Date();
-          const startDateObj = new Date(endDateObj);
-          startDateObj.setFullYear(startDateObj.getFullYear() - yearsConfig);
-          startDate = startDateObj.toISOString().split('T')[0];
+        // Fallback to direct database access if API fails
+        if (!config) {
+          config = await getAppConfig();
         }
         
-        // Process limit config
-        if (limitResponse && limitResponse.ok) {
-          const limitData = await limitResponse.json();
-          limit = String(limitData.config?.value?.default || 2500);
+        if (config) {
+          // Get years config if start date not provided
+          if (!startDate && config.data_loading?.symbol_years_to_load) {
+            const yearsConfig = config.data_loading.symbol_years_to_load;
+            
+            // Calculate start date based on config
+            const endDateObj = endDate ? new Date(endDate) : new Date();
+            const startDateObj = new Date(endDateObj);
+            startDateObj.setFullYear(startDateObj.getFullYear() - yearsConfig);
+            startDate = startDateObj.toISOString().split('T')[0];
+          }
+          
+          // Get limit config
+          if (config.data_loading?.chart_max_data_points) {
+            limit = String(config.data_loading.chart_max_data_points);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch configuration, using defaults:', error);

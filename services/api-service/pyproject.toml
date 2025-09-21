@@ -28,6 +28,7 @@ dependencies = [
     "mypy>=1.8.0",
     "ipykernel>=6.28.0",
     "supabase>=2.19.0",
+    "upstash-redis>=1.4.0",
 ]
 
 [tool.uv]

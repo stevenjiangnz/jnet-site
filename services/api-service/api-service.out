@@ -1,69 +1,107 @@
+Starting API Service on http://localhost:8002
+API Documentation: http://localhost:8002/docs
+
 INFO:     Will watch for changes in these directories: ['/home/sjiang/devlocal/jnet-site/services/api-service']
-INFO:     Uvicorn running on http://127.0.0.1:8002 (Press CTRL+C to quit)
-INFO:     Started reloader process [196611] using StatReload
-INFO:     Started server process [196615]
+INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+INFO:     Started reloader process [916472] using StatReload
+INFO:     Started server process [916474]
 INFO:     Waiting for application startup.
 INFO:app.main:Starting API Service in development mode
+INFO:app.main:Version: 0.0.8-fix
+INFO:app.main:Stock Data Service URL: http://localhost:9000
 INFO:     Application startup complete.
-WARNING:app.middleware.auth:Invalid API key attempt from 127.0.0.1
-INFO:     127.0.0.1:38430 - "GET /api/v1/symbols/list HTTP/1.1" 401 Unauthorized
-INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/list "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:52610 - "GET /api/v1/symbols/list HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'app/main.py'. Reloading...
+ERROR:app.utils.redis_client:Failed to initialize Redis client: Redis URL must specify one of the following schemes (redis://, rediss://, unix://)
+INFO:httpx:HTTP Request: GET https://lwksceirjogxlhohbkcs.supabase.co/rest/v1/app_config?select=config "HTTP/2 200 OK"
+INFO:     127.0.0.1:43664 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'app/utils/redis_client.py'. Reloading...
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:app.main:Shutting down API Service
 INFO:     Application shutdown complete.
-INFO:     Finished server process [196615]
-INFO:     Started server process [197996]
+INFO:     Finished server process [916474]
+INFO:     Started server process [919170]
 INFO:     Waiting for application startup.
 INFO:app.main:Starting API Service in development mode
+INFO:app.main:Version: 0.0.8-fix
+INFO:app.main:Stock Data Service URL: http://localhost:9000
 INFO:     Application startup complete.
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.utils.redis_client:Redis client initialized successfully
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://lwksceirjogxlhohbkcs.supabase.co/rest/v1/app_config?select=config "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Updated app config cache
+INFO:     127.0.0.1:39360 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Returning app config from cache
+INFO:     127.0.0.1:59126 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Returning app config from cache
+INFO:     127.0.0.1:51470 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Returning app config from cache
+INFO:     127.0.0.1:51470 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Returning app config from cache
+INFO:     127.0.0.1:33744 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Returning app config from cache
+INFO:     127.0.0.1:33744 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Returning app config from cache
+INFO:     127.0.0.1:33744 - "GET /api/v1/app-config HTTP/1.1" 200 OK
 INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/list "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:54266 - "GET /api/v1/symbols/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33744 - "GET /api/v1/symbols/list HTTP/1.1" 200 OK
 INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/list "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59230 - "GET /api/v1/symbols/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33744 - "GET /api/v1/symbols/list HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/catalog "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:33744 - "GET /api/v1/stock/catalog/symbol/AMZN HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Returning app config from cache
+INFO:     127.0.0.1:33756 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/data/AMZN?start_date=2020-09-21&end_date=2025-09-21&interval=1d "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/data/AMZN?start_date=2018-09-21&end_date=2025-09-21&interval=1d "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:33744 - "GET /api/v1/stock/AMZN/data?interval=1d&limit=1825&start_date=2020-09-21&end_date=2025-09-21 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:33764 - "GET /api/v1/stock/AMZN/data?interval=1d&limit=2500&start_date=2018-09-21&end_date=2025-09-21 HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/data/AMZN?start_date=2020-09-21&end_date=2025-09-21&interval=1d "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:33744 - "GET /api/v1/stock/AMZN/data?interval=1d&limit=1825&start_date=2020-09-21&end_date=2025-09-21 HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Returning app config from cache
+INFO:     127.0.0.1:55182 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Returning app config from cache
+INFO:     127.0.0.1:55182 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://lwksceirjogxlhohbkcs.supabase.co/rest/v1/app_config?select=id%2Cversion "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: PATCH https://lwksceirjogxlhohbkcs.supabase.co/rest/v1/app_config?id=eq.ec88c6a8-a51b-4c26-91ad-c5f31ad7c743 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Invalidated app config cache
+INFO:     127.0.0.1:55186 - "PUT /api/v1/app-config HTTP/1.1" 200 OK
 INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/list "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59230 - "GET /api/v1/symbols/list HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55186 - "GET /api/v1/symbols/list HTTP/1.1" 200 OK
 INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/list "HTTP/1.1 200 OK"
-INFO:     127.0.0.1:59230 - "GET /api/v1/symbols/list HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'app/main.py'. Reloading...
+INFO:     127.0.0.1:55186 - "GET /api/v1/symbols/list HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/catalog "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:36436 - "GET /api/v1/stock/catalog/symbol/MSFT HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET https://lwksceirjogxlhohbkcs.supabase.co/rest/v1/app_config?select=config "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://sensible-fox-15727.upstash.io "HTTP/1.1 200 OK"
+INFO:app.api.v1.endpoints.app_config:Updated app config cache
+INFO:     127.0.0.1:54292 - "GET /api/v1/app-config HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/data/MSFT?start_date=2020-09-21&end_date=2025-09-21&interval=1d "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/data/MSFT?start_date=2020-09-21&end_date=2025-09-21&interval=1d "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:36436 - "GET /api/v1/stock/MSFT/data?interval=1d&limit=1825&start_date=2020-09-21&end_date=2025-09-21 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54296 - "GET /api/v1/stock/MSFT/data?interval=1d&limit=2500&start_date=2020-09-21&end_date=2025-09-21 HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET http://localhost:9000/api/v1/data/MSFT?start_date=2020-09-21&end_date=2025-09-21&interval=1d "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:36436 - "GET /api/v1/stock/MSFT/data?interval=1d&limit=1825&start_date=2020-09-21&end_date=2025-09-21 HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'app/api/v1/endpoints/app_config.py'. Reloading...
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:app.main:Shutting down API Service
 INFO:     Application shutdown complete.
-INFO:     Finished server process [197996]
-INFO:     Started server process [214870]
+INFO:     Finished server process [919170]
+INFO:     Started server process [924934]
 INFO:     Waiting for application startup.
 INFO:app.main:Starting API Service in development mode
-INFO:     Application startup complete.
-WARNING:  StatReload detected changes in 'app/config.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:Shutting down API Service
-INFO:     Application shutdown complete.
-INFO:     Finished server process [214870]
-INFO:     Started server process [228673]
-INFO:     Waiting for application startup.
-INFO:app.main:Starting API Service in development mode
-INFO:     Application startup complete.
-WARNING:  StatReload detected changes in 'app/services/stock_data.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:Shutting down API Service
-INFO:     Application shutdown complete.
-INFO:     Finished server process [228673]
-INFO:     Started server process [228708]
-INFO:     Waiting for application startup.
-INFO:app.main:Starting API Service in development mode
-INFO:     Application startup complete.
-WARNING:  StatReload detected changes in 'app/services/stock_data.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:Shutting down API Service
-INFO:     Application shutdown complete.
-INFO:     Finished server process [228708]
-INFO:     Started server process [228732]
-INFO:     Waiting for application startup.
-INFO:app.main:Starting API Service in development mode
+INFO:app.main:Version: 0.0.8-fix
+INFO:app.main:Stock Data Service URL: http://localhost:9000
 INFO:     Application startup complete.
