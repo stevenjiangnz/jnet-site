@@ -148,7 +148,7 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --service-account 506487697841-compute@developer.gserviceaccount.com \
-            --set-env-vars="ENVIRONMENT=production,LOG_LEVEL=INFO,API_KEY=${{ secrets.API_SERVICE_KEY }},STOCK_DATA_SERVICE_URL=${{ secrets.STOCK_DATA_SERVICE_URL }},STOCK_DATA_SERVICE_API_KEY=${{ secrets.STOCK_DATA_SERVICE_API_KEY }},VERSION=${{ needs.version.outputs.semVer }}" \
+            --set-env-vars="ENVIRONMENT=production,LOG_LEVEL=INFO,API_KEY=${{ secrets.API_SERVICE_KEY }},STOCK_DATA_SERVICE_URL=${{ secrets.STOCK_DATA_SERVICE_URL }},STOCK_DATA_SERVICE_API_KEY=${{ secrets.STOCK_DATA_SERVICE_API_KEY }},SUPABASE_URL=${{ secrets.SUPABASE_URL }},SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }},VERSION=${{ needs.version.outputs.semVer }}" \
             --memory 512Mi \
             --cpu 1 \
             --port 8002

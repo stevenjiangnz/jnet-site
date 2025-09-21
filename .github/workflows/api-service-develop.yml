@@ -96,7 +96,7 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --service-account 506487697841-compute@developer.gserviceaccount.com \
-            --set-env-vars="ENVIRONMENT=development,LOG_LEVEL=DEBUG,API_KEY=${{ secrets.API_SERVICE_KEY }},STOCK_DATA_SERVICE_URL=${{ secrets.STOCK_DATA_SERVICE_URL || 'https://stock-data-service-506487697841.us-central1.run.app' }},STOCK_DATA_SERVICE_API_KEY=${{ secrets.STOCK_DATA_SERVICE_API_KEY }}" \
+            --set-env-vars="ENVIRONMENT=development,LOG_LEVEL=DEBUG,API_KEY=${{ secrets.API_SERVICE_KEY }},STOCK_DATA_SERVICE_URL=${{ secrets.STOCK_DATA_SERVICE_URL || 'https://stock-data-service-506487697841.us-central1.run.app' }},STOCK_DATA_SERVICE_API_KEY=${{ secrets.STOCK_DATA_SERVICE_API_KEY }},SUPABASE_URL=${{ secrets.SUPABASE_URL }},SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             --memory 512Mi \
             --cpu 1 \
             --port 8002

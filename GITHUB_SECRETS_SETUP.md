@@ -1,40 +1,48 @@
-# GitHub Secrets Setup for CI/CD
+# GitHub Secrets Setup for Supabase Integration
 
-## Required GitHub Secrets
+## Required Secrets to Add
 
-To deploy the application with Supabase authentication via GitHub Actions, you need to add the following secrets to your GitHub repository:
+You need to add these secrets to your GitHub repository for the API service to work with Supabase in Cloud Run:
 
-### 1. Supabase Configuration (Required)
-- **`NEXT_PUBLIC_SUPABASE_URL`**: Your Supabase project URL
-  - Value: `https://lwksceirjogxlhohbkcs.supabase.co`
-- **`NEXT_PUBLIC_SUPABASE_ANON_KEY`**: Your Supabase anonymous key
-  - Value: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3a3NjZWlyam9neGxob2hia2NzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MDk1MzgsImV4cCI6MjA3Mjk4NTUzOH0.c1W743KiBjCyTCmYUS9Xa2aWVRqqw3eg4oR5ZvA6SB8`
-
-### 2. Docker Hub (Already configured)
-- **`DOCKER_HUB_TOKEN`**: Your Docker Hub access token
-- **`DOCKER_USERNAME`**: Your Docker Hub username (optional, defaults to 'stevenjiangnz')
-
-### 3. Google Cloud Platform (Already configured)
-- **`GCP_SA_KEY`**: Service account JSON key for deployment
-- **`GCP_PROJECT_ID`**: Your Google Cloud project ID
-
-## How to Add GitHub Secrets
-
-1. Go to your repository on GitHub
-2. Click on **Settings** → **Secrets and variables** → **Actions**
+### 1. Navigate to GitHub Secrets
+1. Go to your repository: https://github.com/[your-username]/jnet-site
+2. Click **Settings** → **Secrets and variables** → **Actions**
 3. Click **New repository secret**
-4. Add each secret with its name and value
 
-## Important Notes
+### 2. Add These Secrets
 
-- These secrets are used during the CI/CD build process to inject environment variables
-- The `NEXT_PUBLIC_*` variables are built into the frontend at build time
-- Never commit these values directly to your repository
-- The same values should be used for both development and production unless you have separate Supabase projects
+| Secret Name | Description | How to Get It |
+|------------|-------------|---------------|
+| `SUPABASE_URL` | Your Supabase project URL | `https://lwksceirjogxlhohbkcs.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key that bypasses RLS | Run: `supabase projects api-keys --project-ref lwksceirjogxlhohbkcs` and copy the service_role key |
 
-## Verifying the Setup
+### 3. Optional: Environment-Specific Secrets
 
-After adding the secrets, your next push to `develop` or `main` branch will:
-1. Build the Docker image with Supabase configuration
-2. Deploy to Google Cloud Run with the environment variables set
-3. The authentication should work in the deployed application
+If you want different Supabase projects for development and production, you can use environment-specific secrets:
+
+#### For Development Environment:
+- Go to **Settings** → **Environments** → **development**
+- Add environment-specific secrets:
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+
+#### For Production Environment:
+- Go to **Settings** → **Environments** → **production**
+- Add environment-specific secrets:
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+
+## Security Best Practices
+
+⚠️ **IMPORTANT**: 
+- Never commit these keys to your repository
+- The service role key bypasses all Row Level Security
+- Only use it in backend services (Cloud Run), never in frontend code
+- Rotate keys immediately if compromised
+
+## Verification
+
+After adding the secrets, you can verify they're set by:
+1. Triggering a deployment
+2. Checking the Cloud Run service environment variables in GCP Console
+3. Testing the API endpoints that interact with Supabase
