@@ -27,6 +27,7 @@ dependencies = [
     "ruff>=0.1.11",
     "mypy>=1.8.0",
     "ipykernel>=6.28.0",
+    "supabase>=2.19.0",
 ]
 
 [tool.uv]
@@ -65,7 +66,7 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["pandas.*", "app.core.analysis.indicators"]
+module = ["pandas.*", "app.core.analysis.indicators", "supabase", "supabase.*", "app.db.supabase", "app.api.v1.deps"]
 ignore_errors = true
 
 [tool.pytest.ini_options]

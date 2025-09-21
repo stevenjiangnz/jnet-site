@@ -89,7 +89,8 @@ class SystemConfigService:
         try:
             update_data = {k: v for k, v in update.dict().items() if v is not None}
 
-            response = (
+            # Update the configuration
+            (
                 self.supabase.table("system_config")
                 .update(update_data)
                 .eq("category", category)
@@ -97,11 +98,9 @@ class SystemConfigService:
                 .execute()
             )
 
-            logger.info(f"Update response for {category}/{key}: {response.data}")
-            if response.data:
-                return SystemConfig(**response.data[0])
-
-            # If no data returned, fetch the updated config
+            # The Supabase Python client doesn't return updated data by default due to RLS policies
+            # when using anon keys. This is a known limitation. We fetch the updated record separately.
+            # To properly fix this, the API service should use the service role key instead of anon key.
             return await self.get_config(category, key)
         except Exception as e:
             logger.error(f"Error updating config {category}/{key}: {str(e)}")
@@ -110,7 +109,7 @@ class SystemConfigService:
     async def delete_config(self, category: str, key: str) -> bool:
         """Delete a system configuration (soft delete by setting is_active to false)."""
         try:
-            response = (
+            (
                 self.supabase.table("system_config")
                 .update({"is_active": False})
                 .eq("category", category)
@@ -118,7 +117,9 @@ class SystemConfigService:
                 .execute()
             )
 
-            return len(response.data) > 0
+            # Check if any row was updated by fetching the record
+            deleted_config = await self.get_config(category, key)
+            return deleted_config is not None and not deleted_config.is_active
         except Exception as e:
             logger.error(f"Error deleting config {category}/{key}: {str(e)}")
             raise

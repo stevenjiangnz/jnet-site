@@ -255,16 +255,13 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     setError(null);
 
     try {
-      // Calculate date range (5 years of data)
+      // Use configuration for date range
       const endDate = new Date();
-      const startDate = new Date();
-      startDate.setFullYear(startDate.getFullYear() - 5);
-
+      
       const params = new URLSearchParams({
         interval: '1d',
-        start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],
-        limit: '1825'  // 5 years worth of trading days (365 * 5)
+        use_config: 'true'  // Tell API to use configured years and limit
       });
 
       // Only log in development

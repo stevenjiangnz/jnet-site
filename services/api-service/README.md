@@ -115,3 +115,25 @@ Deploy to production:
 - `GET /api/v1/alerts` - List alerts
 - `PUT /api/v1/alerts/{id}` - Update alert
 - `DELETE /api/v1/alerts/{id}` - Delete alert
+
+### System Configuration
+- `GET /api/v1/system-config` - List all configurations
+- `GET /api/v1/system-config/{category}/{key}` - Get specific configuration
+- `POST /api/v1/system-config` - Create configuration
+- `PUT /api/v1/system-config/{category}/{key}` - Update configuration
+- `DELETE /api/v1/system-config/{category}/{key}` - Delete configuration (soft delete)
+
+## Known Issues
+
+### Supabase RLS Limitation
+
+The system_config table has Row Level Security (RLS) enabled with the following policies:
+- **Read**: Anyone can read configurations
+- **Write**: Only users with 'admin' role can modify configurations
+
+Currently, the API service uses an anonymous key which respects RLS policies. This causes:
+- Update operations to appear successful (HTTP 200) but not actually modify data
+- The Supabase client to return empty arrays `[]` on updates
+- The service to fetch data separately after updates as a workaround
+
+**To fix**: Replace the `SUPABASE_SERVICE_ROLE_KEY` in `.env` with an actual service role key that bypasses RLS.
