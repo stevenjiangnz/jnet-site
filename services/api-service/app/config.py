@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     stock_data_service_url: str = "http://localhost:9000"
     stock_data_service_api_key: str = "dev-api-key"
     supabase_url: Optional[str] = None
-    supabase_service_key: Optional[str] = None
+    supabase_service_role_key: Optional[str] = None
 
     # Google Cloud Storage
     gcs_bucket_name: Optional[str] = None
