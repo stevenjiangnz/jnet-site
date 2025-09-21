@@ -115,3 +115,29 @@ Deploy to production:
 - `GET /api/v1/alerts` - List alerts
 - `PUT /api/v1/alerts/{id}` - Update alert
 - `DELETE /api/v1/alerts/{id}` - Delete alert
+
+### System Configuration
+- `GET /api/v1/system-config` - List all configurations
+- `GET /api/v1/system-config/{category}/{key}` - Get specific configuration
+- `POST /api/v1/system-config` - Create configuration
+- `PUT /api/v1/system-config/{category}/{key}` - Update configuration
+- `DELETE /api/v1/system-config/{category}/{key}` - Delete configuration (soft delete)
+
+## Configuration
+
+### Supabase Integration
+
+The API service uses Supabase for system configuration management. The service role key is used to bypass Row Level Security (RLS) for admin operations.
+
+**Required Environment Variables**:
+- `SUPABASE_URL`: Your Supabase project URL
+- `SUPABASE_SERVICE_ROLE_KEY`: Service role key that bypasses RLS (NOT the anon key)
+
+**For Local Development**:
+1. Copy `.env.example` to `.env`
+2. Update `SUPABASE_SERVICE_ROLE_KEY` with your service role key
+3. Get the key with: `supabase projects api-keys --project-ref YOUR_PROJECT_REF`
+
+**For Production (GitHub Actions)**:
+- These variables are configured as GitHub Secrets
+- They're automatically injected into Cloud Run during deployment

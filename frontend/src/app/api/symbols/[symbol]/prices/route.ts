@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { getApiConfig } from '@/utils/api-config';
+import { getAppConfigFromApi } from '@/utils/app-config-v2';
 
 export async function GET(
   request: Request,
@@ -28,9 +29,37 @@ export async function GET(
     
     // Get query parameters
     const interval = searchParams.get('interval') || '1d';
-    const startDate = searchParams.get('start_date');
+    let startDate = searchParams.get('start_date');
     const endDate = searchParams.get('end_date');
-    const limit = searchParams.get('limit') || '500';
+    let limit = searchParams.get('limit') || '500';
+    
+    // If use_config is true, fetch configuration values from app_config
+    if (searchParams.get('use_config') === 'true') {
+      try {
+        // Get config from API service
+        const config = await getAppConfigFromApi();
+        
+        if (config) {
+          // Get years config if start date not provided
+          if (!startDate && config.data_loading?.symbol_years_to_load) {
+            const yearsConfig = config.data_loading.symbol_years_to_load;
+            
+            // Calculate start date based on config
+            const endDateObj = endDate ? new Date(endDate) : new Date();
+            const startDateObj = new Date(endDateObj);
+            startDateObj.setFullYear(startDateObj.getFullYear() - yearsConfig);
+            startDate = startDateObj.toISOString().split('T')[0];
+          }
+          
+          // Get limit config
+          if (config.data_loading?.chart_max_data_points) {
+            limit = String(config.data_loading.chart_max_data_points);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch configuration, using defaults:', error);
+      }
+    }
     
     // Build query string
     const queryParams = new URLSearchParams({

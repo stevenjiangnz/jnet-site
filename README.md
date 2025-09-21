@@ -21,6 +21,13 @@ Personal public site with microservices architecture, built with modern web tech
   - See [Symbol Catalog Display](docs/SYMBOL_CATALOG_DISPLAY.md) for details
 - **Price Data**: Historical EOD data with automatic downloads from Yahoo Finance
 - **Google Cloud Integration**: Secure storage and data management with GCS
+- **System Configuration**: Centralized settings management through UI
+  - Control data loading parameters (years to load, chart data points)
+  - Manage API rate limits and feature flags
+  - Redis caching with Upstash for optimal performance
+  - Configuration served through API service for centralized management
+  - JSON5 format support with preserved comments
+  - See [Configuration Management](services/api-service/docs/CONFIGURATION.md) for architecture
 - **Modern UI**: Responsive design with dark mode support
 
 ## 🚀 Quick Start
@@ -80,7 +87,8 @@ jnet-site/
 ├── .github/                  # GitHub Actions workflows
 ├── docs/                     # Documentation
 │   ├── SUPABASE_SETUP.md    # Supabase configuration guide
-│   └── SUPABASE_MULTI_ENV_SETUP.md  # Multi-environment setup guide
+│   ├── SUPABASE_MULTI_ENV_SETUP.md  # Multi-environment setup guide
+│   └── SETTINGS_PAGE.md     # Settings page implementation guide
 └── docker-compose.yml        # Local development orchestration
 ```
 
