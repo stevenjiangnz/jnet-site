@@ -105,3 +105,15 @@ INFO:app.main:Starting API Service in development mode
 INFO:app.main:Version: 0.0.8-fix
 INFO:app.main:Stock Data Service URL: http://localhost:9000
 INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'app/api/v1/endpoints/app_config.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:Shutting down API Service
+INFO:     Application shutdown complete.
+INFO:     Finished server process [924934]
+INFO:     Started server process [932570]
+INFO:     Waiting for application startup.
+INFO:app.main:Starting API Service in development mode
+INFO:app.main:Version: 0.0.8-fix
+INFO:app.main:Stock Data Service URL: http://localhost:9000
+INFO:     Application startup complete.

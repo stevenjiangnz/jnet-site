@@ -40,7 +40,8 @@ async def get_config_from_db() -> Optional[Dict[str, Any]]:
         response = supabase.table("app_config").select("config").single().execute()
 
         if response.data:
-            return response.data.get("config")
+            config = response.data.get("config")
+            return config if isinstance(config, dict) else None
         return None
     except Exception as e:
         logger.error(f"Error fetching config from database: {str(e)}")
