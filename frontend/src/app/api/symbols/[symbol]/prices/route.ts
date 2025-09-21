@@ -1,7 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { getApiConfig } from '@/utils/api-config';
-import { getAppConfig } from '@/utils/app-config';
 import { getAppConfigFromApi } from '@/utils/app-config-v2';
 
 export async function GET(
@@ -37,13 +36,8 @@ export async function GET(
     // If use_config is true, fetch configuration values from app_config
     if (searchParams.get('use_config') === 'true') {
       try {
-        // Try to get config from API service first
-        let config = await getAppConfigFromApi();
-        
-        // Fallback to direct database access if API fails
-        if (!config) {
-          config = await getAppConfig();
-        }
+        // Get config from API service
+        const config = await getAppConfigFromApi();
         
         if (config) {
           // Get years config if start date not provided
