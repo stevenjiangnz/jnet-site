@@ -152,7 +152,7 @@ export default function EventsContent() {
   };
 
   const getResultIcon = (result: string) => {
-    switch (result) {
+    switch (result.toLowerCase()) {
       case 'success':
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'failure':
@@ -363,8 +363,8 @@ export default function EventsContent() {
                       <div className="flex items-center gap-2">
                         {getResultIcon(event.result)}
                         <span className={`text-sm ${
-                          event.result === 'success' ? 'text-green-500' :
-                          event.result === 'failure' ? 'text-red-500' :
+                          event.result.toLowerCase() === 'success' ? 'text-green-500' :
+                          event.result.toLowerCase() === 'failure' ? 'text-red-500' :
                           'text-yellow-500'
                         }`}>
                           {event.result}

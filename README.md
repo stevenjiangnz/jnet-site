@@ -297,6 +297,29 @@ Deploy to Google Cloud Run:
 - **Deployment**: Google Cloud Run
 - **CI/CD**: GitHub Actions with automatic semantic versioning
 
+## 🔧 Troubleshooting
+
+### Port Already in Use
+
+If you encounter "address already in use" errors when starting services:
+
+```bash
+# For frontend (port 3100)
+sudo lsof -ti:3100 | xargs -r sudo kill -9
+# Or
+sudo fuser -k 3100/tcp
+
+# For API service (port 8002)
+sudo lsof -ti:8002 | xargs -r sudo kill -9
+
+# For stock data service (port 9000)
+sudo lsof -ti:9000 | xargs -r sudo kill -9
+
+# Kill all Next.js processes
+pkill -f "next dev"
+pkill -f next-server
+```
+
 ## 📄 License
 
 This project is licensed under the MIT License.

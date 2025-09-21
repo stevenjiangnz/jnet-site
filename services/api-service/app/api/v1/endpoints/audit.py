@@ -24,9 +24,7 @@ async def get_audit_events(
         None, description="End date for filtering events"
     ),
     operation_type: Optional[str] = Query(None, description="Filter by operation type"),
-    result: Optional[OperationResult] = Query(
-        None, description="Filter by result status"
-    ),
+    result: Optional[str] = Query(None, description="Filter by result status"),
     source: Optional[EventSource] = Query(None, description="Filter by event source"),
     limit: int = Query(100, ge=1, le=1000, description="Number of events to return"),
     offset: int = Query(0, ge=0, description="Number of events to skip"),
@@ -37,11 +35,19 @@ async def get_audit_events(
     Default returns events from the last 7 days.
     """
     try:
+        # Convert result string to OperationResult enum if provided
+        result_enum = None
+        if result:
+            # Handle case-insensitive matching
+            result_lower = result.lower()
+            if result_lower in [e.value for e in OperationResult]:
+                result_enum = OperationResult(result_lower)
+
         filter_params = AuditEventFilter(
             start_date=start_date,
             end_date=end_date,
             operation_type=operation_type,
-            result=result,
+            result=result_enum,
             source=source,
             limit=limit,
             offset=offset,

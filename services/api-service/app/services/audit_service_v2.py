@@ -165,7 +165,8 @@ class AuditServiceV2:
                 query = query.eq("operation_type", filter_params.operation_type)
 
             if filter_params.result:
-                query = query.eq("result", filter_params.result)
+                query = query.eq("result", filter_params.result.value)
+                logger.info(f"Filtering by result: {filter_params.result.value}")
 
             if filter_params.source:
                 query = query.eq("source", filter_params.source)
