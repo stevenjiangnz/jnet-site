@@ -29,6 +29,9 @@ Personal public site with microservices architecture, built with modern web tech
   - JSON5 format support with preserved comments
   - See [Configuration Management](services/api-service/docs/CONFIGURATION.md) for architecture
 - **Modern UI**: Responsive design with dark mode support
+- **Audit Events**: Comprehensive audit trail system with performance-optimized logging
+  - Fire-and-forget pattern for non-blocking operations
+  - See [Audit Events Documentation](docs/AUDIT_EVENTS.md) for details
 
 ## 🚀 Quick Start
 
@@ -293,6 +296,29 @@ Deploy to Google Cloud Run:
 - **Containerization**: Docker
 - **Deployment**: Google Cloud Run
 - **CI/CD**: GitHub Actions with automatic semantic versioning
+
+## 🔧 Troubleshooting
+
+### Port Already in Use
+
+If you encounter "address already in use" errors when starting services:
+
+```bash
+# For frontend (port 3100)
+sudo lsof -ti:3100 | xargs -r sudo kill -9
+# Or
+sudo fuser -k 3100/tcp
+
+# For API service (port 8002)
+sudo lsof -ti:8002 | xargs -r sudo kill -9
+
+# For stock data service (port 9000)
+sudo lsof -ti:9000 | xargs -r sudo kill -9
+
+# Kill all Next.js processes
+pkill -f "next dev"
+pkill -f next-server
+```
 
 ## 📄 License
 

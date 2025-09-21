@@ -4,6 +4,7 @@ from app.api.v1.endpoints import (
     alerts,
     analysis,
     app_config,
+    audit,
     backtest,
     health,
     scan,
@@ -27,3 +28,4 @@ api_router.include_router(
     system_config.router, prefix="/system-config", tags=["system-config"]
 )
 api_router.include_router(app_config.router, tags=["app-config"])
+api_router.include_router(audit.router, prefix="/audit", tags=["audit"])

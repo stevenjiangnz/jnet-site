@@ -18,6 +18,7 @@ export function Navbar({ user }: NavbarProps) {
     { href: "/symbols", label: "Symbols" },
     { href: "/screen", label: "Screen" },
     { href: "/analysis", label: "Analysis" },
+    { href: "/events", label: "Events" },
     { href: "/settings", label: "Settings" },
   ];
 

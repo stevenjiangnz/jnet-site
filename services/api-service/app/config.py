@@ -39,6 +39,11 @@ class Settings(BaseSettings):
     rate_limit_calls: int = 100
     rate_limit_period: int = 60
 
+    # Audit Logging
+    audit_logging_enabled: bool = True
+    audit_logging_async: bool = True
+    audit_logging_queue_size: int = 1000
+
     class Config:
         env_file = ".env"
         case_sensitive = False

@@ -19,7 +19,25 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Starting API Service in {settings.environment} mode")
     logger.info(f"Version: {getattr(settings, 'version', '0.0.8-fix')}")
     logger.info(f"Stock Data Service URL: {settings.stock_data_service_url}")
+
+    # Start audit service worker if enabled
+    if settings.audit_logging_enabled and settings.audit_logging_async:
+        from app.services.audit_service_v2 import get_audit_service
+
+        audit_service = get_audit_service()
+        await audit_service.start_worker()
+        logger.info("Audit service worker started")
+
     yield
+
+    # Stop audit service worker if running
+    if settings.audit_logging_enabled and settings.audit_logging_async:
+        from app.services.audit_service_v2 import get_audit_service
+
+        audit_service = get_audit_service()
+        await audit_service.stop_worker()
+        logger.info("Audit service worker stopped")
+
     logger.info("Shutting down API Service")
 
 
