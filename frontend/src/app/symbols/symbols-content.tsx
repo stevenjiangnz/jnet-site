@@ -271,7 +271,7 @@ export default function SymbolsPageContent() {
               <button
                 key={item.id}
                 onClick={() => setActiveView(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium symbol-menu-item ${
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium symbol-menu-item cursor-pointer ${
                   activeView === item.id ? 'active' : ''
                 }`}
               >
@@ -322,14 +322,14 @@ export default function SymbolsPageContent() {
                     setShowAddForm(true);
                     setSelectedSymbol(null);
                   }}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer"
                 >
                   <span className="text-lg">➕</span>
                   <span>Add New Symbol</span>
                 </button>
                 <button
                   onClick={togglePanelCollapse}
-                  className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors cursor-pointer"
                   title={isPanelCollapsed ? "Expand panels" : "Collapse panels"}
                 >
                   {isPanelCollapsed ? (
@@ -441,7 +441,7 @@ export default function SymbolsPageContent() {
                                 <button
                                   type="submit"
                                   disabled={!newSymbol.trim() || isAddingSymbol}
-                                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-colors flex items-center gap-2"
+                                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-colors flex items-center gap-2 cursor-pointer"
                                 >
                                   {isAddingSymbol ? (
                                     <>
@@ -460,7 +460,7 @@ export default function SymbolsPageContent() {
                                     setDownloadProgress(null);
                                   }}
                                   disabled={isAddingSymbol}
-                                  className="px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+                                  className="px-6 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                                 >
                                   Cancel
                                 </button>
@@ -545,7 +545,7 @@ export default function SymbolsPageContent() {
                               <button
                                 onClick={() => handleDownloadPrices(selectedSymbol)}
                                 disabled={downloadingSymbol === selectedSymbol}
-                                className="px-3 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed flex items-center justify-center transition-colors duration-200"
+                                className="px-3 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed flex items-center justify-center transition-colors duration-200 cursor-pointer"
                               >
                                 {downloadingSymbol === selectedSymbol ? (
                                   <>
@@ -565,7 +565,7 @@ export default function SymbolsPageContent() {
                               <button
                                 onClick={() => handleDeleteSymbol(selectedSymbol)}
                                 disabled={deletingSymbol === selectedSymbol}
-                                className="px-3 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed flex items-center justify-center"
+                                className="px-3 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
                               >
                                 {deletingSymbol === selectedSymbol ? (
                                   <>
@@ -581,7 +581,7 @@ export default function SymbolsPageContent() {
                               </button>
                               <button
                                 onClick={() => setShowPriceChart(!showPriceChart)}
-                                className="col-span-2 px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 flex items-center justify-center transition-colors duration-200"
+                                className="col-span-2 px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 flex items-center justify-center transition-colors duration-200 cursor-pointer"
                               >
                                 <span className="mr-1.5 text-sm">📊</span>
                                 <span className="text-xs">{showPriceChart ? 'Hide' : 'View'} Price Chart</span>
