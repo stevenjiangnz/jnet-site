@@ -3,7 +3,7 @@
 import pytest
 from datetime import date, datetime, timedelta
 from app.indicators.calculator import IndicatorCalculator
-from app.indicators.config import DEFAULT_INDICATORS
+from app.indicators.config import DEFAULT_INDICATORS, INDICATOR_MIN_PERIODS
 from app.indicators.models import IndicatorData, IndicatorValue
 from app.models.stock_data import (
     StockDataFile,
@@ -159,9 +159,17 @@ async def test_calculate_multiple_indicators(calculator, sample_stock_data):
         sample_stock_data, DEFAULT_INDICATORS
     )
 
-    # All default indicators should be calculated
-    for indicator_name in DEFAULT_INDICATORS:
+    # Check that indicators with sufficient data are calculated
+    # sample_stock_data has 60 data points
+    expected_indicators = [
+        ind for ind in DEFAULT_INDICATORS if INDICATOR_MIN_PERIODS.get(ind, 0) <= 60
+    ]
+
+    for indicator_name in expected_indicators:
         assert indicator_name in indicators
+
+    # SMA_200 should not be calculated due to insufficient data
+    assert "SMA_200" not in indicators
 
 
 @pytest.mark.asyncio

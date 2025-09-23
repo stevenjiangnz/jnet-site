@@ -6,6 +6,7 @@ import type Highcharts from 'highcharts';
 interface PriceChartProps {
   symbol: string;
   isVisible: boolean;
+  indicatorSet?: 'chart_basic' | 'chart_advanced' | 'chart_full';
 }
 
 interface PriceData {
@@ -17,6 +18,18 @@ interface PriceData {
   volume: number;
 }
 
+interface Indicators {
+  SMA_20?: { SMA: number[][] };
+  SMA_50?: { SMA: number[][] };
+  SMA_200?: { SMA: number[][] };
+  BB_20?: { upper: number[][], middle: number[][], lower: number[][] };
+  MACD?: { MACD: number[][], signal: number[][], histogram: number[][] };
+  RSI_14?: { RSI: number[][] };
+  ADX_14?: { ADX: number[][], 'DI+': number[][], 'DI-': number[][] };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any; // Allow string indexing for dynamic access
+}
+
 // Extend Window to include Highcharts
 declare global {
   interface Window {
@@ -24,7 +37,7 @@ declare global {
   }
 }
 
-export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
+export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_basic' }: PriceChartProps) {
   // Ensure this component only renders on the client
   const [isClient, setIsClient] = useState(false);
   
@@ -62,7 +75,7 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     };
   }, [isClient]);
 
-  const createChart = useCallback((ohlc: number[][], volume: number[][]) => {
+  const createChart = useCallback((ohlc: number[][], volume: number[][], indicators: Indicators | null) => {
     if (!chartContainerRef.current || !window.Highcharts) {
       console.error('[PriceChart] Missing requirements:', {
         hasContainer: !!chartContainerRef.current,
@@ -102,12 +115,366 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     // Choose your preferred configuration
     const dataGroupingConfig = disableDataGrouping; // Change this to use different options
 
+    // Define indicator colors
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const indicatorColors: Record<string, any> = {
+      SMA_20: '#FF6B6B',
+      SMA_50: '#4ECDC4',
+      SMA_200: '#45B7D1',
+      BB: {
+        upper: 'rgba(170,170,170,0.3)',
+        middle: '#888888',
+        lower: 'rgba(170,170,170,0.3)',
+        fill: 'rgba(170,170,170,0.1)'
+      },
+      MACD: {
+        macd: '#26A69A',
+        signal: '#EF5350',
+        histogram: '#78909C'
+      },
+      RSI: '#9C27B0',
+      ADX: {
+        adx: '#FF9800',
+        plusDI: '#4CAF50',
+        minusDI: '#F44336'
+      }
+    };
+
+    // Configure Y-axes based on indicators present
+    const yAxis = [];
+    const series = [];
+    
+    // Calculate panel heights based on indicator set
+    let priceHeight: number;
+    let volumeHeight: number; 
+    let macdHeight: number;
+    let rsiHeight = 0; // Default to 0 for sets without RSI
+    let adxHeight = 0; // Default to 0 for sets without ADX
+    const panelGap = 2; // Gap between panels in percentage
+    
+    // Reserve space for range selector at bottom (10% of chart height)
+    // const rangeSelecterHeight = 10;
+    // const availableHeight = 100 - rangeSelecterHeight;
+    
+    if (indicatorSet === 'chart_full') {
+      // Full: 5 panels total - distribute within available height
+      priceHeight = 28;
+      volumeHeight = 10;
+      macdHeight = 18;
+      rsiHeight = 10;
+      adxHeight = 18;  // Same as MACD
+    } else if (indicatorSet === 'chart_advanced') {
+      // Advanced: 4 panels total
+      priceHeight = 35;
+      volumeHeight = 12;
+      macdHeight = 20;
+      rsiHeight = 15;
+    } else {
+      // Basic: 3 panels total
+      priceHeight = 45;
+      volumeHeight = 15;
+      macdHeight = 25;
+    }
+    
+    let currentTop = 0;
+    
+    // Price panel (always present)
+    yAxis.push({
+      labels: {
+        align: 'right',
+        x: -3
+      },
+      title: {
+        text: 'Price'
+      },
+      height: `${priceHeight}%`,
+      lineWidth: 2
+    });
+    currentTop = priceHeight + panelGap;
+
+    // Volume panel (always present)
+    yAxis.push({
+      labels: {
+        align: 'right',
+        x: -3
+      },
+      title: {
+        text: 'Volume'
+      },
+      top: `${currentTop}%`,
+      height: `${volumeHeight}%`,
+      offset: 0,
+      lineWidth: 2
+    });
+    currentTop += volumeHeight + panelGap;
+
+    // MACD panel (if present)
+    if (indicators && indicators.MACD) {
+      yAxis.push({
+        labels: {
+          align: 'right',
+          x: -3
+        },
+        title: {
+          text: 'MACD'
+        },
+        top: `${currentTop}%`,
+        height: `${macdHeight}%`,
+        offset: 0,
+        lineWidth: 2
+      });
+      currentTop += macdHeight + panelGap;
+    }
+
+    // ADX panel (if present) - moved before RSI
+    if (indicators && indicators.ADX_14) {
+      yAxis.push({
+        labels: {
+          align: 'right',
+          x: -3
+        },
+        title: {
+          text: 'ADX'
+        },
+        top: `${currentTop}%`,
+        height: `${adxHeight}%`,
+        offset: 0,
+        lineWidth: 2
+      });
+      currentTop += adxHeight + panelGap;
+    }
+
+    // RSI panel (if present) - moved after ADX
+    if (indicators && indicators.RSI_14) {
+      yAxis.push({
+        labels: {
+          align: 'right',
+          x: -3
+        },
+        title: {
+          text: 'RSI'
+        },
+        top: `${currentTop}%`,
+        height: `${rsiHeight}%`,
+        offset: 0,
+        lineWidth: 2,
+        plotLines: [{
+          value: 70,
+          color: '#FF4444',
+          width: 1,
+          dashStyle: 'shortdash',
+          label: {
+            text: '70',
+            align: 'left'
+          }
+        }, {
+          value: 30,
+          color: '#44FF44',
+          width: 1,
+          dashStyle: 'shortdash',
+          label: {
+            text: '30',
+            align: 'left'
+          }
+        }]
+      });
+    }
+
+    // Add price series
+    series.push({
+      type: 'candlestick',
+      name: symbol,
+      data: ohlc,
+      yAxis: 0,
+      dataGrouping: dataGroupingConfig
+    });
+
+    // Add volume series
+    series.push({
+      type: 'column',
+      name: 'Volume',
+      data: volume,
+      yAxis: 1,
+      dataGrouping: dataGroupingConfig
+    });
+
+    // Add overlay indicators (on price panel)
+    if (indicators) {
+      // SMAs
+      ['SMA_20', 'SMA_50', 'SMA_200'].forEach(smaKey => {
+        if (indicators[smaKey] && indicators[smaKey].SMA) {
+          series.push({
+            type: 'line',
+            name: smaKey.replace('_', ' '),
+            data: indicators[smaKey].SMA,
+            yAxis: 0,
+            color: indicatorColors[smaKey],
+            lineWidth: 2,
+            dataGrouping: dataGroupingConfig
+          });
+        }
+      });
+
+      // Bollinger Bands
+      if (indicators.BB_20) {
+        // Add fill area
+        if (indicators.BB_20.upper && indicators.BB_20.lower) {
+          series.push({
+            type: 'arearange',
+            name: 'BB Bands',
+            data: indicators.BB_20.upper.map((point, i) => {
+              return [point[0], indicators.BB_20!.lower[i][1], point[1]];
+            }),
+            yAxis: 0,
+            lineWidth: 0,
+            linkedTo: ':previous',
+            color: indicatorColors.BB.upper,
+            fillOpacity: 0.1,
+            zIndex: 0,
+            dataGrouping: dataGroupingConfig
+          });
+        }
+
+        // Add middle line
+        if (indicators.BB_20.middle) {
+          series.push({
+            type: 'line',
+            name: 'BB Middle',
+            data: indicators.BB_20.middle,
+            yAxis: 0,
+            color: indicatorColors.BB.middle,
+            lineWidth: 1,
+            dashStyle: 'shortdot',
+            dataGrouping: dataGroupingConfig
+          });
+        }
+      }
+
+      // MACD (separate panel)
+      const macdYAxis = 2;
+      if (indicators.MACD) {
+        // MACD histogram
+        if (indicators.MACD.histogram) {
+          series.push({
+            type: 'column',
+            name: 'MACD Histogram',
+            data: indicators.MACD.histogram,
+            yAxis: macdYAxis,
+            color: indicatorColors.MACD.histogram,
+            dataGrouping: dataGroupingConfig
+          });
+        }
+
+        // MACD line
+        if (indicators.MACD.MACD) {
+          series.push({
+            type: 'line',
+            name: 'MACD',
+            data: indicators.MACD.MACD,
+            yAxis: macdYAxis,
+            color: indicatorColors.MACD.macd,
+            lineWidth: 2,
+            dataGrouping: dataGroupingConfig
+          });
+        }
+
+        // Signal line
+        if (indicators.MACD.signal) {
+          series.push({
+            type: 'line',
+            name: 'Signal',
+            data: indicators.MACD.signal,
+            yAxis: macdYAxis,
+            color: indicatorColors.MACD.signal,
+            lineWidth: 2,
+            dataGrouping: dataGroupingConfig
+          });
+        }
+      }
+
+      // ADX (separate panel) - moved before RSI
+      const adxYAxis = indicators.MACD ? 3 : 2;
+      if (indicators.ADX_14) {
+        // ADX line
+        if (indicators.ADX_14.ADX) {
+          series.push({
+            type: 'line',
+            name: 'ADX',
+            data: indicators.ADX_14.ADX,
+            yAxis: adxYAxis,
+            color: indicatorColors.ADX.adx,
+            lineWidth: 2,
+            dataGrouping: dataGroupingConfig
+          });
+        }
+
+        // DI+ line
+        if (indicators.ADX_14['DI+']) {
+          series.push({
+            type: 'line',
+            name: 'DI+',
+            data: indicators.ADX_14['DI+'],
+            yAxis: adxYAxis,
+            color: indicatorColors.ADX.plusDI,
+            lineWidth: 1,
+            dataGrouping: dataGroupingConfig
+          });
+        }
+
+        // DI- line
+        if (indicators.ADX_14['DI-']) {
+          series.push({
+            type: 'line',
+            name: 'DI-',
+            data: indicators.ADX_14['DI-'],
+            yAxis: adxYAxis,
+            color: indicatorColors.ADX.minusDI,
+            lineWidth: 1,
+            dataGrouping: dataGroupingConfig
+          });
+        }
+      }
+
+      // RSI (separate panel) - moved after ADX
+      const rsiYAxis = adxYAxis + (indicators.ADX_14 ? 1 : 0);
+      if (indicators.RSI_14 && indicators.RSI_14.RSI) {
+        series.push({
+          type: 'line',
+          name: 'RSI',
+          data: indicators.RSI_14.RSI,
+          yAxis: rsiYAxis,
+          color: indicatorColors.RSI,
+          lineWidth: 2,
+          dataGrouping: dataGroupingConfig
+        });
+      }
+    }
+
+    // Calculate dynamic chart height based on panels and indicator set
+    let chartHeight = 400; // Base height for price and volume
+    
+    if (indicatorSet === 'chart_basic') {
+      // Basic: Price + Volume + MACD
+      chartHeight = 600;
+    } else if (indicatorSet === 'chart_advanced') {
+      // Advanced: Price + Volume + MACD + RSI
+      chartHeight = 750;
+    } else if (indicatorSet === 'chart_full') {
+      // Full: Price + Volume + MACD + RSI + ADX
+      chartHeight = 900;
+    }
+    
+    // Add extra padding for better spacing
+    chartHeight += 50;
+
     // Create the chart
     try {
-      chartRef.current = window.Highcharts.stockChart(chartContainerRef.current, {
+      // Type assertion to satisfy Highcharts API  
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      chartRef.current = (window.Highcharts as any).stockChart(chartContainerRef.current!, {
         chart: {
           backgroundColor: '#ffffff',
-          height: 600
+          height: chartHeight
         },
 
         rangeSelector: {
@@ -141,50 +508,28 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
           text: `${symbol} Stock Price`
         },
 
-        yAxis: [{
-          labels: {
-            align: 'right',
-            x: -3
-          },
-          title: {
-            text: 'OHLC'
-          },
-          height: '60%',
-          lineWidth: 2
-        }, {
-          labels: {
-            align: 'right',
-            x: -3
-          },
-          title: {
-            text: 'Volume'
-          },
-          top: '65%',
-          height: '35%',
-          offset: 0,
-          lineWidth: 2
-        }],
+        yAxis: yAxis,
 
-        series: [{
-          type: 'candlestick',
-          name: symbol,
-          data: ohlc,
-          dataGrouping: dataGroupingConfig
-        }, {
-          type: 'column',
-          name: 'Volume',
-          data: volume,
-          yAxis: 1,
-          dataGrouping: dataGroupingConfig
-        }]
+        series: series,
+
+        legend: {
+          enabled: true,
+          align: 'center',
+          verticalAlign: 'bottom',
+          layout: 'horizontal'
+        },
+
+        tooltip: {
+          split: true
+        }
       });
     } catch (error) {
       console.error('[PriceChart] Error creating chart:', error);
       setError('Failed to render chart: ' + (error as Error).message);
     }
-  }, [symbol]);
+  }, [symbol, indicatorSet]);
 
-  const renderChart = useCallback((data: PriceData[]) => {
+  const renderChart = useCallback((data: PriceData[], indicators?: Indicators) => {
     if (!chartContainerRef.current || !window.Highcharts) {
       console.error('[PriceChart] Cannot render - missing requirements:', {
         hasContainer: !!chartContainerRef.current,
@@ -244,7 +589,7 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
       ]);
     });
 
-    createChart(ohlc, volume);
+    createChart(ohlc, volume, indicators || null);
   }, [createChart]);
 
   const loadChartData = useCallback(async () => {
@@ -255,21 +600,17 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     setError(null);
 
     try {
-      // Use configuration for date range
-      const endDate = new Date();
-      
       const params = new URLSearchParams({
-        interval: '1d',
-        end_date: endDate.toISOString().split('T')[0],
-        use_config: 'true'  // Tell API to use configured years and limit
+        period: '1y',
+        indicators: indicatorSet
       });
 
       // Only log in development
       if (process.env.NODE_ENV === 'development') {
-        console.log(`[PriceChart] Fetching data for ${symbol}`);
+        console.log(`[PriceChart] Fetching chart data for ${symbol} with indicators: ${indicatorSet}`);
       }
 
-      const response = await fetch(`/api/symbols/${symbol}/prices?${params}`);
+      const response = await fetch(`/api/symbols/${symbol}/chart?${params}`);
       
       if (!response.ok) {
         const errorData = await response.text();
@@ -280,14 +621,33 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
       const result = await response.json();
       
       // Keep minimal logging in production
-      if (result.data && result.data.length > 0) {
-        console.log(`[PriceChart] Loaded ${result.data.length} data points for ${symbol}`);
+      if (result.ohlc && result.ohlc.length > 0) {
+        console.log(`[PriceChart] Loaded ${result.ohlc.length} data points for ${symbol}`);
       }
       
-      if (result.data && result.data.length > 0) {
+      if (result.ohlc && result.ohlc.length > 0) {
+        // Convert chart format back to PriceData format for backward compatibility
+        const priceData = result.ohlc.map((point: number[]) => ({
+          timestamp: new Date(point[0]),
+          open: point[1],
+          high: point[2],
+          low: point[3],
+          close: point[4],
+          volume: 0 // Volume is separate
+        }));
+
+        // Add volume data
+        if (result.volume) {
+          result.volume.forEach((vol: number[], i: number) => {
+            if (priceData[i]) {
+              priceData[i].volume = vol[1];
+            }
+          });
+        }
+
         // Use setTimeout to ensure the container is mounted
         setTimeout(() => {
-          renderChart(result.data);
+          renderChart(priceData, result.indicators);
         }, 100);
       } else {
         setError('No price data available for this symbol');
@@ -298,7 +658,7 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     } finally {
       setLoading(false);
     }
-  }, [isVisible, symbol, renderChart]);
+  }, [isVisible, symbol, indicatorSet, renderChart]);
 
   useEffect(() => {
     if (!isClient) return;
@@ -313,7 +673,7 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
     if (highchartsLoaded && isVisible && symbol && chartContainerRef.current) {
       loadChartData();
     }
-  }, [symbol, isVisible, highchartsLoaded, isClient, loadChartData]);
+  }, [symbol, isVisible, highchartsLoaded, isClient, indicatorSet, loadChartData]);
 
   // Don't render anything on the server
   if (!isClient || !isVisible) {
@@ -342,8 +702,13 @@ export default function PriceChart({ symbol, isVisible }: PriceChartProps) {
       {highchartsLoaded && !loading && !error && (
         <div 
           ref={chartContainerRef} 
-          className="w-full min-h-[600px] bg-white rounded-lg shadow-sm p-2"
-          style={{ visibility: isVisible ? 'visible' : 'hidden' }}
+          className="w-full bg-white rounded-lg shadow-sm p-2"
+          style={{ 
+            visibility: isVisible ? 'visible' : 'hidden',
+            minHeight: indicatorSet === 'chart_full' ? '950px' : 
+                      indicatorSet === 'chart_advanced' ? '800px' : 
+                      '650px'
+          }}
         />
       )}
     </div>

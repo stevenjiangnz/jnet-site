@@ -20,6 +20,11 @@ Personal public site with microservices architecture, built with modern web tech
   - Automatic catalog synchronization with Google Cloud Storage
   - See [Symbol Catalog Display](docs/SYMBOL_CATALOG_DISPLAY.md) for details
 - **Price Data**: Historical EOD data with automatic downloads from Yahoo Finance
+- **Technical Indicators**: Advanced charting with multiple technical indicators
+  - Multi-panel chart layout with dynamic height adjustment
+  - Three indicator sets: Basic, Advanced, and Full
+  - Includes SMA, Bollinger Bands, MACD, RSI, and ADX
+  - See [Technical Indicators Documentation](docs/TECHNICAL_INDICATORS.md) for details
 - **Google Cloud Integration**: Secure storage and data management with GCS
 - **System Configuration**: Centralized settings management through UI
   - Control data loading parameters (years to load, chart data points)
