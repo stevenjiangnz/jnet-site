@@ -426,3 +426,59 @@ async def download_incremental_symbol_data(symbol: str) -> Dict[str, Any]:
         raise HTTPException(
             status_code=500, detail=f"Failed to download incremental data for {symbol}"
         )
+
+
+@router.get("/{symbol}/chart")
+async def get_chart_data_with_indicators(
+    symbol: str,
+    period: str = QueryParam(
+        default="1y", description="Time period (1mo, 3mo, 6mo, 1y, 2y, 5y)"
+    ),
+    indicators: str = QueryParam(
+        default="chart_basic",
+        description="Indicator set (chart_basic, chart_advanced, chart_full)",
+    ),
+) -> Dict[str, Any]:
+    """
+    Get chart data with technical indicators from stock-data-service.
+
+    This endpoint proxies to the stock-data-service chart endpoint which returns
+    data optimized for charting with pre-calculated technical indicators.
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            # Forward the request to stock-data-service
+            response = await client.get(
+                f"{settings.stock_data_service_url}/api/v1/chart/{symbol}",
+                params={"period": period, "indicators": indicators},
+                timeout=30.0,
+            )
+
+            if response.status_code == 404:
+                raise HTTPException(
+                    status_code=404, detail=f"Symbol {symbol} not found"
+                )
+            elif response.status_code != 200:
+                logger.error(
+                    f"Stock data service returned {response.status_code}: {response.text}"
+                )
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail="Failed to fetch chart data from stock data service",
+                )
+
+            result: Dict[str, Any] = response.json()
+            return result
+
+    except httpx.TimeoutException:
+        logger.error(f"Timeout fetching chart data for {symbol}")
+        raise HTTPException(
+            status_code=504, detail="Request to stock data service timed out"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to fetch chart data for {symbol}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to fetch chart data: {str(e)}"
+        )

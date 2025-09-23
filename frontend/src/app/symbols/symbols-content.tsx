@@ -72,6 +72,16 @@ export default function SymbolsPageContent() {
   const [downloadingSymbol, setDownloadingSymbol] = useState<string | null>(null);
   const [showPriceChart, setShowPriceChart] = useState(false);
   const [symbolFilter, setSymbolFilter] = useState('');
+  const [indicatorSet, setIndicatorSet] = useState<'chart_basic' | 'chart_advanced' | 'chart_full'>(() => {
+    // Load indicator preference from localStorage
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('chartIndicatorSet');
+      if (saved === 'chart_advanced' || saved === 'chart_full') {
+        return saved;
+      }
+    }
+    return 'chart_basic';
+  });
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(() => {
     // Load collapsed state from localStorage
     if (typeof window !== 'undefined') {
@@ -605,12 +615,71 @@ export default function SymbolsPageContent() {
             {/* Price Chart and List */}
             {selectedSymbol && (showPriceChart || isPanelCollapsed) && (
               <div className={`mt-6 transition-all duration-300 ${isPanelCollapsed ? 'mt-0' : ''}`}>
+                {/* Indicator Selector */}
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Indicators:</span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setIndicatorSet('chart_basic');
+                          if (typeof window !== 'undefined') {
+                            localStorage.setItem('chartIndicatorSet', 'chart_basic');
+                          }
+                        }}
+                        className={`px-3 py-1 text-xs rounded-md transition-colors cursor-pointer ${
+                          indicatorSet === 'chart_basic'
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        Basic
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIndicatorSet('chart_advanced');
+                          if (typeof window !== 'undefined') {
+                            localStorage.setItem('chartIndicatorSet', 'chart_advanced');
+                          }
+                        }}
+                        className={`px-3 py-1 text-xs rounded-md transition-colors cursor-pointer ${
+                          indicatorSet === 'chart_advanced'
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        Advanced
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIndicatorSet('chart_full');
+                          if (typeof window !== 'undefined') {
+                            localStorage.setItem('chartIndicatorSet', 'chart_full');
+                          }
+                        }}
+                        className={`px-3 py-1 text-xs rounded-md transition-colors cursor-pointer ${
+                          indicatorSet === 'chart_full'
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        Full
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {indicatorSet === 'chart_basic' && 'SMA 20/50/200'}
+                    {indicatorSet === 'chart_advanced' && 'SMA, BB, MACD, RSI'}
+                    {indicatorSet === 'chart_full' && 'All Technical Indicators'}
+                  </div>
+                </div>
                 <div className="flex flex-col lg:flex-row gap-4">
                   {/* Chart Section */}
                   <div className="flex-1 min-w-0">
                     <PriceChart 
                       symbol={selectedSymbol} 
                       isVisible={showPriceChart || isPanelCollapsed} 
+                      indicatorSet={indicatorSet}
                     />
                   </div>
                   {/* List Section */}
