@@ -470,6 +470,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
     // Create the chart
     try {
       // Type assertion to satisfy Highcharts API  
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       chartRef.current = (window.Highcharts as any).stockChart(chartContainerRef.current!, {
         chart: {
           backgroundColor: '#ffffff',
