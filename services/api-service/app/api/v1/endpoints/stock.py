@@ -446,37 +446,32 @@ async def get_chart_data_with_indicators(
     data optimized for charting with pre-calculated technical indicators.
     """
     try:
-        async with httpx.AsyncClient() as client:
-            # Forward the request to stock-data-service
-            response = await client.get(
-                f"{settings.stock_data_service_url}/api/v1/chart/{symbol}",
-                params={"period": period, "indicators": indicators},
-                timeout=30.0,
+        # Use the shared client with authentication headers
+        response = await stock_data_client.get(
+            f"/api/v1/chart/{symbol}",
+            params={"period": period, "indicators": indicators},
+            timeout=30.0,
+        )
+
+        result: Dict[str, Any] = response.json()
+        return result
+
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
+        else:
+            logger.error(
+                f"Stock data service returned {e.response.status_code}: {e.response.text}"
             )
-
-            if response.status_code == 404:
-                raise HTTPException(
-                    status_code=404, detail=f"Symbol {symbol} not found"
-                )
-            elif response.status_code != 200:
-                logger.error(
-                    f"Stock data service returned {response.status_code}: {response.text}"
-                )
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail="Failed to fetch chart data from stock data service",
-                )
-
-            result: Dict[str, Any] = response.json()
-            return result
-
+            raise HTTPException(
+                status_code=e.response.status_code,
+                detail="Failed to fetch chart data from stock data service",
+            )
     except httpx.TimeoutException:
         logger.error(f"Timeout fetching chart data for {symbol}")
         raise HTTPException(
             status_code=504, detail="Request to stock data service timed out"
         )
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"Failed to fetch chart data for {symbol}: {e}")
         raise HTTPException(
