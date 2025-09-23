@@ -126,7 +126,7 @@ curl http://localhost:9000/api/v1/sync/weekly/status
 ### Technical Indicators
 The service automatically calculates technical indicators for all downloaded data:
 - **Default Indicators**: Calculated automatically for every symbol
-  - SMA_20, SMA_50 - Simple Moving Averages
+  - SMA_20, SMA_50, SMA_200 - Simple Moving Averages
   - RSI_14 - Relative Strength Index
   - MACD - Moving Average Convergence Divergence (with signal line and histogram)
   - ADX_14 - Average Directional Index (with DI+ and DI- components)
@@ -141,14 +141,14 @@ The service automatically calculates technical indicators for all downloaded dat
   - SMA_200 - 200-day Simple Moving Average
 
 **Indicator Sets**: Pre-configured sets for different use cases
-- `default` - Standard indicators for general analysis
-- `chart_basic` - Essential chart indicators (SMA_20, SMA_50, VOLUME_SMA_20)
-- `chart_advanced` - Extended chart indicators including MACD, RSI, Bollinger Bands
-- `chart_full` - All chart indicators including ADX, ATR, OBV
-- `scan_momentum` - Momentum indicators (RSI, MACD, Stochastic)
-- `scan_trend` - Trend indicators (ADX, SMAs)
-- `scan_volatility` - Volatility indicators (ATR, Bollinger Bands)
-- `scan_volume` - Volume indicators (OBV, Volume SMA, CMF)
+- `default` - Standard indicators for general analysis (includes SMA_200)
+- `chart_basic` - Essential chart indicators (SMA_20, SMA_50, SMA_200, VOLUME_SMA_20)
+- `chart_advanced` - Extended chart indicators including MACD, RSI, Bollinger Bands, SMA_200
+- `chart_full` - All chart indicators including ADX, ATR, OBV, SMA_200
+- `scan_momentum` - Momentum indicators (RSI, MACD, Stochastic, SMA_200)
+- `scan_trend` - Trend indicators (ADX, SMA_20, SMA_50, SMA_200)
+- `scan_volatility` - Volatility indicators (ATR, Bollinger Bands, SMA_200)
+- `scan_volume` - Volume indicators (OBV, Volume SMA, CMF, SMA_200)
 
 ## Production Usage
 

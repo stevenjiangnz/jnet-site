@@ -4,6 +4,7 @@
 DEFAULT_INDICATORS = [
     "SMA_20",  # 20-day Simple Moving Average
     "SMA_50",  # 50-day Simple Moving Average
+    "SMA_200",  # 200-day Simple Moving Average
     "RSI_14",  # 14-day Relative Strength Index
     "MACD",  # MACD (12,26,9)
     "VOLUME_SMA_20",  # 20-day Volume Moving Average
@@ -13,10 +14,11 @@ DEFAULT_INDICATORS = [
 # Indicator sets for different use cases
 INDICATOR_SETS = {
     "default": DEFAULT_INDICATORS,
-    "chart_basic": ["SMA_20", "SMA_50", "VOLUME_SMA_20"],
+    "chart_basic": ["SMA_20", "SMA_50", "SMA_200", "VOLUME_SMA_20"],
     "chart_advanced": [
         "SMA_20",
         "SMA_50",
+        "SMA_200",
         "EMA_12",
         "EMA_26",
         "MACD",
@@ -37,10 +39,10 @@ INDICATOR_SETS = {
         "VOLUME_SMA_20",
         "OBV",
     ],
-    "scan_momentum": ["RSI_14", "MACD", "STOCH"],
+    "scan_momentum": ["RSI_14", "MACD", "STOCH", "SMA_200"],
     "scan_trend": ["ADX_14", "SMA_20", "SMA_50", "SMA_200"],
-    "scan_volatility": ["ATR_14", "BB_20"],
-    "scan_volume": ["OBV", "VOLUME_SMA_20", "CMF_20"],
+    "scan_volatility": ["ATR_14", "BB_20", "SMA_200"],
+    "scan_volume": ["OBV", "VOLUME_SMA_20", "CMF_20", "SMA_200"],
 }
 
 # Minimum data requirements for each indicator
