@@ -18,6 +18,16 @@ interface PriceData {
   volume: number;
 }
 
+interface Indicators {
+  SMA_20?: { SMA: number[][] };
+  SMA_50?: { SMA: number[][] };
+  SMA_200?: { SMA: number[][] };
+  BB_20?: { upper: number[][], middle: number[][], lower: number[][] };
+  MACD?: { MACD: number[][], signal: number[][], histogram: number[][] };
+  RSI_14?: { RSI: number[][] };
+  ADX_14?: { ADX: number[][], 'DI+': number[][], 'DI-': number[][] };
+}
+
 // Extend Window to include Highcharts
 declare global {
   interface Window {
@@ -63,7 +73,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
     };
   }, [isClient]);
 
-  const createChart = useCallback((ohlc: number[][], volume: number[][], indicators: any) => {
+  const createChart = useCallback((ohlc: number[][], volume: number[][], indicators: Indicators | null) => {
     if (!chartContainerRef.current || !window.Highcharts) {
       console.error('[PriceChart] Missing requirements:', {
         hasContainer: !!chartContainerRef.current,
@@ -133,11 +143,11 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
     
     // Calculate panel heights based on indicator set
     let priceHeight, volumeHeight, macdHeight, rsiHeight, adxHeight;
-    let panelGap = 2; // Gap between panels in percentage
+    const panelGap = 2; // Gap between panels in percentage
     
     // Reserve space for range selector at bottom (10% of chart height)
-    const rangeSelecterHeight = 10;
-    const availableHeight = 100 - rangeSelecterHeight;
+    // const rangeSelecterHeight = 10;
+    // const availableHeight = 100 - rangeSelecterHeight;
     
     if (indicatorSet === 'chart_full') {
       // Full: 5 panels total - distribute within available height
@@ -334,7 +344,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
       }
 
       // MACD (separate panel)
-      let macdYAxis = 2;
+      const macdYAxis = 2;
       if (indicators.MACD) {
         // MACD histogram
         if (indicators.MACD.histogram) {
@@ -376,7 +386,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
       }
 
       // ADX (separate panel) - moved before RSI
-      let adxYAxis = indicators.MACD ? 3 : 2;
+      const adxYAxis = indicators.MACD ? 3 : 2;
       if (indicators.ADX_14) {
         // ADX line
         if (indicators.ADX_14.ADX) {
@@ -419,7 +429,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
       }
 
       // RSI (separate panel) - moved after ADX
-      let rsiYAxis = adxYAxis + (indicators.ADX_14 ? 1 : 0);
+      const rsiYAxis = adxYAxis + (indicators.ADX_14 ? 1 : 0);
       if (indicators.RSI_14 && indicators.RSI_14.RSI) {
         series.push({
           type: 'line',
@@ -510,7 +520,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
     }
   }, [symbol, indicatorSet]);
 
-  const renderChart = useCallback((data: PriceData[], indicators?: any) => {
+  const renderChart = useCallback((data: PriceData[], indicators?: Indicators) => {
     if (!chartContainerRef.current || !window.Highcharts) {
       console.error('[PriceChart] Cannot render - missing requirements:', {
         hasContainer: !!chartContainerRef.current,
@@ -570,7 +580,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
       ]);
     });
 
-    createChart(ohlc, volume, indicators);
+    createChart(ohlc, volume, indicators || null);
   }, [createChart]);
 
   const loadChartData = useCallback(async () => {
