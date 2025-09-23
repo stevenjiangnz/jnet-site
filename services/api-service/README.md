@@ -103,6 +103,7 @@ Deploy to production:
 ### Stock Data
 - `GET /api/v1/stock/{symbol}/data` - Get OHLCV data
 - `GET /api/v1/stock/{symbol}/quote` - Get current quote
+- `GET /api/v1/stock/{symbol}/chart` - Get chart data with indicators (uses configuration for period)
 - `POST /api/v1/stock/{symbol}/chart` - Get chart data with indicators
 - `POST /api/v1/stock/batch/quotes` - Get multiple quotes
 - `GET /api/v1/stock/catalog` - Get catalog of all available stock data

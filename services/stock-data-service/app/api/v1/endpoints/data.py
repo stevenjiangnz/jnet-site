@@ -122,7 +122,9 @@ async def list_symbols():
 @router.get("/chart/{symbol}")
 async def get_chart_data(
     symbol: str,
-    period: str = Query("1y", description="Time period (1mo, 3mo, 6mo, 1y, 2y, 5y)"),
+    period: str = Query(
+        "1y", description="Time period (1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, 15y, 20y, max)"
+    ),
     indicators: str = Query(
         "chart_basic",
         description="Indicator set (chart_basic, chart_advanced, chart_full)",
@@ -158,8 +160,27 @@ async def get_chart_data(
         start_date = end_date - timedelta(days=730)
     elif period == "5y":
         start_date = end_date - timedelta(days=1825)
+    elif period == "10y":
+        start_date = end_date - timedelta(days=3650)
+    elif period == "15y":
+        start_date = end_date - timedelta(days=5475)
+    elif period == "20y":
+        start_date = end_date - timedelta(days=7300)
+    elif period == "max":
+        # Use all available data
+        start_date = (
+            stock_data.data_points[0].date if stock_data.data_points else end_date
+        )
     else:
-        start_date = end_date - timedelta(days=365)  # Default to 1 year
+        # Try to parse as number of years (e.g., "7y", "12y")
+        import re
+
+        match = re.match(r"^(\d+)y$", period)
+        if match:
+            years = int(match.group(1))
+            start_date = end_date - timedelta(days=years * 365)
+        else:
+            start_date = end_date - timedelta(days=365)  # Default to 1 year
 
     # Filter data points by date
     filtered_points = [

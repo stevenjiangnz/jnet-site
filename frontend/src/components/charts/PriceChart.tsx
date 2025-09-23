@@ -601,7 +601,6 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
 
     try {
       const params = new URLSearchParams({
-        period: '1y',
         indicators: indicatorSet
       });
 

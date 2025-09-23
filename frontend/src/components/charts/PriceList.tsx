@@ -30,16 +30,10 @@ export default function PriceList({ symbol, isVisible }: PriceListProps) {
     setError(null);
 
     try {
-      // Calculate date range (5 years of data)
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setFullYear(startDate.getFullYear() - 5);
-
+      // Use configuration to determine years to load
       const params = new URLSearchParams({
         interval: '1d',
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
-        limit: '1825'  // 5 years worth of trading days
+        use_config: 'true'  // This tells the API to use the configured years
       });
 
       const response = await fetch(`/api/symbols/${symbol}/prices?${params}`);

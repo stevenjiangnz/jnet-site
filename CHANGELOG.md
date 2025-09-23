@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed unused imports (`SystemConfigUpdate` and `ConfigValue`)
   - Fixed React Hook dependency arrays
   - Updated API routes for Next.js 15 compatibility (Promise-based params)
+- **Price chart loading only 1 year of data instead of configured amount**
+  - Stock-data-service chart endpoint now supports periods beyond 5 years (10y, 15y, 20y, max, and custom periods)
+  - Frontend chart API routes now fetch and use the `symbol_years_to_load` configuration
+  - PriceChart component no longer hardcodes 1-year period
+  - PriceList component now uses configuration instead of hardcoded 5 years
+  - Both price chart and price history now respect the user's configured data loading preferences
 
 ### Changed  
 - **GitHub Actions workflows updated to include Supabase environment variables**

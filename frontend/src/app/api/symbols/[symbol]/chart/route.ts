@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { getApiConfig } from '@/utils/api-config';
+import { getAppConfigFromApi } from '@/utils/app-config-v2';
 
 export async function GET(
   request: Request,
@@ -28,8 +29,24 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     
     // Get query parameters
-    const period = searchParams.get('period') || '1y';
+    let period = searchParams.get('period');
     const indicators = searchParams.get('indicators') || 'chart_basic';
+    
+    // If period not specified, calculate based on configuration
+    if (!period) {
+      try {
+        const config = await getAppConfigFromApi();
+        if (config?.data_loading?.symbol_years_to_load) {
+          const years = config.data_loading.symbol_years_to_load;
+          period = `${years}y`;
+        } else {
+          period = '1y'; // fallback default
+        }
+      } catch (error) {
+        console.error('Failed to fetch configuration, using default period:', error);
+        period = '1y';
+      }
+    }
     
     // Build query string
     const queryParams = new URLSearchParams({
