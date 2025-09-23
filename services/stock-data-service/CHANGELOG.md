@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fixed inconsistent zero-price handling between full and incremental downloads
+  - Zero or negative prices are now consistently filtered out in both download methods
+  - Ensures data quality by excluding invalid price data
+  - Prevents potential issues with technical indicator calculations
+
 ## [1.1.0] - 2025-09-12
 
 ### Added

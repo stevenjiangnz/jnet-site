@@ -83,3 +83,6 @@ supabase/functions/*/node_modules/
 setup/host-runner/logs/
 setup/host-runner/runners/
 setup/host-runner/config/*.service
+
+# Kubernetes secrets - DO NOT COMMIT
+k8s/manifests/n8n/resources/secrets.yaml

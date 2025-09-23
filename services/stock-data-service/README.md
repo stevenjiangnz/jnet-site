@@ -71,6 +71,12 @@ uv run pytest
 
 ## Key Features
 
+### Data Quality and Validation
+The service ensures high-quality data through automatic validation:
+- **Zero-Price Filtering**: Days with zero or negative prices are automatically excluded as they indicate data quality issues
+- **NaN Value Handling**: Rows with missing values are skipped to maintain data integrity
+- **Data Consistency**: Both full downloads and incremental updates apply the same validation rules
+
 ### Automatic Gap Filling
 The service automatically handles gap filling when downloading data:
 - **Incremental Downloads**: When downloading overlapping date ranges, the service merges data seamlessly
