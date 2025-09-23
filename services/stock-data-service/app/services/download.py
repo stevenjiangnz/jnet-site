@@ -270,13 +270,32 @@ class StockDataDownloader:
             if row.isna().any():
                 continue
 
+            # Skip rows with zero or negative prices
+            open_price = row["Open"]
+            high_price = row["High"]
+            low_price = row["Low"]
+            close_price = row["Close"]
+            adj_close_price = row.get("Adj Close", row["Close"])
+
+            if (
+                open_price <= 0
+                or high_price <= 0
+                or low_price <= 0
+                or close_price <= 0
+                or adj_close_price <= 0
+            ):
+                logger.warning(
+                    f"Skipping {symbol} data point on {idx.date()} due to zero/negative prices"
+                )
+                continue
+
             point = StockDataPoint(
                 date=idx.date(),
-                open=round(row["Open"], 2),
-                high=round(row["High"], 2),
-                low=round(row["Low"], 2),
-                close=round(row["Close"], 2),
-                adj_close=round(row.get("Adj Close", row["Close"]), 2),
+                open=round(open_price, 2),
+                high=round(high_price, 2),
+                low=round(low_price, 2),
+                close=round(close_price, 2),
+                adj_close=round(adj_close_price, 2),
                 volume=int(row["Volume"]),
             )
             data_points.append(point)
@@ -494,13 +513,32 @@ class StockDataDownloader:
             if row.isna().any():
                 continue
 
+            # Skip rows with zero or negative prices
+            open_price = row["Open"]
+            high_price = row["High"]
+            low_price = row["Low"]
+            close_price = row["Close"]
+            adj_close_price = row.get("Adj Close", row["Close"])
+
+            if (
+                open_price <= 0
+                or high_price <= 0
+                or low_price <= 0
+                or close_price <= 0
+                or adj_close_price <= 0
+            ):
+                logger.warning(
+                    f"Skipping data point on {idx.date()} due to zero/negative prices"
+                )
+                continue
+
             point = StockDataPoint(
                 date=idx.date(),
-                open=round(row["Open"], 2),
-                high=round(row["High"], 2),
-                low=round(row["Low"], 2),
-                close=round(row["Close"], 2),
-                adj_close=round(row.get("Adj Close", row["Close"]), 2),
+                open=round(open_price, 2),
+                high=round(high_price, 2),
+                low=round(low_price, 2),
+                close=round(close_price, 2),
+                adj_close=round(adj_close_price, 2),
                 volume=int(row["Volume"]),
             )
             data_points.append(point)
