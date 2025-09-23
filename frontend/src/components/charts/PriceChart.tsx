@@ -26,6 +26,8 @@ interface Indicators {
   MACD?: { MACD: number[][], signal: number[][], histogram: number[][] };
   RSI_14?: { RSI: number[][] };
   ADX_14?: { ADX: number[][], 'DI+': number[][], 'DI-': number[][] };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any; // Allow string indexing for dynamic access
 }
 
 // Extend Window to include Highcharts
@@ -114,7 +116,8 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
     const dataGroupingConfig = disableDataGrouping; // Change this to use different options
 
     // Define indicator colors
-    const indicatorColors = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const indicatorColors: Record<string, any> = {
       SMA_20: '#FF6B6B',
       SMA_50: '#4ECDC4',
       SMA_200: '#45B7D1',
@@ -142,7 +145,11 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
     const series = [];
     
     // Calculate panel heights based on indicator set
-    let priceHeight, volumeHeight, macdHeight, rsiHeight, adxHeight;
+    let priceHeight: number;
+    let volumeHeight: number; 
+    let macdHeight: number;
+    let rsiHeight = 0; // Default to 0 for sets without RSI
+    let adxHeight = 0; // Default to 0 for sets without ADX
     const panelGap = 2; // Gap between panels in percentage
     
     // Reserve space for range selector at bottom (10% of chart height)
@@ -316,7 +323,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
             type: 'arearange',
             name: 'BB Bands',
             data: indicators.BB_20.upper.map((point, i) => {
-              return [point[0], indicators.BB_20.lower[i][1], point[1]];
+              return [point[0], indicators.BB_20!.lower[i][1], point[1]];
             }),
             yAxis: 0,
             lineWidth: 0,
@@ -462,7 +469,8 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
 
     // Create the chart
     try {
-      chartRef.current = window.Highcharts.stockChart(chartContainerRef.current, {
+      // Type assertion to satisfy Highcharts API  
+      chartRef.current = (window.Highcharts as any).stockChart(chartContainerRef.current!, {
         chart: {
           backgroundColor: '#ffffff',
           height: chartHeight
