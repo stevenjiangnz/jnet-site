@@ -264,7 +264,7 @@ Deploy to Google Cloud Run:
 - [x] Landing page with 3-column layout (17.5%-65%-17.5% responsive grid)
 - [x] Full-width navigation bar with centered menu items
 - [x] Trading-themed logo and branding
-- [x] Price page with 3-column layout for stock charts and data
+- [x] Market page with 3-column layout for stock charts and data
   - Symbol selector with dropdown
   - Chart configuration (timeframe, chart type, indicators)
   - Placeholder for Highcharts stock charts
@@ -286,7 +286,7 @@ Deploy to Google Cloud Run:
 - [x] Dark/Light mode theme toggle with system preference support
   - Enhanced dark mode with deeper blacks and better contrast
 - [x] Mobile-responsive design with hamburger menu
-- [x] Protected routes (authentication required for Price and Symbols pages)
+- [x] Protected routes (authentication required for Market and Symbols pages)
 - [ ] SEO optimized
 - [ ] Fast loading (< 3s)
 - [ ] Accessible (WCAG 2.1 AA)

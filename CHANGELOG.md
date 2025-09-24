@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Renamed "Price" menu item to "Market" in frontend navigation
+  - Updated navbar and mobile menu components
+  - Renamed `/price` route to `/market`
+  - Updated all related page components and imports
+
 ### Fixed
 - **Supabase Row Level Security (RLS) limitation preventing system config updates**
   - API service now properly uses service role key instead of anon key
@@ -77,7 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Main content areas now use `bg-black` in dark mode
   - UI elements use deeper grays (`gray-950`, `gray-900`)
   - Improved readability and reduced brightness in dark mode
-- Updated both Symbol Management and Price pages with consistent dark mode styling
+- Updated both Symbol Management and Market pages with consistent dark mode styling
 - **Replaced "Add Symbol" sidebar menu item with prominent button above symbol list**
 - Symbol addition now automatically downloads all historical data (period=max)
 
@@ -94,7 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2025-09-15
 
 ### Added
-- Price page with 3-column layout for stock charts
+- Market page with 3-column layout for stock charts
   - Left panel: Symbol selector and chart configuration
   - Middle panel: Chart area (placeholder for Highcharts)
   - Right panel: Real-time data point details

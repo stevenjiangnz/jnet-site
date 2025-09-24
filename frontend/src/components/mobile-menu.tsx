@@ -13,7 +13,7 @@ export function MobileMenu({ user }: MobileMenuProps) {
   const pathname = usePathname();
 
   const menuItems = [
-    { href: "/price", label: "Price" },
+    { href: "/market", label: "Market" },
     { href: "/symbols", label: "Symbols" },
     { href: "/screen", label: "Screen" },
     { href: "/analysis", label: "Analysis" },
