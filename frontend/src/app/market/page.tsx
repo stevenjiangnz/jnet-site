@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { AppLayout } from '@/components/layout/app-layout'
-import PricePageContent from './price-content'
+import MarketPageContent from './market-content'
 
-export default async function PricePage() {
+export default async function MarketPage() {
   const supabase = await createClient()
   
   let user = null
@@ -20,7 +20,7 @@ export default async function PricePage() {
 
   return (
     <AppLayout>
-      <PricePageContent />
+      <MarketPageContent />
     </AppLayout>
   );
 }

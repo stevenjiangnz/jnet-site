@@ -14,7 +14,7 @@ export function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
   
   const menuItems = [
-    { href: "/price", label: "Price" },
+    { href: "/market", label: "Market" },
     { href: "/symbols", label: "Symbols" },
     { href: "/screen", label: "Screen" },
     { href: "/analysis", label: "Analysis" },

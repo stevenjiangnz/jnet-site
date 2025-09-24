@@ -25,7 +25,7 @@ const dummyDataPoint = {
   changePercent: 0.78,
 };
 
-export default function PricePageContent() {
+export default function MarketPageContent() {
   const [selectedSymbol, setSelectedSymbol] = useState("AAPL");
   const [timeframe, setTimeframe] = useState("1D");
   const [chartType, setChartType] = useState("candlestick");
