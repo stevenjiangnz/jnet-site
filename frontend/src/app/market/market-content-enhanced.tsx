@@ -440,7 +440,7 @@ export default function MarketPageContentEnhanced() {
             </div>
             
             {/* Chart Component */}
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 relative">
               <MarketChart
                 symbol={selectedSymbol}
                 isVisible={true}
