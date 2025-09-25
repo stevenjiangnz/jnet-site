@@ -278,11 +278,6 @@ export default function MarketChart({
         layout: 'horizontal'
       },
       
-      tooltip: {
-        split: true,
-        crosshairs: true
-      },
-      
       responsive: {
         rules: [{
           condition: {
@@ -343,6 +338,8 @@ export default function MarketChart({
       
       // Tooltip styling
       tooltip: {
+        split: true,
+        crosshairs: true,
         backgroundColor: 'rgba(26, 26, 26, 0.95)',
         style: {
           color: '#e0e0e0'
@@ -415,7 +412,7 @@ export default function MarketChart({
   }, []);
 
   // Add indicator dynamically
-  const addIndicator = useCallback((indicatorType: string, data?: ChartData['indicators']) => {
+  const addIndicator = useCallback((indicatorType: string, data?: ChartData) => {
     if (!chartRef.current) return;
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -445,12 +442,12 @@ export default function MarketChart({
         break;
         
       case 'sma20':
-        if (data?.SMA_20?.SMA) {
+        if (data?.indicators?.SMA_20?.SMA) {
           series = {
             type: 'line',
             id: 'sma20-series',
             name: 'SMA (20)',
-            data: data.SMA_20.SMA,
+            data: data.indicators.SMA_20.SMA,
             yAxis: 0,
             color: INDICATOR_COLORS.sma20,
             lineWidth: 2,
@@ -460,12 +457,12 @@ export default function MarketChart({
         break;
         
       case 'sma50':
-        if (data?.SMA_50?.SMA) {
+        if (data?.indicators?.SMA_50?.SMA) {
           series = {
             type: 'line',
             id: 'sma50-series',
             name: 'SMA (50)',
-            data: data.SMA_50.SMA,
+            data: data.indicators.SMA_50.SMA,
             yAxis: 0,
             color: INDICATOR_COLORS.sma50,
             lineWidth: 2,
@@ -475,12 +472,12 @@ export default function MarketChart({
         break;
         
       case 'sma200':
-        if (data?.SMA_200?.SMA) {
+        if (data?.indicators?.SMA_200?.SMA) {
           series = {
             type: 'line',
             id: 'sma200-series',
             name: 'SMA (200)',
-            data: data.SMA_200.SMA,
+            data: data.indicators.SMA_200.SMA,
             yAxis: 0,
             color: INDICATOR_COLORS.sma200,
             lineWidth: 2,
@@ -490,15 +487,15 @@ export default function MarketChart({
         break;
         
       case 'bb20':
-        if (data?.BB_20) {
+        if (data?.indicators?.BB_20) {
           // Add fill area
-          if (data.BB_20.upper && data.BB_20.lower) {
+          if (data.indicators.BB_20.upper && data.indicators.BB_20.lower) {
             chartRef.current.addSeries({
               type: 'arearange',
               id: 'bb-range-series',
               name: 'BB Bands',
-              data: data.BB_20.upper.map((point, i) => {
-                return [point[0], data.BB_20!.lower[i][1], point[1]];
+              data: data.indicators.BB_20.upper.map((point, i) => {
+                return [point[0], data.indicators!.BB_20!.lower[i][1], point[1]];
               }),
               yAxis: 0,
               lineWidth: 0,
@@ -513,16 +510,16 @@ export default function MarketChart({
           }
           
           // Add middle line
-          if (data.BB_20.middle) {
+          if (data.indicators.BB_20.middle) {
             series = {
               type: 'line',
               id: 'bb-middle-series',
               name: 'BB Middle',
-              data: data.BB_20.middle,
+              data: data.indicators.BB_20.middle,
               yAxis: 0,
               color: INDICATOR_COLORS.bb.middle,
               lineWidth: 1,
-              dashStyle: 'shortdot',
+              dashStyle: 'ShortDot',
               ...seriesOptions
             };
           }
@@ -530,16 +527,16 @@ export default function MarketChart({
         break;
         
       case 'macd':
-        if (data?.MACD) {
+        if (data?.indicators?.MACD) {
           const macdAxisIndex = addNewYAxis('MACD', 15);
           
           // Add histogram
-          if (data.MACD.histogram) {
+          if (data.indicators.MACD.histogram) {
             chartRef.current.addSeries({
               type: 'column',
               id: 'macd-histogram-series',
               name: 'MACD Histogram',
-              data: data.MACD.histogram,
+              data: data.indicators.MACD.histogram,
               yAxis: macdAxisIndex,
               color: INDICATOR_COLORS.macd.histogram,
               ...seriesOptions
@@ -548,12 +545,12 @@ export default function MarketChart({
           }
           
           // Add MACD line
-          if (data.MACD.MACD) {
+          if (data.indicators.MACD.MACD) {
             chartRef.current.addSeries({
               type: 'line',
               id: 'macd-line-series',
               name: 'MACD',
-              data: data.MACD.MACD,
+              data: data.indicators.MACD.MACD,
               yAxis: macdAxisIndex,
               color: INDICATOR_COLORS.macd.macd,
               lineWidth: 2,
@@ -563,12 +560,12 @@ export default function MarketChart({
           }
           
           // Add signal line
-          if (data.MACD.signal) {
+          if (data.indicators.MACD.signal) {
             chartRef.current.addSeries({
               type: 'line',
               id: 'macd-signal-series',
               name: 'Signal',
-              data: data.MACD.signal,
+              data: data.indicators.MACD.signal,
               yAxis: macdAxisIndex,
               color: INDICATOR_COLORS.macd.signal,
               lineWidth: 2,
@@ -583,7 +580,7 @@ export default function MarketChart({
         break;
         
       case 'rsi14':
-        if (data?.RSI_14?.RSI) {
+        if (data?.indicators?.RSI_14?.RSI) {
           const rsiAxisIndex = addNewYAxis('RSI', 10);
           
           // Update axis with RSI-specific settings
@@ -592,13 +589,13 @@ export default function MarketChart({
               value: 70,
               color: '#FF4444',
               width: 1,
-              dashStyle: 'shortdash',
+              dashStyle: 'ShortDash',
               label: { text: '70', align: 'left' }
             }, {
               value: 30,
               color: '#44FF44',
               width: 1,
-              dashStyle: 'shortdash',
+              dashStyle: 'ShortDash',
               label: { text: '30', align: 'left' }
             }]
           }, false);
@@ -607,7 +604,7 @@ export default function MarketChart({
             type: 'line',
             id: 'rsi-series',
             name: 'RSI (14)',
-            data: data.RSI_14.RSI,
+            data: data.indicators.RSI_14.RSI,
             yAxis: rsiAxisIndex,
             color: INDICATOR_COLORS.rsi,
             lineWidth: 2,
@@ -617,16 +614,16 @@ export default function MarketChart({
         break;
         
       case 'adx14':
-        if (data?.ADX_14) {
+        if (data?.indicators?.ADX_14) {
           const adxAxisIndex = addNewYAxis('ADX', 15);
           
           // Add ADX line
-          if (data.ADX_14.ADX) {
+          if (data.indicators.ADX_14.ADX) {
             chartRef.current.addSeries({
               type: 'line',
               id: 'adx-line-series',
               name: 'ADX',
-              data: data.ADX_14.ADX,
+              data: data.indicators.ADX_14.ADX,
               yAxis: adxAxisIndex,
               color: INDICATOR_COLORS.adx.adx,
               lineWidth: 2,
@@ -636,12 +633,12 @@ export default function MarketChart({
           }
           
           // Add DI+ line
-          if (data.ADX_14['DI+']) {
+          if (data.indicators.ADX_14['DI+']) {
             chartRef.current.addSeries({
               type: 'line',
               id: 'adx-plus-series',
               name: 'DI+',
-              data: data.ADX_14['DI+'],
+              data: data.indicators.ADX_14['DI+'],
               yAxis: adxAxisIndex,
               color: INDICATOR_COLORS.adx.plusDI,
               lineWidth: 1,
@@ -651,12 +648,12 @@ export default function MarketChart({
           }
           
           // Add DI- line
-          if (data.ADX_14['DI-']) {
+          if (data.indicators.ADX_14['DI-']) {
             chartRef.current.addSeries({
               type: 'line',
               id: 'adx-minus-series',
               name: 'DI-',
-              data: data.ADX_14['DI-'],
+              data: data.indicators.ADX_14['DI-'],
               yAxis: adxAxisIndex,
               color: INDICATOR_COLORS.adx.minusDI,
               lineWidth: 1,
@@ -783,7 +780,7 @@ export default function MarketChart({
     // Add indicators based on current state
     Object.entries(indicators).forEach(([key, enabled]) => {
       if (enabled && data) {
-        addIndicator(key, data.indicators);
+        addIndicator(key, data);
       }
     });
   }, [buildChartConfig, indicators, addIndicator]);
@@ -852,7 +849,7 @@ export default function MarketChart({
               const seriesId = indicatorSeriesIds.current[key];
               if (!seriesId || !chartRef.current!.get(seriesId)) {
                 // Indicator not added yet or was removed
-                addIndicator(key, chartData.indicators);
+                addIndicator(key, chartData);
               }
             }
           });
@@ -878,9 +875,9 @@ export default function MarketChart({
     const mainSeries = chartRef.current.get('main-series');
     if (mainSeries && 'update' in mainSeries) {
       mainSeries.update({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        type: chartType as any
-      }, true);
+        type: chartType
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any, true);
     }
   }, [chartType]);
 

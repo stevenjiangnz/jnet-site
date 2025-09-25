@@ -71,10 +71,6 @@ export default function MarketPageContentEnhanced() {
   } | null>(null);
 
   // Load symbols from API
-  useEffect(() => {
-    loadSymbols();
-  }, [loadSymbols]);
-
   const loadSymbols = useCallback(async () => {
     try {
       setIsLoadingSymbols(true);
@@ -110,6 +106,10 @@ export default function MarketPageContentEnhanced() {
       setIsLoadingSymbols(false);
     }
   }, [selectedSymbol]);
+
+  useEffect(() => {
+    loadSymbols();
+  }, [loadSymbols]);
 
   // Filter symbols based on search query
   const filteredSymbols = useMemo(() => {
@@ -434,7 +434,7 @@ export default function MarketPageContentEnhanced() {
               </h2>
               {lastUpdateTime && (
                 <div className="text-sm market-text-muted">
-                  Last updated: {toBrisbaneTime(lastUpdateTime)}
+                  Last updated: {toBrisbaneTime(lastUpdateTime.toISOString())}
                 </div>
               )}
             </div>
@@ -492,19 +492,29 @@ export default function MarketPageContentEnhanced() {
                       ? 'text-green-600'
                       : 'text-red-600'
                   }`}>
-                    {symbols.find(s => s.symbol === selectedSymbol)?.change_percent !== undefined
-                      ? `${symbols.find(s => s.symbol === selectedSymbol)!.change_percent >= 0 ? '+' : ''}${symbols.find(s => s.symbol === selectedSymbol)!.change_percent.toFixed(2)}%`
-                      : '-'}
+                    {(() => {
+                      const sym = symbols.find(s => s.symbol === selectedSymbol);
+                      if (sym?.change_percent !== undefined) {
+                        return `${sym.change_percent >= 0 ? '+' : ''}${sym.change_percent.toFixed(2)}%`;
+                      }
+                      return '-';
+                    })()}
                   </span>
                 </div>
-                {symbols.find(s => s.symbol === selectedSymbol)?.sector && (
-                  <div className="flex justify-between">
-                    <span className="market-text-muted">Sector:</span>
-                    <span className="font-medium text-right text-xs">
-                      {symbols.find(s => s.symbol === selectedSymbol)!.sector}
-                    </span>
-                  </div>
-                )}
+                {(() => {
+                  const sym = symbols.find(s => s.symbol === selectedSymbol);
+                  if (sym?.sector) {
+                    return (
+                      <div className="flex justify-between">
+                        <span className="market-text-muted">Sector:</span>
+                        <span className="font-medium text-right text-xs">
+                          {sym.sector}
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             </div>
 

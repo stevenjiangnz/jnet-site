@@ -80,10 +80,6 @@ export default function MarketPageContentV2() {
   const [isDataFresh, setIsDataFresh] = useState(false);
 
   // Load symbols from API
-  useEffect(() => {
-    loadSymbols();
-  }, [loadSymbols]);
-
   const loadSymbols = useCallback(async () => {
     try {
       setIsLoadingSymbols(true);
@@ -104,6 +100,10 @@ export default function MarketPageContentV2() {
       setIsLoadingSymbols(false);
     }
   }, [selectedSymbol]);
+
+  useEffect(() => {
+    loadSymbols();
+  }, [loadSymbols]);
 
   // Filter symbols based on search query
   const filteredSymbols = useMemo(() => {
@@ -406,7 +406,7 @@ export default function MarketPageContentV2() {
               </h2>
               {lastUpdateTime && (
                 <div className="text-sm text-gray-500">
-                  Last updated: {toBrisbaneTime(lastUpdateTime)}
+                  Last updated: {toBrisbaneTime(lastUpdateTime.toISOString())}
                 </div>
               )}
             </div>

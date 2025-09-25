@@ -28,12 +28,14 @@ export async function loadHighchartsModules() {
     }
     
     // If indicators-all didn't work, try loading individual indicators from the main indicators module
-    if (!window.Highcharts.seriesTypes.sma) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!(window.Highcharts as any).seriesTypes?.sma) {
       try {
         // Try importing the indicators module which should initialize indicator functions
         const indicatorsModule = await import('highcharts/indicators/indicators');
         if (indicatorsModule.default) {
-          indicatorsModule.default(Highcharts);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (indicatorsModule.default as any)(Highcharts);
         }
       } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
         console.warn('[Highcharts] Could not initialize indicators module');
