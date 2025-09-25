@@ -18,12 +18,12 @@ export async function loadHighchartsModules() {
       'highcharts/modules/indicators-all'  // This includes all indicators
     ];
     
-    for (const module of modulesToLoad) {
+    for (const moduleToLoad of modulesToLoad) {
       try {
-        await import(module);
-        console.log(`[Highcharts] Loaded module: ${module}`);
-      } catch (err) {
-        console.warn(`[Highcharts] Could not load module ${module}, trying alternative approach`);
+        await import(moduleToLoad);
+        console.log(`[Highcharts] Loaded module: ${moduleToLoad}`);
+      } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
+        console.warn(`[Highcharts] Could not load module ${moduleToLoad}, trying alternative approach`);
       }
     }
     
@@ -35,7 +35,7 @@ export async function loadHighchartsModules() {
         if (indicatorsModule.default) {
           indicatorsModule.default(Highcharts);
         }
-      } catch (err) {
+      } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
         console.warn('[Highcharts] Could not initialize indicators module');
       }
     }

@@ -82,9 +82,9 @@ export default function MarketPageContentV2() {
   // Load symbols from API
   useEffect(() => {
     loadSymbols();
-  }, []);
+  }, [loadSymbols]);
 
-  const loadSymbols = async () => {
+  const loadSymbols = useCallback(async () => {
     try {
       setIsLoadingSymbols(true);
       const response = await fetch('/api/symbols/list');
@@ -103,7 +103,7 @@ export default function MarketPageContentV2() {
     } finally {
       setIsLoadingSymbols(false);
     }
-  };
+  }, [selectedSymbol]);
 
   // Filter symbols based on search query
   const filteredSymbols = useMemo(() => {
@@ -168,7 +168,7 @@ export default function MarketPageContentV2() {
   // Build indicator parameter for API
   const buildIndicatorParam = useCallback(() => {
     const activeIndicators = Object.entries(indicators)
-      .filter(([_, active]) => active)
+      .filter(([, active]) => active)
       .map(([key]) => key);
     
     if (activeIndicators.length === 0) return 'chart_basic';
@@ -309,7 +309,7 @@ export default function MarketPageContentV2() {
           </label>
           <select
             value={chartType}
-            onChange={(e) => setChartType(e.target.value as any)}
+            onChange={(e) => setChartType(e.target.value as 'candlestick' | 'line' | 'area')}
             className="w-full px-3 py-2 border rounded-md sidebar-select"
           >
             <option value="candlestick">Candlestick</option>
@@ -416,7 +416,7 @@ export default function MarketPageContentV2() {
               <PriceChart
                 symbol={selectedSymbol}
                 isVisible={true}
-                indicatorSet={buildIndicatorParam() as any}
+                indicatorSet={buildIndicatorParam() as 'chart_basic' | 'chart_advanced' | 'chart_full'}
               />
             </div>
           </div>

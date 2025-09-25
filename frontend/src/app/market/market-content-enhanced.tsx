@@ -61,14 +61,21 @@ export default function MarketPageContentEnhanced() {
   // Data freshness
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
   const [isDataFresh, setIsDataFresh] = useState(false);
-  const [selectedDataPoint, setSelectedDataPoint] = useState<any>(null);
+  const [selectedDataPoint, setSelectedDataPoint] = useState<{
+    timestamp: number;
+    open?: number;
+    high?: number;
+    low?: number;
+    close?: number;
+    volume?: number;
+  } | null>(null);
 
   // Load symbols from API
   useEffect(() => {
     loadSymbols();
-  }, []);
+  }, [loadSymbols]);
 
-  const loadSymbols = async () => {
+  const loadSymbols = useCallback(async () => {
     try {
       setIsLoadingSymbols(true);
       const response = await fetch('/api/symbols/list');
@@ -102,7 +109,7 @@ export default function MarketPageContentEnhanced() {
     } finally {
       setIsLoadingSymbols(false);
     }
-  };
+  }, [selectedSymbol]);
 
   // Filter symbols based on search query
   const filteredSymbols = useMemo(() => {
@@ -331,7 +338,7 @@ export default function MarketPageContentEnhanced() {
           </label>
           <select
             value={chartType}
-            onChange={(e) => setChartType(e.target.value as any)}
+            onChange={(e) => setChartType(e.target.value as 'candlestick' | 'line' | 'area')}
             className="w-full px-3 py-1.5 rounded market-select text-sm"
           >
             <option value="candlestick">Candlestick</option>
