@@ -139,8 +139,11 @@ export default function MarketChart({
   const buildChartConfig = useCallback((): Highcharts.Options => {
     const config: any = {
       chart: {
-        backgroundColor: '#ffffff',
+        backgroundColor: 'transparent',
         height: calculateChartHeight(),
+        style: {
+          fontFamily: 'Arial, sans-serif'
+        },
         events: {
           load: function() {
             console.log('[MarketChart] Chart loaded successfully');
@@ -166,20 +169,65 @@ export default function MarketChart({
                  dateRange === '6M' ? 2 : 
                  dateRange === '1Y' ? 3 : 
                  dateRange === '3Y' ? 4 : 5,
-        inputEnabled: true
+        inputEnabled: true,
+        buttonTheme: {
+          fill: '#2a2a2a',
+          stroke: '#3a3a3a',
+          style: {
+            color: '#808080'
+          },
+          states: {
+            hover: {
+              fill: '#3a3a3a',
+              style: {
+                color: '#e0e0e0'
+              }
+            },
+            select: {
+              fill: '#5c4cdb',
+              style: {
+                color: '#ffffff'
+              }
+            }
+          }
+        },
+        inputBoxBorderColor: '#3a3a3a',
+        inputStyle: {
+          backgroundColor: '#2a2a2a',
+          color: '#e0e0e0'
+        },
+        labelStyle: {
+          color: '#808080'
+        }
       },
       
       title: {
-        text: `${symbol} Stock Price`
+        text: `${symbol} Stock Price`,
+        style: {
+          color: '#e0e0e0'
+        }
       },
       
       yAxis: [{
         // Price axis
-        labels: { align: 'right', x: -3 },
-        title: { text: 'Price' },
+        labels: { 
+          align: 'right', 
+          x: -3,
+          style: {
+            color: '#808080'
+          }
+        },
+        title: { 
+          text: 'Price',
+          style: {
+            color: '#808080'
+          }
+        },
         height: '60%',
         lineWidth: 2,
-        id: 'price-axis'
+        id: 'price-axis',
+        gridLineColor: '#333333',
+        lineColor: '#333333'
       }],
       
       plotOptions: {
@@ -208,6 +256,12 @@ export default function MarketChart({
       }],
       
       legend: {
+        itemStyle: {
+          color: '#808080'
+        },
+        itemHoverStyle: {
+          color: '#e0e0e0'
+        },
         enabled: true,
         align: 'center',
         verticalAlign: 'bottom',
@@ -233,6 +287,57 @@ export default function MarketChart({
             }
           }
         }]
+      },
+      
+      // Add xAxis theme
+      xAxis: {
+        lineColor: '#333333',
+        tickColor: '#333333',
+        labels: {
+          style: {
+            color: '#808080'
+          }
+        }
+      },
+      
+      // Navigator styling
+      navigator: {
+        maskFill: 'rgba(255, 255, 255, 0.1)',
+        series: {
+          color: '#5c4cdb',
+          lineColor: '#5c4cdb'
+        },
+        xAxis: {
+          gridLineColor: '#333333',
+          labels: {
+            style: {
+              color: '#808080'
+            }
+          }
+        },
+        handles: {
+          backgroundColor: '#5c4cdb',
+          borderColor: '#3a3a3a'
+        }
+      },
+      
+      // Scrollbar styling
+      scrollbar: {
+        barBackgroundColor: '#2a2a2a',
+        barBorderColor: '#3a3a3a',
+        buttonBackgroundColor: '#2a2a2a',
+        buttonBorderColor: '#3a3a3a',
+        trackBackgroundColor: '#1a1a1a',
+        trackBorderColor: '#333333'
+      },
+      
+      // Tooltip styling
+      tooltip: {
+        backgroundColor: 'rgba(26, 26, 26, 0.95)',
+        style: {
+          color: '#e0e0e0'
+        },
+        borderColor: '#3a3a3a'
       }
     };
     
@@ -268,12 +373,25 @@ export default function MarketChart({
     
     // Add new axis
     const newAxis: Highcharts.YAxisOptions = {
-      labels: { align: 'right', x: -3 },
-      title: { text: title },
+      labels: { 
+        align: 'right', 
+        x: -3,
+        style: {
+          color: '#808080'
+        }
+      },
+      title: { 
+        text: title,
+        style: {
+          color: '#808080'
+        }
+      },
       top: `${currentTop}%`,
       height: `${height}%`,
       offset: 0,
-      lineWidth: 2
+      lineWidth: 2,
+      gridLineColor: '#333333',
+      lineColor: '#333333'
     };
     
     const axis = chartRef.current.addAxis(newAxis as any, false, false);
@@ -824,7 +942,7 @@ export default function MarketChart({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full h-full market-chart-container">
       {(loading || !highchartsLoaded) && (
         <div className="flex justify-center items-center h-96">
           <div className="text-center">

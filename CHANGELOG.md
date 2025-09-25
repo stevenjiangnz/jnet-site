@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated navbar and mobile menu components
   - Renamed `/price` route to `/market`
   - Updated all related page components and imports
+- **Market Page Dark Theme Enhancement**
+  - Applied consistent dark theme styling to match the previous design
+  - Updated all UI components with dark color scheme (#0d0d0d, #1a1a1a, #2a2a2a, #3a3a3a)
+  - Configured Highcharts with comprehensive dark theme settings
+  - Improved contrast and readability with proper text colors (#808080, #e0e0e0)
+  - Added dark theme styling for chart elements (axes, grid lines, tooltips, navigation)
+  - Reduced sidebar width for better space utilization
+  - Applied consistent button and input styling with purple accent color (#5c4cdb)
 
 ### Fixed
 - **Supabase Row Level Security (RLS) limitation preventing system config updates**

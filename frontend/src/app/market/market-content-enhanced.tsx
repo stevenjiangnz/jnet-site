@@ -11,8 +11,8 @@ const MarketChart = dynamic(() => import('@/components/charts/MarketChart'), {
   loading: () => (
     <div className="flex justify-center items-center h-96">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading chart...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400 mx-auto mb-2"></div>
+        <p className="text-gray-400 text-sm">Loading chart...</p>
       </div>
     </div>
   )
@@ -203,18 +203,18 @@ export default function MarketPageContentEnhanced() {
   }, []);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)]">
+    <div className="flex h-[calc(100vh-4rem)] market-page">
       {/* Left Panel - Controls */}
-      <div className="w-80 price-sidebar p-6 overflow-y-auto">
+      <div className="w-64 market-sidebar p-4 overflow-y-auto">
         {/* Symbol Selection */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4 main-title">
+          <h2 className="text-lg font-semibold mb-3 market-title">
             Market Analysis
           </h2>
           
           {/* Symbol Dropdown with Search */}
           <div className="relative symbol-selector">
-            <label className="block text-sm font-medium mb-2 sidebar-label">
+            <label className="block text-xs font-medium mb-2 market-label uppercase">
               Symbol
             </label>
             <div className="relative">
@@ -227,7 +227,7 @@ export default function MarketPageContentEnhanced() {
                 }}
                 onFocus={() => setIsDropdownOpen(true)}
                 placeholder="Search symbols..."
-                className="w-full px-3 py-2 pr-8 border rounded-md focus:ring-2 focus:ring-indigo-500 sidebar-select"
+                className="w-full px-3 py-1.5 pr-8 rounded market-input text-sm"
               />
               <div className="absolute right-2 top-3">
                 {isDataFresh ? (
@@ -240,7 +240,7 @@ export default function MarketPageContentEnhanced() {
             
             {/* Dropdown */}
             {isDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border rounded-md shadow-lg max-h-60 overflow-auto">
+              <div className="absolute z-10 w-full mt-1 market-dropdown rounded shadow-lg max-h-60 overflow-auto">
                 {isLoadingSymbols ? (
                   <div className="p-3 text-center text-gray-500">Loading...</div>
                 ) : filteredSymbols.length > 0 ? (
@@ -252,7 +252,7 @@ export default function MarketPageContentEnhanced() {
                         setSearchQuery('');
                         setIsDropdownOpen(false);
                       }}
-                      className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-between items-center"
+                      className="w-full px-3 py-2 text-left market-dropdown-item flex justify-between items-center text-sm"
                     >
                       <div>
                         <span className="font-medium">{symbol.symbol}</span>
@@ -275,7 +275,7 @@ export default function MarketPageContentEnhanced() {
 
         {/* Date Range */}
         <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 sidebar-label">
+          <label className="block text-xs font-medium mb-2 market-label uppercase">
             Date Range
           </label>
           <div className="grid grid-cols-4 gap-2">
@@ -283,10 +283,10 @@ export default function MarketPageContentEnhanced() {
               <button
                 key={range}
                 onClick={() => setDateRange(range)}
-                className={`px-3 py-1.5 text-sm rounded transition-colors ${
+                className={`px-2 py-1 text-xs rounded transition-colors ${
                   dateRange === range
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    ? 'market-button active'
+                    : 'market-button'
                 }`}
               >
                 {range}
@@ -297,26 +297,26 @@ export default function MarketPageContentEnhanced() {
 
         {/* View Type */}
         <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 sidebar-label">
+          <label className="block text-xs font-medium mb-2 market-label uppercase">
             View Type
           </label>
           <div className="flex gap-2">
             <button
               onClick={() => setViewType('daily')}
-              className={`flex-1 px-3 py-2 text-sm rounded transition-colors ${
+              className={`flex-1 px-3 py-1.5 text-sm rounded transition-colors ${
                 viewType === 'daily'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? 'market-button active'
+                  : 'market-button'
               }`}
             >
               Daily
             </button>
             <button
               onClick={() => setViewType('weekly')}
-              className={`flex-1 px-3 py-2 text-sm rounded transition-colors ${
+              className={`flex-1 px-3 py-1.5 text-sm rounded transition-colors ${
                 viewType === 'weekly'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? 'market-button active'
+                  : 'market-button'
               }`}
             >
               Weekly
@@ -326,13 +326,13 @@ export default function MarketPageContentEnhanced() {
 
         {/* Chart Type */}
         <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 sidebar-label">
+          <label className="block text-xs font-medium mb-2 market-label uppercase">
             Chart Type
           </label>
           <select
             value={chartType}
             onChange={(e) => setChartType(e.target.value as any)}
-            className="w-full px-3 py-2 border rounded-md sidebar-select"
+            className="w-full px-3 py-1.5 rounded market-select text-sm"
           >
             <option value="candlestick">Candlestick</option>
             <option value="line">Line</option>
@@ -342,7 +342,7 @@ export default function MarketPageContentEnhanced() {
 
         {/* Technical Indicators */}
         <div className="mb-6">
-          <h3 className="text-sm font-semibold mb-3 sidebar-label">
+          <h3 className="text-xs font-semibold mb-3 market-label uppercase">
             Technical Indicators
           </h3>
           
@@ -353,7 +353,7 @@ export default function MarketPageContentEnhanced() {
                 type="checkbox"
                 checked={indicators.volume}
                 onChange={() => toggleIndicator('volume')}
-                className="form-checkbox h-4 w-4 text-indigo-600 rounded"
+                className="h-4 w-4 rounded market-checkbox"
               />
               <span className="text-sm">Volume</span>
             </label>
@@ -361,7 +361,7 @@ export default function MarketPageContentEnhanced() {
 
           {/* Price Overlays */}
           <div className="mb-3">
-            <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Price Overlays</h4>
+            <h4 className="text-xs font-medium market-text-muted uppercase mb-2">Price Overlays</h4>
             <div className="space-y-2">
               {[
                 { key: 'sma20', label: 'SMA (20)' },
@@ -375,7 +375,7 @@ export default function MarketPageContentEnhanced() {
                     type="checkbox"
                     checked={indicators[key as keyof typeof indicators]}
                     onChange={() => toggleIndicator(key as keyof typeof indicators)}
-                    className="form-checkbox h-4 w-4 text-indigo-600 rounded"
+                    className="h-4 w-4 rounded market-checkbox"
                   />
                   <span className="text-sm">{label}</span>
                 </label>
@@ -385,7 +385,7 @@ export default function MarketPageContentEnhanced() {
 
           {/* Oscillators */}
           <div>
-            <h4 className="text-xs font-medium text-gray-500 uppercase mb-2">Oscillators</h4>
+            <h4 className="text-xs font-medium market-text-muted uppercase mb-2">Oscillators</h4>
             <div className="space-y-2">
               {[
                 { key: 'macd', label: 'MACD' },
@@ -397,7 +397,7 @@ export default function MarketPageContentEnhanced() {
                     type="checkbox"
                     checked={indicators[key as keyof typeof indicators]}
                     onChange={() => toggleIndicator(key as keyof typeof indicators)}
-                    className="form-checkbox h-4 w-4 text-indigo-600 rounded"
+                    className="h-4 w-4 rounded market-checkbox"
                   />
                   <span className="text-sm">{label}</span>
                 </label>
@@ -408,7 +408,7 @@ export default function MarketPageContentEnhanced() {
 
         {/* Active Indicators Summary */}
         {(activeIndicatorCount.overlays > 0 || activeIndicatorCount.oscillators > 0 || activeIndicatorCount.volume > 0) && (
-          <div className="text-xs text-gray-500 mt-2">
+          <div className="text-xs market-text-muted mt-2">
             Active: {activeIndicatorCount.volume > 0 && 'Volume'}{activeIndicatorCount.volume > 0 && activeIndicatorCount.overlays > 0 && ', '}
             {activeIndicatorCount.overlays > 0 && `${activeIndicatorCount.overlays} overlay${activeIndicatorCount.overlays > 1 ? 's' : ''}`}
             {activeIndicatorCount.overlays > 0 && activeIndicatorCount.oscillators > 0 && ', '}
@@ -418,15 +418,15 @@ export default function MarketPageContentEnhanced() {
       </div>
 
       {/* Middle Panel - Chart */}
-      <div className="flex-1 price-content-area p-6 overflow-hidden">
+      <div className="flex-1 market-content p-6 overflow-hidden">
         {selectedSymbol ? (
           <div className="h-full flex flex-col">
             <div className="mb-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold main-title">
+              <h2 className="text-xl font-bold market-title">
                 {selectedSymbol} - {symbols.find(s => s.symbol === selectedSymbol)?.name || 'Loading...'}
               </h2>
               {lastUpdateTime && (
-                <div className="text-sm text-gray-500">
+                <div className="text-sm market-text-muted">
                   Last updated: {toBrisbaneTime(lastUpdateTime)}
                 </div>
               )}
@@ -447,39 +447,39 @@ export default function MarketPageContentEnhanced() {
           </div>
         ) : (
           <div className="h-full flex items-center justify-center">
-            <p className="text-gray-500">Select a symbol to view chart</p>
+            <p className="market-text-muted">Select a symbol to view chart</p>
           </div>
         )}
       </div>
 
       {/* Right Panel - Data Details */}
-      <div className="w-80 price-data-sidebar p-6 overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">Data Details</h3>
+      <div className="w-80 market-data-sidebar p-6 overflow-y-auto">
+        <h3 className="text-lg font-semibold mb-4 market-title">Data Details</h3>
         
         {selectedSymbol ? (
           <div className="space-y-4">
             {/* Symbol Info */}
-            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Symbol Information</h4>
+            <div className="market-info-card p-4 rounded-lg">
+              <h4 className="font-medium mb-2 market-title">Symbol</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Symbol:</span>
+                  <span className="market-text-muted">Symbol:</span>
                   <span className="font-medium">{selectedSymbol}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Name:</span>
+                  <span className="market-text-muted">Name:</span>
                   <span className="font-medium text-right text-xs">
                     {symbols.find(s => s.symbol === selectedSymbol)?.name || '-'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Last Price:</span>
+                  <span className="market-text-muted">Last Price:</span>
                   <span className="font-medium">
                     ${symbols.find(s => s.symbol === selectedSymbol)?.last_price?.toFixed(2) || '-'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Change:</span>
+                  <span className="market-text-muted">Change:</span>
                   <span className={`font-medium ${
                     (symbols.find(s => s.symbol === selectedSymbol)?.change_percent || 0) >= 0
                       ? 'text-green-600'
@@ -492,7 +492,7 @@ export default function MarketPageContentEnhanced() {
                 </div>
                 {symbols.find(s => s.symbol === selectedSymbol)?.sector && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Sector:</span>
+                    <span className="market-text-muted">Sector:</span>
                     <span className="font-medium text-right text-xs">
                       {symbols.find(s => s.symbol === selectedSymbol)!.sector}
                     </span>
@@ -502,41 +502,41 @@ export default function MarketPageContentEnhanced() {
             </div>
 
             {/* Selected Point Data */}
-            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Selected Data Point</h4>
+            <div className="market-info-card p-4 rounded-lg">
+              <h4 className="font-medium mb-2 market-title">Data Point Details</h4>
               {selectedDataPoint ? (
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Date:</span>
+                    <span className="market-text-muted">Date:</span>
                     <span className="font-medium">
                       {new Date(selectedDataPoint.timestamp).toLocaleDateString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Open:</span>
+                    <span className="market-text-muted">Open:</span>
                     <span className="font-medium">${selectedDataPoint.open?.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">High:</span>
+                    <span className="market-text-muted">High:</span>
                     <span className="font-medium">${selectedDataPoint.high?.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Low:</span>
+                    <span className="market-text-muted">Low:</span>
                     <span className="font-medium">${selectedDataPoint.low?.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Close:</span>
+                    <span className="market-text-muted">Close:</span>
                     <span className="font-medium">${selectedDataPoint.close?.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Volume:</span>
+                    <span className="market-text-muted">Volume:</span>
                     <span className="font-medium">
                       {selectedDataPoint.volume?.toLocaleString()}
                     </span>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm market-text-muted">
                   Click on the chart to view detailed data
                 </p>
               )}
@@ -544,24 +544,21 @@ export default function MarketPageContentEnhanced() {
 
             {/* Active Indicators Values */}
             {(activeIndicatorCount.overlays > 0 || activeIndicatorCount.oscillators > 0) && (
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Indicator Values</h4>
-                <p className="text-sm text-gray-500">
-                  Hover over the chart to see indicator values
+              <div className="market-info-card p-4 rounded-lg">
+                <h4 className="font-medium mb-2 market-title">Additional Information</h4>
+                <p className="text-sm market-text-muted">
+                  News, events, and other relevant information will be displayed here when available.
                 </p>
               </div>
             )}
 
             {/* News/Analysis Placeholder */}
-            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Market News</h4>
-              <p className="text-sm text-gray-500">
-                Market news and analysis coming soon
-              </p>
+            <div className="market-info-card p-4 rounded-lg">
+              <h4 className="font-medium mb-2 market-title">Market news and analysis coming soon.</h4>
             </div>
           </div>
         ) : (
-          <p className="text-gray-500 text-center">
+          <p className="market-text-muted text-center">
             Select a symbol to view details
           </p>
         )}
