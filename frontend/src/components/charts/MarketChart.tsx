@@ -90,7 +90,7 @@ export default function MarketChart({
 }: MarketChartProps) {
   const [isClient, setIsClient] = useState(false);
   const [highchartsLoaded, setHighchartsLoaded] = useState(false);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false); // Unused - removed for ESLint
   const [error, setError] = useState<string | null>(null);
   
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -933,7 +933,7 @@ export default function MarketChart({
   const loadChartData = useCallback(async () => {
     if (!isVisible) return;
     
-    setLoading(true);
+    // setLoading(true); // Unused - removed for ESLint
     setError(null);
     
     // TEMPORARY: Always use dummy data for testing
@@ -946,14 +946,14 @@ export default function MarketChart({
     setTimeout(() => {
       if (!chartContainerRef.current) {
         console.error('[MarketChart] Container ref is null after timeout');
-        setLoading(false);
+        // setLoading(false); // Unused - removed for ESLint
         return;
       }
       
       // Ensure container is in the DOM
       if (!document.body.contains(chartContainerRef.current)) {
         console.error('[MarketChart] Container is not in DOM');
-        setLoading(false);
+        // setLoading(false); // Unused - removed for ESLint
         return;
       }
       
@@ -976,7 +976,7 @@ export default function MarketChart({
         // Create new chart with dummy data
         createChart(dummyData);
       }
-      setLoading(false);
+      // setLoading(false); // Unused - removed for ESLint
     }, 200);
     
     // Original API code commented out for testing
@@ -1050,10 +1050,10 @@ export default function MarketChart({
       // Don't set error when using dummy data
       setError(null);
     } finally {
-      setLoading(false);
+      // setLoading(false); // Unused - removed for ESLint
     }
     */
-  }, [symbol, isVisible, indicators, createChart, updateChartData, addIndicator, generateDummyData]);
+  }, [isVisible, indicators, createChart, updateChartData, addIndicator, generateDummyData]);
 
   // Handle chart type changes
   useEffect(() => {

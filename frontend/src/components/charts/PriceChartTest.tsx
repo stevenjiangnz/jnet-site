@@ -1,6 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
+import type Highcharts from 'highcharts';
+
+// Extend Window to include Highcharts
+declare global {
+  interface Window {
+    Highcharts?: typeof Highcharts;
+  }
+}
 
 export default function PriceChartTest() {
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -16,11 +24,11 @@ export default function PriceChartTest() {
     if (!isClient) return;
     
     const loadHighcharts = async () => {
-      if (typeof window !== 'undefined' && !(window as any).Highcharts) {
+      if (typeof window !== 'undefined' && !window.Highcharts) {
         const HighchartsModule = (await import('highcharts/highstock')).default;
-        (window as any).Highcharts = HighchartsModule;
+        window.Highcharts = HighchartsModule;
         setHighchartsLoaded(true);
-      } else if ((window as any).Highcharts) {
+      } else if (window.Highcharts) {
         setHighchartsLoaded(true);
       }
     };
@@ -75,7 +83,9 @@ export default function PriceChartTest() {
 
     // Create the chart
     try {
-      (window as any).Highcharts.stockChart(chartContainerRef.current, {
+      // Type assertion to satisfy Highcharts API
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window.Highcharts as any).stockChart(chartContainerRef.current, {
         rangeSelector: {
           selected: 1
         },
