@@ -76,6 +76,7 @@ export default function MarketPageContentEnhanced() {
   // Data freshness
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
   const [isDataFresh, setIsDataFresh] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const [selectedDataPoint, setSelectedDataPoint] = useState<{
     timestamp: number;
     open?: number;
@@ -153,6 +154,11 @@ export default function MarketPageContentEnhanced() {
     setIsDataFresh(daysSinceUpdate <= 3);
     setLastUpdateTime(latestDate);
   }, [selectedSymbol, symbols]);
+
+  // Set client-side flag
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     checkDataFreshness();
@@ -438,7 +444,7 @@ export default function MarketPageContentEnhanced() {
               <h2 className="text-xl font-bold market-title">
                 {selectedSymbol} - {symbols.find(s => s.symbol === selectedSymbol)?.name || 'Loading...'}
               </h2>
-              {lastUpdateTime && (
+              {isClient && lastUpdateTime && (
                 <div className="text-sm market-text-muted">
                   Last updated: {toBrisbaneTime(lastUpdateTime.toISOString())}
                 </div>

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fixed React hydration error in market page
+  - Added client-side only rendering for timestamp display to prevent server/client mismatch
+  - Introduced `isClient` state to control rendering of dynamic time elements
+  - Prevents "Hydration failed because the server rendered HTML didn't match the client" error
+
 ### Changed
 - Renamed "Price" menu item to "Market" in frontend navigation
   - Updated navbar and mobile menu components
