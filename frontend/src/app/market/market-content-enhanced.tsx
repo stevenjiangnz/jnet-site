@@ -329,34 +329,7 @@ export default function MarketPageContentEnhanced() {
           </div>
         </div>
 
-        {/* View Type */}
-        <div className="mb-6">
-          <label className="block text-xs font-medium mb-2 market-label uppercase">
-            View Type
-          </label>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setViewType('daily')}
-              className={`flex-1 px-3 py-1.5 text-sm rounded transition-colors ${
-                viewType === 'daily'
-                  ? 'market-button active'
-                  : 'market-button'
-              }`}
-            >
-              Daily
-            </button>
-            <button
-              onClick={() => setViewType('weekly')}
-              className={`flex-1 px-3 py-1.5 text-sm rounded transition-colors ${
-                viewType === 'weekly'
-                  ? 'market-button active'
-                  : 'market-button'
-              }`}
-            >
-              Weekly
-            </button>
-          </div>
-        </div>
+        {/* View Type - Removed as it's now handled by Highcharts data grouping buttons */}
 
 
         {/* Technical Indicators */}

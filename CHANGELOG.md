@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - MAX option now loads all available historical data from backend
   - Configured Highcharts to display 6 months by default while loading data based on sidebar selection
   - Added support for "max" period in API endpoints
+- Implemented Highcharts data grouping controls
+  - Removed "View Type" (daily/weekly) section from left sidebar
+  - Added D/W/M buttons directly in Highcharts for data grouping control
+  - Fixed missing buttons by loading the exporting module in highcharts-loader
+  - Data grouping buttons now only change grouping without affecting selected date range
 - Renamed "Price" menu item to "Market" in frontend navigation
   - Updated navbar and mobile menu components
   - Renamed `/price` route to `/market`

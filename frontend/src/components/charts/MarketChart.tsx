@@ -209,7 +209,7 @@ export default function MarketChart({
           { type: 'month', count: 6, text: '6M' },
           { type: 'year', count: 1, text: '1Y' },
           { type: 'year', count: 3, text: '3Y' },
-          { type: 'all', text: 'All' }
+          { type: 'all', text: 'All' },
         ],
         selected: 2, // Default to 6M view
         inputEnabled: true,
@@ -296,8 +296,9 @@ export default function MarketChart({
       plotOptions: {
         series: {
           dataGrouping: {
-            enabled: viewType === 'weekly',
-            units: viewType === 'weekly' ? [['week', [1]]] : undefined
+            enabled: true,
+            forced: false, // Don't force grouping, let user control it
+            units: [['day', [1]], ['week', [1]], ['month', [1]]]
           }
         },
         candlestick: {
@@ -312,6 +313,114 @@ export default function MarketChart({
         },
         line: {
           lineWidth: 1
+        }
+      },
+      
+      exporting: {
+        enabled: true,  // Enable exporting module
+        buttons: {
+          contextButton: {
+            enabled: false  // Disable default menu button
+          },
+          dailyBtn: {
+            text: 'D',
+            x: -90,
+            onclick: function() {
+              this.series.forEach(function(series) {
+                series.update({
+                  dataGrouping: {
+                    forced: true,
+                    units: [['day', [1]]]
+                  }
+                }, false);
+              });
+              this.redraw();
+            },
+            theme: {
+              fill: '#2d2d2d',
+              stroke: '#404040',
+              'stroke-width': 1,
+              r: 4,
+              style: {
+                color: '#a0a0a0',
+                fontSize: '12px'
+              },
+              states: {
+                hover: {
+                  fill: '#3d3d3d',
+                  style: {
+                    color: '#ffffff'
+                  }
+                }
+              }
+            }
+          },
+          weeklyBtn: {
+            text: 'W',
+            x: -60,
+            onclick: function() {
+              this.series.forEach(function(series) {
+                series.update({
+                  dataGrouping: {
+                    forced: true,
+                    units: [['week', [1]]]
+                  }
+                }, false);
+              });
+              this.redraw();
+            },
+            theme: {
+              fill: '#2d2d2d',
+              stroke: '#404040',
+              'stroke-width': 1,
+              r: 4,
+              style: {
+                color: '#a0a0a0',
+                fontSize: '12px'
+              },
+              states: {
+                hover: {
+                  fill: '#3d3d3d',
+                  style: {
+                    color: '#ffffff'
+                  }
+                }
+              }
+            }
+          },
+          monthlyBtn: {
+            text: 'M',
+            x: -30,
+            onclick: function() {
+              this.series.forEach(function(series) {
+                series.update({
+                  dataGrouping: {
+                    forced: true,
+                    units: [['month', [1]]]
+                  }
+                }, false);
+              });
+              this.redraw();
+            },
+            theme: {
+              fill: '#2d2d2d',
+              stroke: '#404040',
+              'stroke-width': 1,
+              r: 4,
+              style: {
+                color: '#a0a0a0',
+                fontSize: '12px'
+              },
+              states: {
+                hover: {
+                  fill: '#3d3d3d',
+                  style: {
+                    color: '#ffffff'
+                  }
+                }
+              }
+            }
+          }
         }
       },
       
@@ -598,7 +707,8 @@ export default function MarketChart({
           yAxis: volumeAxisIndex,
           turboThreshold: 0, // Disable threshold to support color objects
           dataGrouping: {
-            enabled: false // Disable data grouping to preserve colors
+            enabled: true,
+            units: [['day', [1]], ['week', [1]], ['month', [1]]]
           },
           borderColor: 'transparent',
           opacity: 1, // Full opacity for vivid colors
@@ -1127,28 +1237,7 @@ export default function MarketChart({
     }
   }, [chartType]);
 
-  // Handle view type changes
-  useEffect(() => {
-    if (!chartRef.current) return;
-    
-    const groupingConfig = viewType === 'weekly' ? {
-      forced: true,
-      units: [['week', [1]]]
-    } : {
-      enabled: false
-    };
-    
-    chartRef.current.series.forEach(series => {
-      if (series.options.id !== 'navigator-series') {
-        series.update({
-          dataGrouping: groupingConfig
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any, false);
-      }
-    });
-    
-    chartRef.current.redraw();
-  }, [viewType]);
+  // Handle view type changes - removed since we're using Highcharts buttons now
 
   // Handle indicator changes
   useEffect(() => {
