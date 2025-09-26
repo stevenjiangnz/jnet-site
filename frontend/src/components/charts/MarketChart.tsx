@@ -90,7 +90,7 @@ export default function MarketChart({
 }: MarketChartProps) {
   const [isClient, setIsClient] = useState(false);
   const [highchartsLoaded, setHighchartsLoaded] = useState(false);
-  // const [loading, setLoading] = useState(false); // Unused - removed for ESLint
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -131,15 +131,18 @@ export default function MarketChart({
 
   // Calculate dynamic chart height based on active indicators
   const calculateChartHeight = useCallback(() => {
-    const baseHeight = 500; // Base for price + volume
-    let oscillatorCount = 0;
+    const priceHeight = 400; // Price chart height
+    let additionalHeight = 0;
     
-    if (indicators.macd) oscillatorCount++;
-    if (indicators.rsi14) oscillatorCount++;
-    if (indicators.adx14) oscillatorCount++;
+    if (indicators.volume) additionalHeight += 120; // Volume panel
+    if (indicators.macd) additionalHeight += 200; // MACD panel
+    if (indicators.rsi14) additionalHeight += 120; // RSI panel
+    if (indicators.adx14) additionalHeight += 120; // ADX panel
     
-    // Add 150px for each oscillator panel
-    return baseHeight + (oscillatorCount * 150);
+    // Add space for navigator (40px height + 25px margin + extra padding)
+    const navigatorHeight = 80;
+    
+    return priceHeight + additionalHeight + navigatorHeight + 50; // +50 for margins
   }, [indicators]);
 
   // Build chart configuration
@@ -248,7 +251,7 @@ export default function MarketChart({
             fontSize: '12px'
           }
         },
-        height: '60%',
+        height: '60%', // Initial height for price panel
         lineWidth: 0,
         id: 'price-axis',
         gridLineColor: '#2a2a2a',
@@ -274,7 +277,7 @@ export default function MarketChart({
           borderColor: 'transparent'
         },
         line: {
-          lineWidth: 2
+          lineWidth: 1
         }
       },
       
@@ -391,30 +394,119 @@ export default function MarketChart({
   }, [symbol, calculateChartHeight, dateRange, viewType, chartType]);
 
   // Add new Y-axis for oscillators
-  const addNewYAxis = useCallback((title: string, height: number = 15): number => {
+  const addNewYAxis = useCallback((title: string): number => {
     if (!chartRef.current) return -1;
     
-    // Calculate top position
-    const existingAxes = chartRef.current.yAxis.length;
+    // Check if axis already exists
+    const existingAxisIndex = yAxisManager.current.oscillatorAxes.get(title);
+    if (existingAxisIndex !== undefined) {
+      return existingAxisIndex;
+    }
+    
+    // Define panel configuration
+    const panelConfig: Record<string, { height: number; order: number }> = {
+      'Volume': { height: 12, order: 1 },
+      'MACD': { height: 20, order: 2 },
+      'RSI': { height: 12, order: 3 },
+      'ADX': { height: 12, order: 4 }
+    };
+    
+    const config = panelConfig[title] || { height: 15, order: 5 };
+    const gap = 1;
+    
+    // Get current axes
+    const axes = chartRef.current.yAxis;
+    
+    // Collect all panels info
+    const panels: Array<{ name: string; height: number; order: number }> = [
+      { name: 'Price', height: 0, order: 0 } // Height will be calculated
+    ];
+    
+    // Add existing indicator panels
+    for (let i = 1; i < axes.length; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const axisOptions = axes[i].userOptions as any;
+      const axisTitle = axisOptions.title?.text || 'Unknown';
+      const existingConfig = panelConfig[axisTitle] || { height: 15, order: 5 };
+      panels.push({
+        name: axisTitle,
+        height: existingConfig.height,
+        order: existingConfig.order
+      });
+    }
+    
+    // Add the new panel
+    panels.push({
+      name: title,
+      height: config.height,
+      order: config.order
+    });
+    
+    // Sort panels by order
+    panels.sort((a, b) => a.order - b.order);
+    
+    // Calculate total indicator height
+    const totalIndicatorHeight = panels
+      .filter(p => p.name !== 'Price')
+      .reduce((sum, p) => sum + p.height, 0);
+    
+    // Calculate gaps
+    const totalGaps = (panels.length - 1) * gap;
+    
+    // Calculate price panel height
+    const priceHeight = 100 - totalIndicatorHeight - totalGaps;
+    panels[0].height = Math.max(35, priceHeight); // Ensure price panel is at least 35%
+    
+    // If we exceed 100%, scale down all panels proportionally
+    const totalHeight = panels.reduce((sum, p) => sum + p.height, 0) + totalGaps;
+    if (totalHeight > 100) {
+      const scale = (100 - totalGaps) / (totalHeight - totalGaps);
+      panels.forEach(p => {
+        p.height = Math.floor(p.height * scale);
+      });
+    }
+    
+    // Calculate positions
     let currentTop = 0;
+    const updates: Array<{ index: number; top: number; height: number }> = [];
     
-    // Recalculate all axis positions
-    const priceHeight = 60 - (existingAxes - 1) * 5; // Shrink price panel
-    const gap = 2;
+    // Map panel names to axis indices
+    const nameToIndex = new Map<string, number>();
+    nameToIndex.set('Price', 0);
+    for (let i = 1; i < axes.length; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const axisOptions = axes[i].userOptions as any;
+      nameToIndex.set(axisOptions.title?.text || '', i);
+    }
     
-    // Update price axis height
-    chartRef.current.yAxis[0].update({
-      height: `${priceHeight}%`
-    }, false);
+    // Prepare updates for existing axes
+    for (const panel of panels) {
+      if (panel.name !== title) {
+        const idx = nameToIndex.get(panel.name);
+        if (idx !== undefined) {
+          updates.push({
+            index: idx,
+            top: currentTop,
+            height: panel.height
+          });
+        }
+      }
+      currentTop += panel.height + (panel === panels[panels.length - 1] ? 0 : gap);
+    }
     
-    currentTop = priceHeight + gap;
+    // Find position for new axis
+    const newPanelIndex = panels.findIndex(p => p.name === title);
+    let newPanelTop = 0;
+    for (let i = 0; i < newPanelIndex; i++) {
+      newPanelTop += panels[i].height + gap;
+    }
     
-    // Update positions of existing axes
-    for (let i = 1; i < existingAxes; i++) {
-      chartRef.current.yAxis[i].update({
-        top: `${currentTop}%`
+    // Update all existing axes
+    for (const update of updates) {
+      chartRef.current.yAxis[update.index].update({
+        height: `${update.height}%`,
+        top: `${update.top}%`
       }, false);
-      currentTop += 15 + gap; // Standard height for oscillators
     }
     
     // Add new axis
@@ -434,8 +526,8 @@ export default function MarketChart({
           fontSize: '12px'
         }
       },
-      top: `${currentTop}%`,
-      height: `${height}%`,
+      top: `${newPanelTop}%`,
+      height: `${config.height}%`,
       offset: 0,
       lineWidth: 0,
       gridLineColor: '#2a2a2a',
@@ -448,7 +540,6 @@ export default function MarketChart({
     const axisIndex = chartRef.current.yAxis.indexOf(axis);
     
     yAxisManager.current.oscillatorAxes.set(title, axisIndex);
-    chartRef.current.redraw();
     
     return axisIndex;
   }, []);
@@ -467,21 +558,19 @@ export default function MarketChart({
     switch (indicatorType) {
       case 'volume':
         // Add volume axis if not exists
-        if (!yAxisManager.current.oscillatorAxes.has('Volume')) {
-          const volumeAxisIndex = addNewYAxis('Volume', 15);
-          yAxisManager.current.volumeAxisIndex = volumeAxisIndex;
-          
-          series = {
-            type: 'column',
-            id: 'volume-series',
-            name: 'Volume',
-            data: data?.volume || [],
-            yAxis: volumeAxisIndex,
-            color: 'rgba(139, 92, 246, 0.3)',
-            borderColor: 'transparent',
-            ...seriesOptions
-          };
-        }
+        const volumeAxisIndex = addNewYAxis('Volume');
+        yAxisManager.current.volumeAxisIndex = volumeAxisIndex;
+        
+        series = {
+          type: 'column',
+          id: 'volume-series',
+          name: 'Volume',
+          data: data?.volume || [],
+          yAxis: volumeAxisIndex,
+          color: 'rgba(139, 92, 246, 0.3)',
+          borderColor: 'transparent',
+          ...seriesOptions
+        };
         break;
         
       case 'sma20':
@@ -493,7 +582,7 @@ export default function MarketChart({
             data: data.indicators.SMA_20.SMA,
             yAxis: 0,
             color: INDICATOR_COLORS.sma20,
-            lineWidth: 2,
+            lineWidth: 1,
             ...seriesOptions
           };
         }
@@ -508,7 +597,7 @@ export default function MarketChart({
             data: data.indicators.SMA_50.SMA,
             yAxis: 0,
             color: INDICATOR_COLORS.sma50,
-            lineWidth: 2,
+            lineWidth: 1,
             ...seriesOptions
           };
         }
@@ -523,7 +612,7 @@ export default function MarketChart({
             data: data.indicators.SMA_200.SMA,
             yAxis: 0,
             color: INDICATOR_COLORS.sma200,
-            lineWidth: 2,
+            lineWidth: 1,
             ...seriesOptions
           };
         }
@@ -571,7 +660,7 @@ export default function MarketChart({
         
       case 'macd':
         if (data?.indicators?.MACD) {
-          const macdAxisIndex = addNewYAxis('MACD', 15);
+          const macdAxisIndex = addNewYAxis('MACD');
           
           // Add histogram
           if (data.indicators.MACD.histogram) {
@@ -596,7 +685,7 @@ export default function MarketChart({
               data: data.indicators.MACD.MACD,
               yAxis: macdAxisIndex,
               color: INDICATOR_COLORS.macd.macd,
-              lineWidth: 2,
+              lineWidth: 1,
               ...seriesOptions
             }, false);
             indicatorSeriesIds.current['macd-line'] = 'macd-line-series';
@@ -611,7 +700,7 @@ export default function MarketChart({
               data: data.indicators.MACD.signal,
               yAxis: macdAxisIndex,
               color: INDICATOR_COLORS.macd.signal,
-              lineWidth: 2,
+              lineWidth: 1,
               ...seriesOptions
             }, false);
             indicatorSeriesIds.current['macd-signal'] = 'macd-signal-series';
@@ -624,7 +713,7 @@ export default function MarketChart({
         
       case 'rsi14':
         if (data?.indicators?.RSI_14?.RSI) {
-          const rsiAxisIndex = addNewYAxis('RSI', 10);
+          const rsiAxisIndex = addNewYAxis('RSI');
           
           // Update axis with RSI-specific settings
           chartRef.current.yAxis[rsiAxisIndex].update({
@@ -664,7 +753,7 @@ export default function MarketChart({
             data: data.indicators.RSI_14.RSI,
             yAxis: rsiAxisIndex,
             color: INDICATOR_COLORS.rsi,
-            lineWidth: 2,
+            lineWidth: 1,
             ...seriesOptions
           };
         }
@@ -672,7 +761,7 @@ export default function MarketChart({
         
       case 'adx14':
         if (data?.indicators?.ADX_14) {
-          const adxAxisIndex = addNewYAxis('ADX', 15);
+          const adxAxisIndex = addNewYAxis('ADX');
           
           // Add ADX line
           if (data.indicators.ADX_14.ADX) {
@@ -683,7 +772,7 @@ export default function MarketChart({
               data: data.indicators.ADX_14.ADX,
               yAxis: adxAxisIndex,
               color: INDICATOR_COLORS.adx.adx,
-              lineWidth: 2,
+              lineWidth: 1,
               ...seriesOptions
             }, false);
             indicatorSeriesIds.current['adx-line'] = 'adx-line-series';
@@ -726,8 +815,9 @@ export default function MarketChart({
     }
     
     if (series) {
-      chartRef.current.addSeries(series, true);
+      chartRef.current.addSeries(series, false); // Don't redraw yet
       indicatorSeriesIds.current[indicatorType] = series.id;
+      chartRef.current.redraw(); // Redraw once after all operations
     }
   }, [addNewYAxis]);
 
@@ -858,129 +948,24 @@ export default function MarketChart({
     }
     
     // Add indicators based on current state
-    Object.entries(indicators).forEach(([key, enabled]) => {
-      if (enabled && data) {
+    // Add indicators in a specific order to ensure proper layout
+    const indicatorOrder = ['volume', 'sma20', 'sma50', 'sma200', 'ema20', 'bb20', 'macd', 'rsi14', 'adx14'];
+    indicatorOrder.forEach(key => {
+      if (indicators[key as keyof typeof indicators] && data) {
         addIndicator(key, data);
       }
     });
   }, [buildChartConfig, indicators, addIndicator]);
 
-  // Update chart data
-  const updateChartData = useCallback((data: ChartData) => {
-    if (!chartRef.current) return;
-    
-    // Update main series
-    const mainSeries = chartRef.current.get('main-series');
-    if (mainSeries && 'setData' in mainSeries) {
-      mainSeries.setData(data.ohlc, true);
-    }
-    
-    // Update volume if enabled
-    if (indicators.volume && data.volume) {
-      const volumeSeries = chartRef.current.get('volume-series');
-      if (volumeSeries && 'setData' in volumeSeries) {
-        volumeSeries.setData(data.volume, true);
-      }
-    }
-  }, [indicators.volume]);
 
-  // Generate dummy data for testing
-  const generateDummyData = useCallback((): ChartData => {
-    const ohlc: number[][] = [];
-    const volume: number[][] = [];
-    
-    // Start date - 1 year ago
-    let date = new Date();
-    date.setFullYear(date.getFullYear() - 1);
-    date = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-    let close = 150; // Starting price
-    
-    // Generate 365 days of data
-    for (let i = 0; i < 365; i++) {
-      const timestamp = date.getTime();
-      
-      // Random walk for price
-      const change = (Math.random() - 0.48) * 4; // Slight upward bias
-      close = Math.max(close + change, 10); // Minimum price of $10
-      
-      const high = close + Math.random() * 2;
-      const low = close - Math.random() * 2;
-      const open = low + Math.random() * (high - low);
-      
-      ohlc.push([
-        timestamp,
-        Math.round(open * 100) / 100,
-        Math.round(high * 100) / 100,
-        Math.round(low * 100) / 100,
-        Math.round(close * 100) / 100
-      ]);
-      
-      // Random volume between 10M and 50M
-      volume.push([
-        timestamp,
-        Math.floor(10000000 + Math.random() * 40000000)
-      ]);
-      
-      // Next day
-      date.setDate(date.getDate() + 1);
-    }
-    
-    return { ohlc, volume };
-  }, []);
 
   // Load chart data
   const loadChartData = useCallback(async () => {
     if (!isVisible) return;
     
-    // setLoading(true); // Unused - removed for ESLint
+    setLoading(true);
     setError(null);
     
-    // TEMPORARY: Always use dummy data for testing
-    console.log('[MarketChart] Using dummy data for testing...');
-    
-    // Generate dummy data
-    const dummyData = generateDummyData();
-    
-    // Use setTimeout to ensure the container is mounted and check container exists
-    setTimeout(() => {
-      if (!chartContainerRef.current) {
-        console.error('[MarketChart] Container ref is null after timeout');
-        // setLoading(false); // Unused - removed for ESLint
-        return;
-      }
-      
-      // Ensure container is in the DOM
-      if (!document.body.contains(chartContainerRef.current)) {
-        console.error('[MarketChart] Container is not in DOM');
-        // setLoading(false); // Unused - removed for ESLint
-        return;
-      }
-      
-      console.log('[MarketChart] Container is ready, creating/updating chart');
-      
-      if (chartRef.current) {
-        updateChartData(dummyData);
-        
-        // Re-add indicators with new data
-        Object.entries(indicators).forEach(([key, enabled]) => {
-          if (enabled) {
-            const seriesId = indicatorSeriesIds.current[key];
-            if (!seriesId || !chartRef.current!.get(seriesId)) {
-              // Indicator not added yet or was removed
-              addIndicator(key, dummyData);
-            }
-          }
-        });
-      } else {
-        // Create new chart with dummy data
-        createChart(dummyData);
-      }
-      // setLoading(false); // Unused - removed for ESLint
-    }, 200);
-    
-    // Original API code commented out for testing
-    /*
     try {
       // Determine which indicator set to request based on active indicators
       let indicatorSet = 'chart_basic';
@@ -991,7 +976,8 @@ export default function MarketChart({
       }
       
       const params = new URLSearchParams({
-        indicators: indicatorSet
+        indicators: indicatorSet,
+        period: dateRange.toLowerCase() === 'all' ? '5y' : dateRange.toLowerCase()
       });
       
       const response = await fetch(`/api/symbols/${symbol}/chart?${params}`);
@@ -1010,50 +996,38 @@ export default function MarketChart({
           indicators: result.indicators
         };
         
-        if (chartRef.current) {
-          updateChartData(chartData);
+        // Use setTimeout to ensure the container is mounted and check container exists
+        setTimeout(() => {
+          if (!chartContainerRef.current) {
+            console.error('[MarketChart] Container ref is null after timeout');
+            setLoading(false);
+            return;
+          }
           
-          // Re-add indicators with new data
-          Object.entries(indicators).forEach(([key, enabled]) => {
-            if (enabled) {
-              const seriesId = indicatorSeriesIds.current[key];
-              if (!seriesId || !chartRef.current!.get(seriesId)) {
-                // Indicator not added yet or was removed
-                addIndicator(key, chartData);
-              }
-            }
-          });
-        } else {
-          // Create new chart
+          // Ensure container is in the DOM
+          if (!document.body.contains(chartContainerRef.current)) {
+            console.error('[MarketChart] Container is not in DOM');
+            setLoading(false);
+            return;
+          }
+          
+          console.log('[MarketChart] Container is ready, creating/updating chart');
+          
+          // Always create a new chart when data is loaded
+          // This ensures proper initialization when switching symbols
           createChart(chartData);
-        }
+          setLoading(false);
+        }, 200);
       } else {
         setError('No data available');
+        setLoading(false);
       }
     } catch (err) {
       console.error('Error loading chart data:', err);
-      console.log('Using dummy data for testing...');
-      
-      // Use dummy data instead of showing error
-      const dummyData = generateDummyData();
-      
-      // Use setTimeout to ensure the container is mounted
-      setTimeout(() => {
-        if (chartRef.current) {
-          updateChartData(dummyData);
-        } else {
-          // Create new chart with dummy data
-          createChart(dummyData);
-        }
-      }, 100);
-      
-      // Don't set error when using dummy data
-      setError(null);
-    } finally {
-      // setLoading(false); // Unused - removed for ESLint
+      setError('Failed to load chart data');
+      setLoading(false);
     }
-    */
-  }, [isVisible, indicators, createChart, updateChartData, addIndicator, generateDummyData]);
+  }, [isVisible, symbol, indicators, dateRange, createChart]);
 
   // Handle chart type changes
   useEffect(() => {
@@ -1110,9 +1084,12 @@ export default function MarketChart({
     });
   }, [indicators, highchartsLoaded, removeIndicator, loadChartData]);
 
-  // Initial load
+  // Initial load and reload on dateRange change
   useEffect(() => {
     if (highchartsLoaded && isVisible && symbol) {
+      // Capture ref values at effect creation time
+      const manager = yAxisManager.current;
+      
       // Wait a bit to ensure container is ready
       const timer = setTimeout(() => {
         if (chartContainerRef.current && document.body.contains(chartContainerRef.current)) {
@@ -1122,19 +1099,30 @@ export default function MarketChart({
       
       return () => {
         clearTimeout(timer);
-        if (chartRef.current) {
-          chartRef.current.destroy();
+        // Use captured refs
+        const chart = chartRef.current;
+        
+        if (chart) {
+          chart.destroy();
           chartRef.current = null;
+          // Reset the axis manager and indicator tracking
+          indicatorSeriesIds.current = {};
+          if (manager) {
+            manager.oscillatorAxes.clear();
+          }
         }
       };
     }
-  }, [symbol, isVisible, highchartsLoaded, loadChartData]);
+  }, [symbol, isVisible, highchartsLoaded, dateRange, loadChartData]);
 
   // Cleanup on unmount
   useEffect(() => {
+    // Capture ref to avoid stale closure warning
+    const chart = chartRef.current;
+    
     return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
+      if (chart) {
+        chart.destroy();
         chartRef.current = null;
       }
     };
@@ -1145,12 +1133,21 @@ export default function MarketChart({
   }
 
   return (
-    <div className="w-full h-full market-chart-container">
+    <div className="w-full market-chart-container relative mb-12">
       {!highchartsLoaded && (
         <div className="flex justify-center items-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading chart library...</p>
+          </div>
+        </div>
+      )}
+      
+      {loading && highchartsLoaded && (
+        <div className="absolute inset-0 flex justify-center items-center z-50 bg-black/50 rounded-lg">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-300">Loading chart data...</p>
           </div>
         </div>
       )}
