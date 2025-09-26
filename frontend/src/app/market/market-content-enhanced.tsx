@@ -40,8 +40,8 @@ export default function MarketPageContentEnhanced() {
   const [viewType, setViewType] = useState<"daily" | "weekly">("daily");
   const [chartType, setChartType] = useState<"candlestick" | "line" | "area">("candlestick");
   
-  // Indicators with flexible selection
-  const [indicators, setIndicators] = useState({
+  // Default indicators configuration
+  const DEFAULT_INDICATORS = {
     // Basic
     volume: true,
     
@@ -56,6 +56,21 @@ export default function MarketPageContentEnhanced() {
     macd: false,
     rsi14: false,
     adx14: false
+  };
+
+  // Indicators with flexible selection - load from localStorage
+  const [indicators, setIndicators] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('marketIndicators');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to parse saved indicators:', e);
+        }
+      }
+    }
+    return DEFAULT_INDICATORS;
   });
   
   // Data freshness
@@ -142,6 +157,13 @@ export default function MarketPageContentEnhanced() {
   useEffect(() => {
     checkDataFreshness();
   }, [checkDataFreshness]);
+
+  // Save indicators to localStorage when they change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('marketIndicators', JSON.stringify(indicators));
+    }
+  }, [indicators]);
 
   // Toggle indicator
   const toggleIndicator = (indicator: keyof typeof indicators) => {

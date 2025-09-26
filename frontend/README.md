@@ -51,6 +51,7 @@ The Market Chart component (`src/components/charts/MarketChart.tsx`) provides a 
 - **Date Ranges**: 1M, 3M, 6M, 1Y, 3Y, All
 - **Interactive Controls**: Zoom, pan, and date range selection
 - **Responsive Design**: Adapts to different screen sizes
+- **Persistent Indicator Settings**: User's indicator selections are saved to localStorage and restored on page reload
 
 ### Styling
 
