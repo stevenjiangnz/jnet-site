@@ -51,6 +51,7 @@ The Market Chart component (`src/components/charts/MarketChart.tsx`) provides a 
 - **Date Ranges**: 1M, 3M, 6M, 1Y, 3Y, All
 - **Interactive Controls**: Zoom, pan, and date range selection
 - **Responsive Design**: Adapts to different screen sizes
+- **Persistent Indicator Settings**: User's indicator selections are saved to localStorage and restored on page reload
 
 ### Styling
 
@@ -91,6 +92,8 @@ interface MarketChartProps {
 ### Development Notes
 
 - The chart uses dynamic imports to avoid SSR issues with Highcharts
-- Chart data is currently using dummy data for testing (see `generateDummyData` function)
-- Real data integration is prepared and can be enabled by uncommenting the API code
+- Chart data is fetched from the API based on the selected symbol and date range
 - The chart automatically adjusts height based on active indicators
+- Fixed pixel-based positioning system for all chart panes to prevent overlap
+- Navigator position is dynamically calculated based on active oscillators
+- Extra 60px spacing is added between oscillators and navigator to ensure clear separation
