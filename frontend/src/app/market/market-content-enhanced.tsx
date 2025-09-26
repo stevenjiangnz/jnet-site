@@ -210,7 +210,7 @@ export default function MarketPageContentEnhanced() {
   }, []);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] market-page">
+    <div className="flex min-h-[calc(100vh-4rem)] market-page">
       {/* Left Panel - Controls */}
       <div className="w-64 market-sidebar p-4 overflow-y-auto">
         {/* Symbol Selection */}
@@ -425,9 +425,9 @@ export default function MarketPageContentEnhanced() {
       </div>
 
       {/* Middle Panel - Chart */}
-      <div className="flex-1 market-content p-6 overflow-hidden">
+      <div className="flex-1 market-content p-6">
         {selectedSymbol ? (
-          <div className="h-full flex flex-col">
+          <div className="flex flex-col">
             <div className="mb-4 flex justify-between items-center">
               <h2 className="text-xl font-bold market-title">
                 {selectedSymbol} - {symbols.find(s => s.symbol === selectedSymbol)?.name || 'Loading...'}
@@ -440,7 +440,7 @@ export default function MarketPageContentEnhanced() {
             </div>
             
             {/* Chart Component */}
-            <div className="flex-1 min-h-0 relative">
+            <div className="min-h-0 relative">
               <MarketChart
                 symbol={selectedSymbol}
                 isVisible={true}

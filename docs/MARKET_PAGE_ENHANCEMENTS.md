@@ -125,6 +125,16 @@ Response: {
 }
 ```
 
+## UI/UX Improvements
+
+### Navigator Timeline Visibility Fix
+- **Issue**: The Highcharts navigator (time range selector) was cut off at the bottom when multiple indicators were enabled
+- **Solution**: 
+  - Changed main container from fixed height `h-[calc(100vh-4rem)]` to minimum height `min-h-[calc(100vh-4rem)]`
+  - Removed middle panel scrollbar (`overflow-y-auto`) to use the main browser scrollbar
+  - Added bottom margin to chart container (`mb-12`) to ensure navigator is always visible
+- **Result**: Better UX with single page scroll instead of nested scrollbars, navigator always accessible
+
 ## Browser Compatibility
 - Chrome/Edge: Fully supported
 - Firefox: Fully supported
