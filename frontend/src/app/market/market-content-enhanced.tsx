@@ -167,7 +167,7 @@ export default function MarketPageContentEnhanced() {
 
   // Toggle indicator
   const toggleIndicator = (indicator: keyof typeof indicators) => {
-    setIndicators(prev => ({
+    setIndicators((prev: typeof indicators) => ({
       ...prev,
       [indicator]: !prev[indicator]
     }));
