@@ -42,7 +42,7 @@ interface MarketChartProps {
 
 interface ChartData {
   ohlc: number[][];
-  volume: number[][];
+  volume: any[]; // Can be number[][] or array of {x: number, y: number, color: string}
   indicators?: {
     SMA_20?: { SMA: number[][] };
     SMA_50?: { SMA: number[][] };
@@ -58,9 +58,9 @@ interface ChartData {
 const PANE_HEIGHTS = {
   price: 400,      // Main price chart
   volume: 120,     // Volume bars
-  macd: 150,       // MACD oscillator
+  macd: 180,       // MACD oscillator
   rsi: 120,        // RSI oscillator
-  adx: 120,        // ADX oscillator
+  adx: 150,        // ADX oscillator
   navigator: 60,   // Bottom timeline navigator
   margins: 40,     // Total margins and padding
   topMargin: 10,   // Minimal top margin for very compact layout
@@ -147,7 +147,7 @@ export default function MarketChart({
   const calculateChartHeight = useCallback(() => {
     let totalHeight = PANE_HEIGHTS.price + PANE_HEIGHTS.navigator + PANE_HEIGHTS.margins + PANE_HEIGHTS.topMargin + PANE_HEIGHTS.rangeSelector;
     
-    if (indicators.volume) totalHeight += PANE_HEIGHTS.volume;
+    // Volume is now merged into price pane, so don't add its height
     if (indicators.macd) totalHeight += PANE_HEIGHTS.macd;
     if (indicators.rsi14) totalHeight += PANE_HEIGHTS.rsi;
     if (indicators.adx14) totalHeight += PANE_HEIGHTS.adx;
@@ -165,8 +165,7 @@ export default function MarketChart({
   const calculateNavigatorTop = useCallback(() => {
     let topPosition = PANE_HEIGHTS.rangeSelector + PANE_HEIGHTS.price;
     
-    // Add heights for all active oscillators
-    if (indicators.volume) topPosition += PANE_HEIGHTS.volume;
+    // Add heights for all active oscillators (volume is now merged into price)
     if (indicators.macd) topPosition += PANE_HEIGHTS.macd;
     if (indicators.rsi14) topPosition += PANE_HEIGHTS.rsi;
     if (indicators.adx14) topPosition += PANE_HEIGHTS.adx;
@@ -455,10 +454,11 @@ export default function MarketChart({
     const existingOscillators = Array.from(yAxisManager.current.oscillatorAxes.keys());
     let topPosition = PANE_HEIGHTS.rangeSelector + PANE_HEIGHTS.price; // Start after range selector and price axis
     
-    // Add heights of existing oscillators to calculate position
+    // Add heights of existing oscillators to calculate position (exclude Volume since it's merged)
     for (const axisTitle of existingOscillators) {
+      if (axisTitle === 'Volume') continue; // Skip volume as it's merged into price
+      
       const height = 
-        axisTitle === 'Volume' ? PANE_HEIGHTS.volume :
         axisTitle === 'MACD' ? PANE_HEIGHTS.macd :
         axisTitle === 'RSI' ? PANE_HEIGHTS.rsi :
         axisTitle === 'ADX' ? PANE_HEIGHTS.adx : 120;
@@ -467,7 +467,6 @@ export default function MarketChart({
     
     // Get height for the new oscillator
     const oscillatorHeight = 
-      title === 'Volume' ? PANE_HEIGHTS.volume :
       title === 'MACD' ? PANE_HEIGHTS.macd :
       title === 'RSI' ? PANE_HEIGHTS.rsi :
       title === 'ADX' ? PANE_HEIGHTS.adx : 120;
@@ -534,9 +533,61 @@ export default function MarketChart({
     
     switch (indicatorType) {
       case 'volume':
-        // Add volume axis if not exists
-        const volumeAxisIndex = addNewYAxis('Volume');
-        yAxisManager.current.volumeAxisIndex = volumeAxisIndex;
+        // Add a secondary y-axis on the price pane for volume
+        if (!chartRef.current.get('volume-axis')) {
+          // Calculate max volume first
+          const volumeData = data?.volume || [];
+          let maxVolume = 0;
+          volumeData.forEach(point => {
+            const vol = point.y || point[1] || point;
+            if (vol > maxVolume) maxVolume = vol;
+          });
+          
+          chartRef.current.addAxis({
+            id: 'volume-axis',
+            labels: {
+              align: 'left',
+              x: 3,
+              style: {
+                color: '#a0a0a0',
+                fontSize: '11px'
+              },
+              // Format volume labels to be more compact
+              formatter: function() {
+                const value = this.value as number;
+                if (value >= 1000000000) {
+                  return (value / 1000000000).toFixed(1) + 'B';
+                } else if (value >= 1000000) {
+                  return (value / 1000000).toFixed(1) + 'M';
+                } else if (value >= 1000) {
+                  return (value / 1000).toFixed(0) + 'K';
+                }
+                return value.toString();
+              }
+            },
+            title: {
+              text: 'Volume',
+              style: {
+                color: '#a0a0a0',
+                fontSize: '12px'
+              }
+            },
+            top: 55, // Same as price axis
+            height: PANE_HEIGHTS.price, // Same height as price
+            opposite: true,
+            lineWidth: 0,
+            gridLineWidth: 0,
+            // Use very high max to make volume bars much smaller (only 10% of pane)
+            min: 0,
+            max: maxVolume * 10, // 10x multiplier = bars use only 10% of height
+            tickInterval: maxVolume * 2.5, // Show 4 tick marks
+            endOnTick: false,
+            startOnTick: true,
+            showLastLabel: false // Hide top label to reduce clutter
+          }, false, false);
+        }
+        
+        const volumeAxisIndex = chartRef.current.yAxis.findIndex(axis => axis.options.id === 'volume-axis');
         
         series = {
           type: 'column',
@@ -544,8 +595,16 @@ export default function MarketChart({
           name: 'Volume',
           data: data?.volume || [],
           yAxis: volumeAxisIndex,
-          color: 'rgba(139, 92, 246, 0.3)',
+          turboThreshold: 0, // Disable threshold to support color objects
+          dataGrouping: {
+            enabled: false // Disable data grouping to preserve colors
+          },
           borderColor: 'transparent',
+          opacity: 1, // Full opacity for vivid colors
+          groupPadding: 0,
+          pointPadding: 0.1,
+          borderWidth: 0,
+          zIndex: -1, // Place behind price series
           ...seriesOptions
         };
         break;
@@ -639,7 +698,7 @@ export default function MarketChart({
         if (data?.indicators?.MACD) {
           const macdAxisIndex = addNewYAxis('MACD');
           
-          // Add histogram
+          // Add histogram with zones for color based on positive/negative values
           if (data.indicators.MACD.histogram) {
             chartRef.current.addSeries({
               type: 'column',
@@ -647,7 +706,16 @@ export default function MarketChart({
               name: 'MACD Histogram',
               data: data.indicators.MACD.histogram,
               yAxis: macdAxisIndex,
-              color: INDICATOR_COLORS.macd.histogram,
+              zones: [{
+                value: 0,
+                color: '#ef4444' // Red for negative values
+              }, {
+                color: '#22c55e' // Green for positive values
+              }],
+              borderColor: 'transparent',
+              borderWidth: 0,
+              groupPadding: 0.2,
+              pointPadding: 0.1,
               ...seriesOptions
             }, false);
             indicatorSeriesIds.current['macd-histogram'] = 'macd-histogram-series';
@@ -982,10 +1050,30 @@ export default function MarketChart({
       const result = await response.json();
       
       if (result.ohlc && result.ohlc.length > 0) {
+        // Process volume data with colors based on candlestick movement
+        let processedVolume: any[] = [];
+        if (result.volume && result.ohlc) {
+          processedVolume = result.volume.map((vol: number[], index: number) => {
+            const ohlcPoint = result.ohlc[index];
+            if (ohlcPoint) {
+              // ohlcPoint format: [timestamp, open, high, low, close]
+              const isUp = ohlcPoint[4] >= ohlcPoint[1]; // close >= open
+              return {
+                x: vol[0],
+                y: vol[1],
+                color: isUp ? '#22c55e' : '#ef4444' // Green for up, red for down
+              };
+            }
+            return vol;
+          });
+        } else {
+          processedVolume = result.ohlc.map((point: number[]) => [point[0], 0]);
+        }
+        
         // Map volume data properly
         const data: ChartData = {
           ohlc: result.ohlc,
-          volume: result.volume || result.ohlc.map((point: number[]) => [point[0], 0]),
+          volume: processedVolume,
           indicators: result.indicators
         };
         
