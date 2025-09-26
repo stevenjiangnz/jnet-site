@@ -254,3 +254,110 @@ body {
 .dark .form-input:focus {
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
 }
+
+/* Market Page Specific Styles - Dark Theme */
+.market-sidebar {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+.market-content {
+  background-color: #0d0d0d;
+  color: #e0e0e0;
+}
+
+.market-data-sidebar {
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+}
+
+.market-dropdown {
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  color: #e0e0e0;
+}
+
+.market-dropdown-item:hover {
+  background-color: #3a3a3a;
+}
+
+.market-info-card {
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+}
+
+.market-button {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  border: 1px solid #3a3a3a;
+}
+
+.market-button:hover {
+  background-color: #3a3a3a;
+}
+
+.market-button.active {
+  background-color: #5c4cdb;
+  color: #ffffff;
+  border-color: #5c4cdb;
+}
+
+.market-input {
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  color: #e0e0e0;
+}
+
+.market-input:focus {
+  border-color: #5c4cdb;
+  outline: none;
+}
+
+.market-select {
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  color: #e0e0e0;
+}
+
+.market-checkbox {
+  accent-color: #5c4cdb;
+}
+
+.market-label {
+  color: #b0b0b0;
+}
+
+.market-title {
+  color: #ffffff;
+}
+
+.market-text-muted {
+  color: #808080;
+}
+
+/* Dark theme overrides for market page */
+.dark .market-sidebar,
+.dark .price-sidebar {
+  background-color: #1a1a1a;
+}
+
+.dark .market-content,
+.dark .price-content-area {
+  background-color: #0d0d0d;
+}
+
+.dark .market-data-sidebar,
+.dark .price-data-sidebar {
+  background-color: #1a1a1a;
+}
+
+.market-chart-container {
+  background-color: transparent;
+}
+
+/* Force dark background for the entire market page */
+.market-page {
+  background-color: #0d0d0d;
+  color: #e0e0e0;
+  min-height: 100vh;
+}

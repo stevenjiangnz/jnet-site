@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { AppLayout } from '@/components/layout/app-layout'
-import MarketPageContent from './market-content'
+import MarketPageContentEnhanced from './market-content-enhanced'
 
 export default async function MarketPage() {
   const supabase = await createClient()
@@ -20,7 +20,7 @@ export default async function MarketPage() {
 
   return (
     <AppLayout>
-      <MarketPageContent />
+      <MarketPageContentEnhanced />
     </AppLayout>
   );
 }
