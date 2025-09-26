@@ -509,12 +509,16 @@ export default function MarketChart({
     chartRef.current.setSize(undefined, newHeight, false);
     
     // Update navigator position
-    chartRef.current.navigator.yAxis.update({
-      top: calculateNavigatorTop()
-    }, true);
+    // @ts-expect-error Navigator exists on Highstock chart instance
+    if (chartRef.current.navigator) {
+      // @ts-expect-error Navigator exists on Highstock chart instance
+      chartRef.current.navigator.yAxis.update({
+        top: calculateNavigatorTop()
+      }, true);
+    }
     
     return axisIndex;
-  }, [calculateChartHeight, calculateNavigatorTop, indicators]);
+  }, [calculateChartHeight, calculateNavigatorTop]);
 
   // Flag to trigger chart recreation when indicators change
   const [shouldRecreateChart, setShouldRecreateChart] = useState(false);
@@ -885,7 +889,9 @@ export default function MarketChart({
     
     // Update navigator position after removing oscillators
     const newNavigatorTop = calculateNavigatorTop();
+    // @ts-expect-error Navigator exists on Highstock chart instance
     if (chartRef.current.navigator) {
+      // @ts-expect-error Navigator exists on Highstock chart instance
       chartRef.current.navigator.yAxis.update({
         top: newNavigatorTop
       }, false);
@@ -1090,7 +1096,7 @@ export default function MarketChart({
       } else {
         // Single series indicators
         const seriesId = indicatorSeriesIds.current[key];
-        seriesExists = seriesId && chartRef.current!.get(seriesId);
+        seriesExists = !!(seriesId && chartRef.current!.get(seriesId));
       }
       
       if (enabled && !seriesExists) {
