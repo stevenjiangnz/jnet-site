@@ -520,18 +520,6 @@ export default function MarketChart({
     return axisIndex;
   }, [calculateChartHeight, calculateNavigatorTop]);
 
-  // Flag to trigger chart recreation when indicators change
-  const [shouldRecreateChart, setShouldRecreateChart] = useState(false);
-  
-  // Recalculate and apply the complete chart layout
-  const recalculateLayout = useCallback(() => {
-    if (!chartRef.current) return;
-    
-    console.log('[MarketChart] Recalculating layout - will recreate chart on next render');
-    
-    // Set flag to recreate chart on next render
-    setShouldRecreateChart(true);
-  }, []);
 
   // Add indicator dynamically
   const addIndicator = useCallback((indicatorType: string, data?: ChartData) => {
@@ -887,21 +875,31 @@ export default function MarketChart({
       }
     }
     
-    // Update navigator position after removing oscillators
+    // Update chart height and navigator position dynamically
+    const newHeight = calculateChartHeight();
     const newNavigatorTop = calculateNavigatorTop();
+    
+    // Check if chart still exists before updating
+    if (!chartRef.current) {
+      console.warn('[MarketChart] Chart reference lost during indicator removal');
+      return;
+    }
+    
+    // Update chart size
+    chartRef.current.setSize(undefined, newHeight, false);
+    
+    // Update navigator position
     // @ts-expect-error Navigator exists on Highstock chart instance
-    if (chartRef.current.navigator) {
+    if (chartRef.current.navigator && chartRef.current.navigator.yAxis) {
       // @ts-expect-error Navigator exists on Highstock chart instance
       chartRef.current.navigator.yAxis.update({
         top: newNavigatorTop
       }, false);
     }
     
+    // Single redraw after all updates
     chartRef.current.redraw();
-    
-    // Recalculate entire layout to fill gaps
-    recalculateLayout();
-  }, [calculateNavigatorTop, recalculateLayout]);
+  }, [calculateChartHeight, calculateNavigatorTop]);
 
   // Create chart
   const createChart = useCallback((data?: ChartData) => {
@@ -1144,39 +1142,6 @@ export default function MarketChart({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [symbol, isVisible, highchartsLoaded, dateRange]);
 
-  // Handle chart recreation when needed
-  useEffect(() => {
-    if (shouldRecreateChart && chartData && chartRef.current) {
-      console.log('[MarketChart] Recreating chart to fix layout ordering');
-      
-      // Save current zoom state
-      const xAxis = chartRef.current.xAxis[0];
-      const extremes = xAxis ? xAxis.getExtremes() : null;
-      
-      // Destroy and recreate the chart
-      chartRef.current.destroy();
-      chartRef.current = null;
-      indicatorSeriesIds.current = {};
-      yAxisManager.current.oscillatorAxes.clear();
-      
-      // Recreate the chart with a small delay to ensure proper cleanup
-      setTimeout(() => {
-        if (chartContainerRef.current && document.body.contains(chartContainerRef.current)) {
-          createChart(chartData);
-          
-          // Restore zoom if it was set
-          if (chartRef.current && extremes && extremes.userMin !== undefined && extremes.userMax !== undefined) {
-            setTimeout(() => {
-              if (chartRef.current) {
-                chartRef.current.xAxis[0].setExtremes(extremes.userMin, extremes.userMax);
-              }
-            }, 100);
-          }
-        }
-        setShouldRecreateChart(false);
-      }, 50);
-    }
-  }, [shouldRecreateChart, chartData, createChart]);
 
   // Cleanup on unmount
   useEffect(() => {
