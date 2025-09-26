@@ -394,7 +394,7 @@ export default function MarketChart({
   }, [symbol, calculateChartHeight, dateRange, viewType, chartType]);
 
   // Add new Y-axis for oscillators
-  const addNewYAxis = useCallback((title: string, height: number = 15): number => {
+  const addNewYAxis = useCallback((title: string): number => {
     if (!chartRef.current) return -1;
     
     // Check if axis already exists
@@ -404,7 +404,7 @@ export default function MarketChart({
     }
     
     // Define panel configuration
-    const panelConfig = {
+    const panelConfig: Record<string, { height: number; order: number }> = {
       'Volume': { height: 12, order: 1 },
       'MACD': { height: 20, order: 2 },
       'RSI': { height: 12, order: 3 },
@@ -558,7 +558,7 @@ export default function MarketChart({
     switch (indicatorType) {
       case 'volume':
         // Add volume axis if not exists
-        const volumeAxisIndex = addNewYAxis('Volume', 15);
+        const volumeAxisIndex = addNewYAxis('Volume');
         yAxisManager.current.volumeAxisIndex = volumeAxisIndex;
         
         series = {
@@ -660,7 +660,7 @@ export default function MarketChart({
         
       case 'macd':
         if (data?.indicators?.MACD) {
-          const macdAxisIndex = addNewYAxis('MACD', 15);
+          const macdAxisIndex = addNewYAxis('MACD');
           
           // Add histogram
           if (data.indicators.MACD.histogram) {
@@ -713,7 +713,7 @@ export default function MarketChart({
         
       case 'rsi14':
         if (data?.indicators?.RSI_14?.RSI) {
-          const rsiAxisIndex = addNewYAxis('RSI', 10);
+          const rsiAxisIndex = addNewYAxis('RSI');
           
           // Update axis with RSI-specific settings
           chartRef.current.yAxis[rsiAxisIndex].update({
@@ -761,7 +761,7 @@ export default function MarketChart({
         
       case 'adx14':
         if (data?.indicators?.ADX_14) {
-          const adxAxisIndex = addNewYAxis('ADX', 15);
+          const adxAxisIndex = addNewYAxis('ADX');
           
           // Add ADX line
           if (data.indicators.ADX_14.ADX) {
@@ -957,24 +957,6 @@ export default function MarketChart({
     });
   }, [buildChartConfig, indicators, addIndicator]);
 
-  // Update chart data
-  const updateChartData = useCallback((data: ChartData) => {
-    if (!chartRef.current) return;
-    
-    // Update main series
-    const mainSeries = chartRef.current.get('main-series');
-    if (mainSeries && 'setData' in mainSeries) {
-      mainSeries.setData(data.ohlc, true);
-    }
-    
-    // Update volume if enabled
-    if (indicators.volume && data.volume) {
-      const volumeSeries = chartRef.current.get('volume-series');
-      if (volumeSeries && 'setData' in volumeSeries) {
-        volumeSeries.setData(data.volume, true);
-      }
-    }
-  }, [indicators.volume]);
 
 
   // Load chart data
@@ -1045,7 +1027,7 @@ export default function MarketChart({
       setError('Failed to load chart data');
       setLoading(false);
     }
-  }, [isVisible, symbol, indicators, dateRange, createChart, updateChartData, addIndicator]);
+  }, [isVisible, symbol, indicators, dateRange, createChart]);
 
   // Handle chart type changes
   useEffect(() => {
@@ -1105,6 +1087,9 @@ export default function MarketChart({
   // Initial load and reload on dateRange change
   useEffect(() => {
     if (highchartsLoaded && isVisible && symbol) {
+      // Capture ref values at effect creation time
+      const manager = yAxisManager.current;
+      
       // Wait a bit to ensure container is ready
       const timer = setTimeout(() => {
         if (chartContainerRef.current && document.body.contains(chartContainerRef.current)) {
@@ -1114,12 +1099,17 @@ export default function MarketChart({
       
       return () => {
         clearTimeout(timer);
-        if (chartRef.current) {
-          chartRef.current.destroy();
+        // Use captured refs
+        const chart = chartRef.current;
+        
+        if (chart) {
+          chart.destroy();
           chartRef.current = null;
           // Reset the axis manager and indicator tracking
           indicatorSeriesIds.current = {};
-          yAxisManager.current.oscillatorAxes.clear();
+          if (manager) {
+            manager.oscillatorAxes.clear();
+          }
         }
       };
     }
@@ -1127,9 +1117,12 @@ export default function MarketChart({
 
   // Cleanup on unmount
   useEffect(() => {
+    // Capture ref to avoid stale closure warning
+    const chart = chartRef.current;
+    
     return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
+      if (chart) {
+        chart.destroy();
         chartRef.current = null;
       }
     };
