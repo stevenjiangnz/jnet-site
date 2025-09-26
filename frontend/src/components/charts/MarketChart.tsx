@@ -211,11 +211,7 @@ export default function MarketChart({
           { type: 'year', count: 3, text: '3Y' },
           { type: 'all', text: 'All' }
         ],
-        selected: dateRange === '1M' ? 0 : 
-                 dateRange === '3M' ? 1 : 
-                 dateRange === '6M' ? 2 : 
-                 dateRange === '1Y' ? 3 : 
-                 dateRange === '3Y' ? 4 : 5,
+        selected: 2, // Default to 6M view
         inputEnabled: true,
         verticalAlign: 'top',
         y: 15,  // Add vertical offset to position below title
@@ -1043,7 +1039,7 @@ export default function MarketChart({
       // Always fetch all indicators (chart_full) to enable client-side toggling
       const params = new URLSearchParams({
         indicators: 'chart_full',
-        period: dateRange.toLowerCase() === 'all' ? '5y' : dateRange.toLowerCase()
+        period: dateRange.toLowerCase()
       });
       
       const response = await fetch(`/api/symbols/${symbol}/chart?${params}`);

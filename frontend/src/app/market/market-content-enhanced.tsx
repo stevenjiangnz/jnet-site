@@ -36,7 +36,7 @@ export default function MarketPageContentEnhanced() {
   const [isLoadingSymbols, setIsLoadingSymbols] = useState(true);
   
   // Chart configuration
-  const [dateRange, setDateRange] = useState("6M");
+  const [dateRange, setDateRange] = useState("3Y");
   const [viewType, setViewType] = useState<"daily" | "weekly">("daily");
   const chartType = "candlestick"; // Fixed to candlestick only
   
@@ -313,7 +313,7 @@ export default function MarketPageContentEnhanced() {
             Date Range
           </label>
           <div className="grid grid-cols-4 gap-2">
-            {['1M', '3M', '6M', '1Y', '3Y', '5Y', 'ALL'].map((range) => (
+            {['1Y', '3Y', '5Y', 'MAX'].map((range) => (
               <button
                 key={range}
                 onClick={() => setDateRange(range)}

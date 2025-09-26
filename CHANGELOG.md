@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prevents "Hydration failed because the server rendered HTML didn't match the client" error
 
 ### Changed
+- Updated market page date range options
+  - Removed short-term options (1M, 3M, 6M) from sidebar
+  - Kept only long-term options (1Y, 3Y, 5Y, MAX) in sidebar
+  - Changed default sidebar selection from 1Y to 3Y
+  - MAX option now loads all available historical data from backend
+  - Configured Highcharts to display 6 months by default while loading data based on sidebar selection
+  - Added support for "max" period in API endpoints
 - Renamed "Price" menu item to "Market" in frontend navigation
   - Updated navbar and mobile menu components
   - Renamed `/price` route to `/market`
