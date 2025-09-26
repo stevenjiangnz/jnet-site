@@ -75,7 +75,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
     };
   }, [isClient]);
 
-  const createChart = useCallback((ohlc: number[][], volume: any[], indicators: Indicators | null) => {
+  const createChart = useCallback((ohlc: number[][], volume: (number[] | { x: number; y: number; color: string })[], indicators: Indicators | null) => {
     if (!chartContainerRef.current || !window.Highcharts) {
       console.error('[PriceChart] Missing requirements:', {
         hasContainer: !!chartContainerRef.current,
@@ -515,7 +515,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
       console.error('[PriceChart] Error creating chart:', error);
       setError('Failed to render chart: ' + (error as Error).message);
     }
-  }, [symbol, indicatorSet]);
+  }, [symbol]);
 
   const renderChart = useCallback((data: PriceData[], indicators?: Indicators) => {
     if (!chartContainerRef.current || !window.Highcharts) {
@@ -528,7 +528,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
 
     // Prepare data for Highcharts
     const ohlc: number[][] = [];
-    const volume: any[] = [];
+    const volume: (number[] | { x: number; y: number; color: string })[] = [];
 
     data.forEach((item, index) => {
       // Simple timestamp conversion - let JavaScript Date handle it
@@ -578,7 +578,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
         x: timestamp,
         y: item.volume,
         color: isGreen ? '#22c55e' : '#ef4444' // Green for up, red for down
-      } as any);
+      });
     });
 
     createChart(ohlc, volume, indicators || null);

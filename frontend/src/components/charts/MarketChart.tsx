@@ -29,7 +29,7 @@ interface MarketChartProps {
   };
   viewType: 'daily' | 'weekly';
   dateRange: string;
-  chartType: 'candlestick' | 'line' | 'area';
+  chartType?: 'candlestick' | 'line' | 'area'; // Optional, defaults to candlestick
   onDataPointSelect?: (point: {
     timestamp: number;
     open?: number;
@@ -42,7 +42,7 @@ interface MarketChartProps {
 
 interface ChartData {
   ohlc: number[][];
-  volume: any[]; // Can be number[][] or array of {x: number, y: number, color: string}
+  volume: (number[] | { x: number; y: number; color: string })[]; // Can be number[][] or array of {x: number, y: number, color: string}
   indicators?: {
     SMA_20?: { SMA: number[][] };
     SMA_50?: { SMA: number[][] };
@@ -98,7 +98,7 @@ export default function MarketChart({
   indicators,
   viewType,
   dateRange,
-  chartType,
+  chartType = 'candlestick', // Default to candlestick
   onDataPointSelect // eslint-disable-line @typescript-eslint/no-unused-vars
 }: MarketChartProps) {
   const [isClient, setIsClient] = useState(false);
@@ -539,7 +539,12 @@ export default function MarketChart({
           const volumeData = data?.volume || [];
           let maxVolume = 0;
           volumeData.forEach(point => {
-            const vol = point.y || point[1] || point;
+            let vol: number;
+            if (Array.isArray(point)) {
+              vol = point[1];
+            } else {
+              vol = point.y;
+            }
             if (vol > maxVolume) maxVolume = vol;
           });
           
@@ -1051,7 +1056,7 @@ export default function MarketChart({
       
       if (result.ohlc && result.ohlc.length > 0) {
         // Process volume data with colors based on candlestick movement
-        let processedVolume: any[] = [];
+        let processedVolume: (number[] | { x: number; y: number; color: string })[] = [];
         if (result.volume && result.ohlc) {
           processedVolume = result.volume.map((vol: number[], index: number) => {
             const ohlcPoint = result.ohlc[index];

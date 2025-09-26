@@ -38,7 +38,7 @@ export default function MarketPageContentEnhanced() {
   // Chart configuration
   const [dateRange, setDateRange] = useState("6M");
   const [viewType, setViewType] = useState<"daily" | "weekly">("daily");
-  const [chartType, setChartType] = useState<"candlestick" | "line" | "area">("candlestick");
+  const chartType = "candlestick"; // Fixed to candlestick only
   
   // Default indicators configuration
   const DEFAULT_INDICATORS = {
@@ -209,11 +209,10 @@ export default function MarketPageContentEnhanced() {
     const prefs = {
       dateRange,
       viewType,
-      chartType,
       indicators
     };
     localStorage.setItem('marketPreferences', JSON.stringify(prefs));
-  }, [dateRange, viewType, chartType, indicators]);
+  }, [dateRange, viewType, indicators]);
 
   // Load preferences on mount
   useEffect(() => {
@@ -223,7 +222,7 @@ export default function MarketPageContentEnhanced() {
         const prefs = JSON.parse(saved);
         if (prefs.dateRange) setDateRange(prefs.dateRange);
         if (prefs.viewType) setViewType(prefs.viewType);
-        if (prefs.chartType) setChartType(prefs.chartType);
+        // chartType is now fixed to candlestick, no need to set it
         if (prefs.indicators) setIndicators(prefs.indicators);
       } catch (error) {
         console.error('Error loading preferences:', error);
@@ -353,21 +352,6 @@ export default function MarketPageContentEnhanced() {
           </div>
         </div>
 
-        {/* Chart Type */}
-        <div className="mb-6">
-          <label className="block text-xs font-medium mb-2 market-label uppercase">
-            Chart Type
-          </label>
-          <select
-            value={chartType}
-            onChange={(e) => setChartType(e.target.value as 'candlestick' | 'line' | 'area')}
-            className="w-full px-3 py-1.5 rounded market-select text-sm"
-          >
-            <option value="candlestick">Candlestick</option>
-            <option value="line">Line</option>
-            <option value="area">Area</option>
-          </select>
-        </div>
 
         {/* Technical Indicators */}
         <div className="mb-6">
