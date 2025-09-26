@@ -54,6 +54,19 @@ interface ChartData {
   };
 }
 
+// Central configuration for all pane heights (in pixels)
+const PANE_HEIGHTS = {
+  price: 400,      // Main price chart
+  volume: 120,     // Volume bars
+  macd: 150,       // MACD oscillator
+  rsi: 120,        // RSI oscillator
+  adx: 120,        // ADX oscillator
+  navigator: 60,   // Bottom timeline navigator
+  margins: 40,     // Total margins and padding
+  topMargin: 10,   // Minimal top margin for very compact layout
+  rangeSelector: 55 // Space for range selector buttons and inputs
+};
+
 // Indicator colors configuration
 const INDICATOR_COLORS = {
   sma20: '#fbbf24',  // Amber
@@ -92,6 +105,7 @@ export default function MarketChart({
   const [highchartsLoaded, setHighchartsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<ChartData | null>(null);
   
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<Highcharts.Chart | null>(null);
@@ -129,20 +143,41 @@ export default function MarketChart({
     }
   }, [isClient]);
 
-  // Calculate dynamic chart height based on active indicators
+  // Calculate dynamic chart height with fixed heights for each pane
   const calculateChartHeight = useCallback(() => {
-    const priceHeight = 400; // Price chart height
-    let additionalHeight = 0;
+    let totalHeight = PANE_HEIGHTS.price + PANE_HEIGHTS.navigator + PANE_HEIGHTS.margins + PANE_HEIGHTS.topMargin + PANE_HEIGHTS.rangeSelector;
     
-    if (indicators.volume) additionalHeight += 120; // Volume panel
-    if (indicators.macd) additionalHeight += 200; // MACD panel
-    if (indicators.rsi14) additionalHeight += 120; // RSI panel
-    if (indicators.adx14) additionalHeight += 120; // ADX panel
+    if (indicators.volume) totalHeight += PANE_HEIGHTS.volume;
+    if (indicators.macd) totalHeight += PANE_HEIGHTS.macd;
+    if (indicators.rsi14) totalHeight += PANE_HEIGHTS.rsi;
+    if (indicators.adx14) totalHeight += PANE_HEIGHTS.adx;
     
-    // Add space for navigator (40px height + 25px margin + extra padding)
-    const navigatorHeight = 80;
+    // Add extra spacing for navigator when oscillators are present
+    const hasOscillators = indicators.macd || indicators.rsi14 || indicators.adx14;
+    if (hasOscillators) {
+      totalHeight += 60; // Match the extra spacing in calculateNavigatorTop
+    }
     
-    return priceHeight + additionalHeight + navigatorHeight + 50; // +50 for margins
+    return totalHeight;
+  }, [indicators]);
+
+  // Calculate navigator position dynamically based on oscillators
+  const calculateNavigatorTop = useCallback(() => {
+    let topPosition = PANE_HEIGHTS.rangeSelector + PANE_HEIGHTS.price;
+    
+    // Add heights for all active oscillators
+    if (indicators.volume) topPosition += PANE_HEIGHTS.volume;
+    if (indicators.macd) topPosition += PANE_HEIGHTS.macd;
+    if (indicators.rsi14) topPosition += PANE_HEIGHTS.rsi;
+    if (indicators.adx14) topPosition += PANE_HEIGHTS.adx;
+    
+    // Add extra spacing before navigator when oscillators are present
+    const hasOscillators = indicators.macd || indicators.rsi14 || indicators.adx14;
+    if (hasOscillators) {
+      topPosition += 60; // Extra spacing to prevent overlap
+    }
+    
+    return topPosition;
   }, [indicators]);
 
   // Build chart configuration
@@ -153,6 +188,7 @@ export default function MarketChart({
       chart: {
         backgroundColor: '#1a1a1a',
         height: calculateChartHeight(),
+        marginTop: 10,  // Minimal top margin for very compact layout
         style: {
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
         },
@@ -182,6 +218,8 @@ export default function MarketChart({
                  dateRange === '1Y' ? 3 : 
                  dateRange === '3Y' ? 4 : 5,
         inputEnabled: true,
+        verticalAlign: 'top',
+        y: 15,  // Add vertical offset to position below title
         buttonTheme: {
           fill: '#2d2d2d',
           stroke: '#404040',
@@ -235,7 +273,7 @@ export default function MarketChart({
       },
       
       yAxis: [{
-        // Price axis
+        // Price axis with fixed pixel height
         labels: { 
           align: 'right', 
           x: -3,
@@ -251,7 +289,8 @@ export default function MarketChart({
             fontSize: '12px'
           }
         },
-        height: '60%', // Initial height for price panel
+        top: 55,  // Position below range selector (10px marginTop + 15px rangeSelector y + 30px spacing)
+        height: PANE_HEIGHTS.price,
         lineWidth: 0,
         id: 'price-axis',
         gridLineColor: '#2a2a2a',
@@ -338,8 +377,9 @@ export default function MarketChart({
         }
       },
       
-      // Navigator styling
+      // Navigator styling with dynamic positioning
       navigator: {
+        enabled: true,
         maskFill: 'rgba(139, 92, 246, 0.1)',
         series: {
           color: '#8b5cf6',
@@ -355,13 +395,16 @@ export default function MarketChart({
             }
           }
         },
+        yAxis: {
+          top: calculateNavigatorTop()
+        },
         handles: {
           backgroundColor: '#8b5cf6',
           borderColor: '#8b5cf6',
           borderRadius: 2
         },
         height: 40,
-        margin: 25
+        margin: 40
       },
       
       // Scrollbar styling
@@ -391,125 +434,45 @@ export default function MarketChart({
     };
     
     return config;
-  }, [symbol, calculateChartHeight, dateRange, viewType, chartType]);
+  }, [symbol, calculateChartHeight, calculateNavigatorTop, dateRange, viewType, chartType]);
 
-  // Add new Y-axis for oscillators
+  // Add new Y-axis for oscillators with fixed pixel positioning
   const addNewYAxis = useCallback((title: string): number => {
     if (!chartRef.current) return -1;
     
-    // Check if axis already exists
+    // Check if an axis with this title already exists
     const existingAxisIndex = yAxisManager.current.oscillatorAxes.get(title);
     if (existingAxisIndex !== undefined) {
-      return existingAxisIndex;
-    }
-    
-    // Define panel configuration
-    const panelConfig: Record<string, { height: number; order: number }> = {
-      'Volume': { height: 12, order: 1 },
-      'MACD': { height: 20, order: 2 },
-      'RSI': { height: 12, order: 3 },
-      'ADX': { height: 12, order: 4 }
-    };
-    
-    const config = panelConfig[title] || { height: 15, order: 5 };
-    const gap = 1;
-    
-    // Get current axes
-    const axes = chartRef.current.yAxis;
-    
-    // Collect all panels info
-    const panels: Array<{ name: string; height: number; order: number }> = [
-      { name: 'Price', height: 0, order: 0 } // Height will be calculated
-    ];
-    
-    // Add existing indicator panels
-    for (let i = 1; i < axes.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const axisOptions = axes[i].userOptions as any;
-      const axisTitle = axisOptions.title?.text || 'Unknown';
-      const existingConfig = panelConfig[axisTitle] || { height: 15, order: 5 };
-      panels.push({
-        name: axisTitle,
-        height: existingConfig.height,
-        order: existingConfig.order
-      });
-    }
-    
-    // Add the new panel
-    panels.push({
-      name: title,
-      height: config.height,
-      order: config.order
-    });
-    
-    // Sort panels by order
-    panels.sort((a, b) => a.order - b.order);
-    
-    // Calculate total indicator height
-    const totalIndicatorHeight = panels
-      .filter(p => p.name !== 'Price')
-      .reduce((sum, p) => sum + p.height, 0);
-    
-    // Calculate gaps
-    const totalGaps = (panels.length - 1) * gap;
-    
-    // Calculate price panel height
-    const priceHeight = 100 - totalIndicatorHeight - totalGaps;
-    panels[0].height = Math.max(35, priceHeight); // Ensure price panel is at least 35%
-    
-    // If we exceed 100%, scale down all panels proportionally
-    const totalHeight = panels.reduce((sum, p) => sum + p.height, 0) + totalGaps;
-    if (totalHeight > 100) {
-      const scale = (100 - totalGaps) / (totalHeight - totalGaps);
-      panels.forEach(p => {
-        p.height = Math.floor(p.height * scale);
-      });
-    }
-    
-    // Calculate positions
-    let currentTop = 0;
-    const updates: Array<{ index: number; top: number; height: number }> = [];
-    
-    // Map panel names to axis indices
-    const nameToIndex = new Map<string, number>();
-    nameToIndex.set('Price', 0);
-    for (let i = 1; i < axes.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const axisOptions = axes[i].userOptions as any;
-      nameToIndex.set(axisOptions.title?.text || '', i);
-    }
-    
-    // Prepare updates for existing axes
-    for (const panel of panels) {
-      if (panel.name !== title) {
-        const idx = nameToIndex.get(panel.name);
-        if (idx !== undefined) {
-          updates.push({
-            index: idx,
-            top: currentTop,
-            height: panel.height
-          });
-        }
+      // Verify the axis still exists in the chart
+      if (chartRef.current.yAxis[existingAxisIndex]) {
+        return existingAxisIndex;
       }
-      currentTop += panel.height + (panel === panels[panels.length - 1] ? 0 : gap);
+      // If the axis was removed, clear it from our tracking
+      yAxisManager.current.oscillatorAxes.delete(title);
     }
     
-    // Find position for new axis
-    const newPanelIndex = panels.findIndex(p => p.name === title);
-    let newPanelTop = 0;
-    for (let i = 0; i < newPanelIndex; i++) {
-      newPanelTop += panels[i].height + gap;
+    // Calculate position based on existing oscillators
+    const existingOscillators = Array.from(yAxisManager.current.oscillatorAxes.keys());
+    let topPosition = PANE_HEIGHTS.rangeSelector + PANE_HEIGHTS.price; // Start after range selector and price axis
+    
+    // Add heights of existing oscillators to calculate position
+    for (const axisTitle of existingOscillators) {
+      const height = 
+        axisTitle === 'Volume' ? PANE_HEIGHTS.volume :
+        axisTitle === 'MACD' ? PANE_HEIGHTS.macd :
+        axisTitle === 'RSI' ? PANE_HEIGHTS.rsi :
+        axisTitle === 'ADX' ? PANE_HEIGHTS.adx : 120;
+      topPosition += height;
     }
     
-    // Update all existing axes
-    for (const update of updates) {
-      chartRef.current.yAxis[update.index].update({
-        height: `${update.height}%`,
-        top: `${update.top}%`
-      }, false);
-    }
+    // Get height for the new oscillator
+    const oscillatorHeight = 
+      title === 'Volume' ? PANE_HEIGHTS.volume :
+      title === 'MACD' ? PANE_HEIGHTS.macd :
+      title === 'RSI' ? PANE_HEIGHTS.rsi :
+      title === 'ADX' ? PANE_HEIGHTS.adx : 120;
     
-    // Add new axis
+    // Add new axis with fixed pixel positioning
     const newAxis: Highcharts.YAxisOptions = {
       labels: { 
         align: 'right', 
@@ -526,8 +489,8 @@ export default function MarketChart({
           fontSize: '12px'
         }
       },
-      top: `${newPanelTop}%`,
-      height: `${config.height}%`,
+      top: topPosition,
+      height: oscillatorHeight,
       offset: 0,
       lineWidth: 0,
       gridLineColor: '#2a2a2a',
@@ -541,7 +504,29 @@ export default function MarketChart({
     
     yAxisManager.current.oscillatorAxes.set(title, axisIndex);
     
+    // Resize chart to accommodate new panel
+    const newHeight = calculateChartHeight();
+    chartRef.current.setSize(undefined, newHeight, false);
+    
+    // Update navigator position
+    chartRef.current.navigator.yAxis.update({
+      top: calculateNavigatorTop()
+    }, true);
+    
     return axisIndex;
+  }, [calculateChartHeight, calculateNavigatorTop, indicators]);
+
+  // Flag to trigger chart recreation when indicators change
+  const [shouldRecreateChart, setShouldRecreateChart] = useState(false);
+  
+  // Recalculate and apply the complete chart layout
+  const recalculateLayout = useCallback(() => {
+    if (!chartRef.current) return;
+    
+    console.log('[MarketChart] Recalculating layout - will recreate chart on next render');
+    
+    // Set flag to recreate chart on next render
+    setShouldRecreateChart(true);
   }, []);
 
   // Add indicator dynamically
@@ -898,8 +883,19 @@ export default function MarketChart({
       }
     }
     
+    // Update navigator position after removing oscillators
+    const newNavigatorTop = calculateNavigatorTop();
+    if (chartRef.current.navigator) {
+      chartRef.current.navigator.yAxis.update({
+        top: newNavigatorTop
+      }, false);
+    }
+    
     chartRef.current.redraw();
-  }, []);
+    
+    // Recalculate entire layout to fill gaps
+    recalculateLayout();
+  }, [calculateNavigatorTop, recalculateLayout]);
 
   // Create chart
   const createChart = useCallback((data?: ChartData) => {
@@ -967,16 +963,9 @@ export default function MarketChart({
     setError(null);
     
     try {
-      // Determine which indicator set to request based on active indicators
-      let indicatorSet = 'chart_basic';
-      if (indicators.adx14) {
-        indicatorSet = 'chart_full';
-      } else if (indicators.rsi14 || indicators.macd) {
-        indicatorSet = 'chart_advanced';
-      }
-      
+      // Always fetch all indicators (chart_full) to enable client-side toggling
       const params = new URLSearchParams({
-        indicators: indicatorSet,
+        indicators: 'chart_full',
         period: dateRange.toLowerCase() === 'all' ? '5y' : dateRange.toLowerCase()
       });
       
@@ -990,11 +979,14 @@ export default function MarketChart({
       
       if (result.ohlc && result.ohlc.length > 0) {
         // Map volume data properly
-        const chartData: ChartData = {
+        const data: ChartData = {
           ohlc: result.ohlc,
           volume: result.volume || result.ohlc.map((point: number[]) => [point[0], 0]),
           indicators: result.indicators
         };
+        
+        // Store chart data for client-side indicator toggling
+        setChartData(data);
         
         // Use setTimeout to ensure the container is mounted and check container exists
         setTimeout(() => {
@@ -1015,7 +1007,7 @@ export default function MarketChart({
           
           // Always create a new chart when data is loaded
           // This ensures proper initialization when switching symbols
-          createChart(chartData);
+          createChart(data);
           setLoading(false);
         }, 200);
       } else {
@@ -1027,7 +1019,7 @@ export default function MarketChart({
       setError('Failed to load chart data');
       setLoading(false);
     }
-  }, [isVisible, symbol, indicators, dateRange, createChart]);
+  }, [isVisible, symbol, dateRange, createChart]);
 
   // Handle chart type changes
   useEffect(() => {
@@ -1067,28 +1059,58 @@ export default function MarketChart({
 
   // Handle indicator changes
   useEffect(() => {
-    if (!chartRef.current || !highchartsLoaded) return;
+    if (!chartRef.current || !highchartsLoaded || !chartData) return;
     
     // Check each indicator
     Object.entries(indicators).forEach(([key, enabled]) => {
-      const seriesId = indicatorSeriesIds.current[key];
-      const seriesExists = seriesId && chartRef.current!.get(seriesId);
+      let seriesExists = false;
+      
+      // Check series existence based on indicator type
+      if (key === 'macd') {
+        // MACD has multiple series - check if any of them exist
+        const macdSeries = ['macd-histogram', 'macd-line', 'macd-signal'].some(id => {
+          const seriesId = indicatorSeriesIds.current[id];
+          return seriesId && chartRef.current!.get(seriesId);
+        });
+        seriesExists = macdSeries;
+      } else if (key === 'bb20') {
+        // Bollinger Bands has multiple series
+        const bbSeries = ['bb20', 'bb20-range'].some(id => {
+          const seriesId = indicatorSeriesIds.current[id];
+          return seriesId && chartRef.current!.get(seriesId);
+        });
+        seriesExists = bbSeries;
+      } else if (key === 'adx14') {
+        // ADX has multiple series
+        const adxSeries = ['adx-line', 'adx-plus', 'adx-minus'].some(id => {
+          const seriesId = indicatorSeriesIds.current[id];
+          return seriesId && chartRef.current!.get(seriesId);
+        });
+        seriesExists = adxSeries;
+      } else {
+        // Single series indicators
+        const seriesId = indicatorSeriesIds.current[key];
+        seriesExists = seriesId && chartRef.current!.get(seriesId);
+      }
       
       if (enabled && !seriesExists) {
-        // Need to add indicator - but we need the data
-        loadChartData(); // This will add missing indicators
+        // Add indicator using existing data
+        addIndicator(key, chartData);
       } else if (!enabled && seriesExists) {
-        // Need to remove indicator
+        // Remove indicator
         removeIndicator(key);
       }
     });
-  }, [indicators, highchartsLoaded, removeIndicator, loadChartData]);
+  }, [indicators, highchartsLoaded, chartData, addIndicator, removeIndicator]);
 
-  // Initial load and reload on dateRange change
+  // Initial load and reload on symbol/dateRange change
   useEffect(() => {
     if (highchartsLoaded && isVisible && symbol) {
       // Capture ref values at effect creation time
       const manager = yAxisManager.current;
+      
+      // Clear chart data when symbol changes
+      setChartData(null);
       
       // Wait a bit to ensure container is ready
       const timer = setTimeout(() => {
@@ -1113,7 +1135,42 @@ export default function MarketChart({
         }
       };
     }
-  }, [symbol, isVisible, highchartsLoaded, dateRange, loadChartData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol, isVisible, highchartsLoaded, dateRange]);
+
+  // Handle chart recreation when needed
+  useEffect(() => {
+    if (shouldRecreateChart && chartData && chartRef.current) {
+      console.log('[MarketChart] Recreating chart to fix layout ordering');
+      
+      // Save current zoom state
+      const xAxis = chartRef.current.xAxis[0];
+      const extremes = xAxis ? xAxis.getExtremes() : null;
+      
+      // Destroy and recreate the chart
+      chartRef.current.destroy();
+      chartRef.current = null;
+      indicatorSeriesIds.current = {};
+      yAxisManager.current.oscillatorAxes.clear();
+      
+      // Recreate the chart with a small delay to ensure proper cleanup
+      setTimeout(() => {
+        if (chartContainerRef.current && document.body.contains(chartContainerRef.current)) {
+          createChart(chartData);
+          
+          // Restore zoom if it was set
+          if (chartRef.current && extremes && extremes.userMin !== undefined && extremes.userMax !== undefined) {
+            setTimeout(() => {
+              if (chartRef.current) {
+                chartRef.current.xAxis[0].setExtremes(extremes.userMin, extremes.userMax);
+              }
+            }, 100);
+          }
+        }
+        setShouldRecreateChart(false);
+      }, 50);
+    }
+  }, [shouldRecreateChart, chartData, createChart]);
 
   // Cleanup on unmount
   useEffect(() => {
