@@ -224,3 +224,41 @@ All features have been tested using Playwright across different viewports and br
 - Removed placeholder "Market news and analysis coming soon" section
 - Cleaner, more professional appearance
 - Better use of available space
+
+## Recent Enhancements (September 27, 2025)
+
+### 1. ADX Indicator Display Fix
+- Fixed missing ADX, DI+, and DI- values in Data Point Details
+- Corrected series ID references in click handler:
+  - Changed from: 'adx-series', 'adx-di-plus-series', 'adx-di-minus-series'
+  - Changed to: 'adx-line-series', 'adx-plus-series', 'adx-minus-series'
+- All ADX-related values now properly display when clicking chart points
+
+### 2. ADX Value Color Coding
+- Added intelligent color coding for ADX values in Data Point Details
+- Color only appears when ADX is between DI+ and DI- (indicating strong directional signal):
+  - **Green**: When DI+ > ADX > DI- (bullish trend with strong signal)
+  - **Red**: When DI- > ADX > DI+ (bearish trend with strong signal)
+  - **Normal color**: When ADX is outside the DI+ and DI- range (weak or unclear signal)
+- This selective coloring helps traders identify meaningful directional movements
+
+### 3. OHLCV Display Consistency
+- Enhanced click handler to always display OHLCV data regardless of which chart element is clicked
+- Previously, clicking on indicators might only show indicator values
+- Now ensures consistent display of:
+  - Open, High, Low, Close prices from main series
+  - Volume from volume series
+  - All active indicator values
+- Improves user experience by providing complete context with every click
+
+### 4. ATR (Average True Range) Indicator
+- Successfully integrated ATR(14) indicator
+- Displays in separate panel below other oscillators
+- Properly handles data fetching and display
+- Added to indicator selection menu under "Oscillators"
+
+### 5. Williams %R Indicator
+- Successfully integrated Williams %R(14) indicator
+- Displays in separate panel with overbought (-20) and oversold (-80) levels
+- Visual reference lines for better signal identification
+- Added to indicator selection menu under "Oscillators"

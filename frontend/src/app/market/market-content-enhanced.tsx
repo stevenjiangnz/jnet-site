@@ -729,16 +729,17 @@ function MarketPageContentEnhancedInner() {
                                   const diMinus = selectedDataPoint.indicators.diMinus;
                                   
                                   if (diPlus !== undefined && diMinus !== undefined) {
-                                    // DI+ > ADX > DI-: Green (bullish)
+                                    // Only show color when ADX is between DI+ and DI- (strong signal)
+                                    // DI+ > ADX > DI-: Green (bullish trend)
                                     if (diPlus > adx && adx > diMinus) {
                                       return 'text-green-600';
                                     }
-                                    // DI- > ADX > DI+: Red (bearish)
+                                    // DI- > ADX > DI+: Red (bearish trend)
                                     else if (diMinus > adx && adx > diPlus) {
                                       return 'text-red-600';
                                     }
                                   }
-                                  // Default: no special color
+                                  // Default: no special color when ADX is outside the DI+/DI- range
                                   return '';
                                 })()
                               }`}>{selectedDataPoint.indicators.adx.toFixed(2)}</span>

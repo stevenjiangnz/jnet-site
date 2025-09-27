@@ -533,57 +533,35 @@ export default function MarketChart({
                     timestamp: this.x || 0
                   };
                   
-                  // Handle candlestick data (OHLC)
-                  if (this.series.type === 'candlestick' && 'open' in this) {
-                    const candlePoint = this as Highcharts.Point & {
-                      open: number;
-                      high: number;
-                      low: number;
-                      close: number;
-                    };
-                    pointData.open = candlePoint.open;
-                    pointData.high = candlePoint.high;
-                    pointData.low = candlePoint.low;
-                    pointData.close = candlePoint.close;
-                  } 
-                  // Handle volume series (column chart)
-                  else if (this.series.options.id === 'volume-series' && typeof this.y === 'number') {
-                    pointData.volume = this.y;
-                    // Try to get price data from the main series
-                    const mainSeries = chart.get('main-series') as Highcharts.Series | null;
-                    if (mainSeries && mainSeries.points) {
-                      const pricePoint = mainSeries.points.find(p => p.x === this.x);
-                      if (pricePoint) {
-                        if (mainSeries.type === 'candlestick' && 'open' in pricePoint) {
-                          const candlePoint = pricePoint as Highcharts.Point & {
-                            open: number;
-                            high: number;
-                            low: number;
-                            close: number;
-                          };
-                          pointData.open = candlePoint.open;
-                          pointData.high = candlePoint.high;
-                          pointData.low = candlePoint.low;
-                          pointData.close = candlePoint.close;
-                        } else if (typeof pricePoint.y === 'number') {
-                          pointData.close = pricePoint.y;
-                        }
+                  // Always try to get OHLC data from the main series first, regardless of what was clicked
+                  const mainSeries = chart.get('main-series') as Highcharts.Series | null;
+                  if (mainSeries && mainSeries.points) {
+                    const pricePoint = mainSeries.points.find(p => p.x === this.x);
+                    if (pricePoint) {
+                      if (mainSeries.type === 'candlestick' && 'open' in pricePoint) {
+                        const candlePoint = pricePoint as Highcharts.Point & {
+                          open: number;
+                          high: number;
+                          low: number;
+                          close: number;
+                        };
+                        pointData.open = candlePoint.open;
+                        pointData.high = candlePoint.high;
+                        pointData.low = candlePoint.low;
+                        pointData.close = candlePoint.close;
+                      } else if (typeof pricePoint.y === 'number') {
+                        // For line/area charts, only close price is available
+                        pointData.close = pricePoint.y;
                       }
                     }
                   }
-                  // Handle line/area series (single value)
-                  else if (typeof this.y === 'number') {
-                    pointData.close = this.y;
-                  }
                   
-                  // Try to get volume data from the same timestamp (if not already set)
-                  if (!pointData.volume) {
-                    const volumeSeries = chart.get('volume-series') as Highcharts.Series | null;
-                    if (volumeSeries && volumeSeries.points) {
-                      const volumePoint = volumeSeries.points.find(p => p.x === this.x);
-                      if (volumePoint && typeof volumePoint.y === 'number') {
-                        pointData.volume = volumePoint.y;
-                      }
+                  // Always try to get volume data from the volume series
+                  const volumeSeries = chart.get('volume-series') as Highcharts.Series | null;
+                  if (volumeSeries && volumeSeries.points) {
+                    const volumePoint = volumeSeries.points.find(p => p.x === this.x);
+                    if (volumePoint && typeof volumePoint.y === 'number') {
+                      pointData.volume = volumePoint.y;
                     }
                   }
                   
