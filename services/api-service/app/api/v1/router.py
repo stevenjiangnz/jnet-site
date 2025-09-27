@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    admin,
     alerts,
     analysis,
     app_config,
@@ -29,3 +30,4 @@ api_router.include_router(
 )
 api_router.include_router(app_config.router, tags=["app-config"])
 api_router.include_router(audit.router, prefix="/audit", tags=["audit"])
+api_router.include_router(admin.router, prefix="/admin", tags=["admin"])

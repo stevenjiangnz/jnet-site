@@ -28,12 +28,17 @@ Personal public site with microservices architecture, built with modern web tech
   - Individual indicator toggles for market page, preset selections for symbols page
   - See [Technical Indicators Documentation](docs/TECHNICAL_INDICATORS.md) for details
 - **Google Cloud Integration**: Secure storage and data management with GCS
-- **System Configuration**: Centralized settings management through UI
-  - Control data loading parameters (years to load, chart data points)
-  - Manage API rate limits and feature flags
-  - Redis caching with Upstash for optimal performance
-  - Configuration served through API service for centralized management
-  - JSON5 format support with preserved comments
+- **Admin Console**: Comprehensive system administration interface
+  - **System Configuration**: Centralized settings management through UI
+    - Control data loading parameters (years to load, chart data points)
+    - Manage API rate limits and feature flags
+    - JSON5 format support with preserved comments
+    - Configuration served through API service for centralized management
+  - **Redis Maintenance**: Cache management and operations
+    - Clear all Redis cache keys with one-click operation
+    - Force refresh of cached data
+    - Performance warnings and best practices guidance
+  - Tab-based interface for easy navigation between admin functions
   - See [Configuration Management](services/api-service/docs/CONFIGURATION.md) for architecture
 - **Modern UI**: Responsive design with dark mode support
 - **Audit Events**: Comprehensive audit trail system with performance-optimized logging

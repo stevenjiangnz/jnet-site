@@ -124,6 +124,15 @@ cp frontend/.env.local.example frontend/.env.local
 # 3. Add redirect URLs for localhost and production
 ```
 
+### Admin Console
+The admin console is available at `/admin` (previously `/settings`) and includes:
+- **System Configuration**: Edit application settings in JSON5 format with comments
+- **Redis Maintenance**: Clear Redis cache to force data refresh
+
+Admin endpoints:
+- Frontend: `/admin` - Admin console UI with tab navigation
+- API: `/api/v1/admin/redis/clear` - Clear all Redis cache keys
+
 ### API Service (Python/FastAPI)
 ```bash
 # Navigate to API service
