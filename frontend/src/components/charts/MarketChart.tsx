@@ -475,6 +475,9 @@ export default function MarketChart({
           dailyBtn: {
             text: 'D',
             x: -90,
+            y: 0,
+            align: 'right',
+            verticalAlign: 'top',
             onclick: function(this: Highcharts.Chart) {
               this.series.forEach(function(series: Highcharts.Series) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -494,13 +497,15 @@ export default function MarketChart({
               r: 4,
               style: {
                 color: themeConfig.labelColor,
-                fontSize: '13px'
+                fontSize: '13px',
+                fontWeight: '500'
               },
               states: {
                 hover: {
                   fill: themeConfig.buttonHoverFill,
                   style: {
-                    color: themeConfig.textColor
+                    color: themeConfig.textColor,
+                    cursor: 'pointer'
                   }
                 }
               }
@@ -509,6 +514,9 @@ export default function MarketChart({
           weeklyBtn: {
             text: 'W',
             x: -60,
+            y: 0,
+            align: 'right',
+            verticalAlign: 'top',
             onclick: function(this: Highcharts.Chart) {
               this.series.forEach(function(series: Highcharts.Series) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -528,13 +536,15 @@ export default function MarketChart({
               r: 4,
               style: {
                 color: themeConfig.labelColor,
-                fontSize: '13px'
+                fontSize: '13px',
+                fontWeight: '500'
               },
               states: {
                 hover: {
                   fill: themeConfig.buttonHoverFill,
                   style: {
-                    color: themeConfig.textColor
+                    color: themeConfig.textColor,
+                    cursor: 'pointer'
                   }
                 }
               }
@@ -543,6 +553,9 @@ export default function MarketChart({
           monthlyBtn: {
             text: 'M',
             x: -30,
+            y: 0,
+            align: 'right',
+            verticalAlign: 'top',
             onclick: function(this: Highcharts.Chart) {
               this.series.forEach(function(series: Highcharts.Series) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -562,13 +575,15 @@ export default function MarketChart({
               r: 4,
               style: {
                 color: themeConfig.labelColor,
-                fontSize: '13px'
+                fontSize: '13px',
+                fontWeight: '500'
               },
               states: {
                 hover: {
                   fill: themeConfig.buttonHoverFill,
                   style: {
-                    color: themeConfig.textColor
+                    color: themeConfig.textColor,
+                    cursor: 'pointer'
                   }
                 }
               }
