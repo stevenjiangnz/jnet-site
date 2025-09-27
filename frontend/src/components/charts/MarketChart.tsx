@@ -496,8 +496,8 @@ export default function MarketChart({
           },
           dailyBtn: {
             text: 'D',
-            x: -90,
-            y: 0,
+            x: -120,
+            y: 10,
             align: 'right',
             verticalAlign: 'top',
             onclick: function(this: Highcharts.Chart) {
@@ -535,8 +535,8 @@ export default function MarketChart({
           },
           weeklyBtn: {
             text: 'W',
-            x: -60,
-            y: 0,
+            x: -80,
+            y: 10,
             align: 'right',
             verticalAlign: 'top',
             onclick: function(this: Highcharts.Chart) {
@@ -574,8 +574,8 @@ export default function MarketChart({
           },
           monthlyBtn: {
             text: 'M',
-            x: -30,
-            y: 0,
+            x: -40,
+            y: 10,
             align: 'right',
             verticalAlign: 'top',
             onclick: function(this: Highcharts.Chart) {
