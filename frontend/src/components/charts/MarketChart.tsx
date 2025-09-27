@@ -379,6 +379,8 @@ export default function MarketChart({
           { type: 'month', count: 6, text: '6M' },
           { type: 'year', count: 1, text: '1Y' },
           { type: 'year', count: 3, text: '3Y' },
+          { type: 'year', count: 5, text: '5Y' },
+          { type: 'year', count: 10, text: '10Y' },
           { type: 'all', text: 'All' },
         ],
         selected: 2, // Default to 6M view
