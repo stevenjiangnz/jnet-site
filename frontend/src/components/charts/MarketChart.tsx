@@ -41,6 +41,29 @@ interface MarketChartProps {
     low?: number;
     close?: number;
     volume?: number;
+    indicators?: {
+      sma20?: number;
+      sma50?: number;
+      sma200?: number;
+      ema20?: number;
+      bbUpper?: number;
+      bbMiddle?: number;
+      bbLower?: number;
+      macd?: number;
+      macdSignal?: number;
+      macdHistogram?: number;
+      rsi?: number;
+      adx?: number;
+      diPlus?: number;
+      diMinus?: number;
+      atr?: number;
+      williamsR?: number;
+    };
+  }) => void;
+  onLatestPriceUpdate?: (priceData: {
+    lastPrice: number;
+    changePercent: number;
+    latestDate: string;
   }) => void;
 }
 
@@ -245,7 +268,8 @@ export default function MarketChart({
   viewType, // eslint-disable-line @typescript-eslint/no-unused-vars
   dateRange = '1Y',
   chartType = 'candlestick', // Default to candlestick
-  onDataPointSelect // eslint-disable-line @typescript-eslint/no-unused-vars
+  onDataPointSelect,
+  onLatestPriceUpdate
 }: MarketChartProps) {
   // Determine indicators to use based on indicatorSet or individual props
   const indicators = useMemo(() => {
@@ -471,6 +495,165 @@ export default function MarketChart({
             enabled: true,
             forced: false, // Don't force grouping, let user control it
             units: [['day', [1]], ['week', [1]], ['month', [1]]]
+          },
+          cursor: 'pointer',
+          point: {
+            events: {
+              click: function(this: Highcharts.Point) {
+                if (onDataPointSelect) {
+                  const chart = this.series.chart;
+                  
+                  // Extract data based on series type
+                  const pointData: {
+                    timestamp: number;
+                    open?: number;
+                    high?: number;
+                    low?: number;
+                    close?: number;
+                    volume?: number;
+                    indicators?: {
+                      sma20?: number;
+                      sma50?: number;
+                      sma200?: number;
+                      ema20?: number;
+                      bbUpper?: number;
+                      bbMiddle?: number;
+                      bbLower?: number;
+                      macd?: number;
+                      macdSignal?: number;
+                      macdHistogram?: number;
+                      rsi?: number;
+                      adx?: number;
+                      diPlus?: number;
+                      diMinus?: number;
+                      atr?: number;
+                      williamsR?: number;
+                    };
+                  } = {
+                    timestamp: this.x || 0
+                  };
+                  
+                  // Handle candlestick data (OHLC)
+                  if (this.series.type === 'candlestick' && 'open' in this) {
+                    const candlePoint = this as Highcharts.Point & {
+                      open: number;
+                      high: number;
+                      low: number;
+                      close: number;
+                    };
+                    pointData.open = candlePoint.open;
+                    pointData.high = candlePoint.high;
+                    pointData.low = candlePoint.low;
+                    pointData.close = candlePoint.close;
+                  } 
+                  // Handle volume series (column chart)
+                  else if (this.series.options.id === 'volume-series' && typeof this.y === 'number') {
+                    pointData.volume = this.y;
+                    // Try to get price data from the main series
+                    const mainSeries = chart.get('main-series') as Highcharts.Series | null;
+                    if (mainSeries && mainSeries.points) {
+                      const pricePoint = mainSeries.points.find(p => p.x === this.x);
+                      if (pricePoint) {
+                        if (mainSeries.type === 'candlestick' && 'open' in pricePoint) {
+                          const candlePoint = pricePoint as Highcharts.Point & {
+                            open: number;
+                            high: number;
+                            low: number;
+                            close: number;
+                          };
+                          pointData.open = candlePoint.open;
+                          pointData.high = candlePoint.high;
+                          pointData.low = candlePoint.low;
+                          pointData.close = candlePoint.close;
+                        } else if (typeof pricePoint.y === 'number') {
+                          pointData.close = pricePoint.y;
+                        }
+                      }
+                    }
+                  }
+                  // Handle line/area series (single value)
+                  else if (typeof this.y === 'number') {
+                    pointData.close = this.y;
+                  }
+                  
+                  // Try to get volume data from the same timestamp (if not already set)
+                  if (!pointData.volume) {
+                    const volumeSeries = chart.get('volume-series') as Highcharts.Series | null;
+                    if (volumeSeries && volumeSeries.points) {
+                      const volumePoint = volumeSeries.points.find(p => p.x === this.x);
+                      if (volumePoint && typeof volumePoint.y === 'number') {
+                        pointData.volume = volumePoint.y;
+                      }
+                    }
+                  }
+                  
+                  // Extract indicator values at this timestamp
+                  pointData.indicators = {};
+                  const timestamp = this.x;
+                  
+                  // Helper function to find value at timestamp
+                  const findValueAtTimestamp = (seriesId: string): number | undefined => {
+                    const series = chart.get(seriesId) as Highcharts.Series | null;
+                    if (series && series.points) {
+                      const point = series.points.find(p => p.x === timestamp);
+                      return point && typeof point.y === 'number' ? point.y : undefined;
+                    }
+                    return undefined;
+                  };
+                  
+                  // Extract all indicator values
+                  const sma20 = findValueAtTimestamp('sma20-series');
+                  if (sma20 !== undefined) pointData.indicators.sma20 = sma20;
+                  
+                  const sma50 = findValueAtTimestamp('sma50-series');
+                  if (sma50 !== undefined) pointData.indicators.sma50 = sma50;
+                  
+                  const sma200 = findValueAtTimestamp('sma200-series');
+                  if (sma200 !== undefined) pointData.indicators.sma200 = sma200;
+                  
+                  const ema20 = findValueAtTimestamp('ema20-series');
+                  if (ema20 !== undefined) pointData.indicators.ema20 = ema20;
+                  
+                  const bbUpper = findValueAtTimestamp('bb-upper-series');
+                  if (bbUpper !== undefined) pointData.indicators.bbUpper = bbUpper;
+                  
+                  const bbMiddle = findValueAtTimestamp('bb-middle-series');
+                  if (bbMiddle !== undefined) pointData.indicators.bbMiddle = bbMiddle;
+                  
+                  const bbLower = findValueAtTimestamp('bb-lower-series');
+                  if (bbLower !== undefined) pointData.indicators.bbLower = bbLower;
+                  
+                  const macd = findValueAtTimestamp('macd-line-series');
+                  if (macd !== undefined) pointData.indicators.macd = macd;
+                  
+                  const macdSignal = findValueAtTimestamp('macd-signal-series');
+                  if (macdSignal !== undefined) pointData.indicators.macdSignal = macdSignal;
+                  
+                  const macdHistogram = findValueAtTimestamp('macd-histogram-series');
+                  if (macdHistogram !== undefined) pointData.indicators.macdHistogram = macdHistogram;
+                  
+                  const rsi = findValueAtTimestamp('rsi-series');
+                  if (rsi !== undefined) pointData.indicators.rsi = rsi;
+                  
+                  const adx = findValueAtTimestamp('adx-series');
+                  if (adx !== undefined) pointData.indicators.adx = adx;
+                  
+                  const diPlus = findValueAtTimestamp('adx-di-plus-series');
+                  if (diPlus !== undefined) pointData.indicators.diPlus = diPlus;
+                  
+                  const diMinus = findValueAtTimestamp('adx-di-minus-series');
+                  if (diMinus !== undefined) pointData.indicators.diMinus = diMinus;
+                  
+                  const atr = findValueAtTimestamp('atr-series');
+                  if (atr !== undefined) pointData.indicators.atr = atr;
+                  
+                  const williamsR = findValueAtTimestamp('williamsr-series');
+                  if (williamsR !== undefined) pointData.indicators.williamsR = williamsR;
+                  
+                  onDataPointSelect(pointData);
+                }
+              }
+            }
           }
         },
         candlestick: {
@@ -715,7 +898,11 @@ export default function MarketChart({
       // Tooltip styling
       tooltip: {
         split: true,
-        crosshairs: true,
+        crosshairs: [{
+          width: 1,
+          color: theme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+          dashStyle: 'Solid'
+        }, false], // Vertical crosshair only
         backgroundColor: themeConfig.tooltipBackgroundColor,
         borderWidth: 1,
         borderColor: themeConfig.tooltipBorderColor,
@@ -728,7 +915,7 @@ export default function MarketChart({
     };
     
     return config;
-  }, [symbol, calculateChartHeight, calculateNavigatorTop, chartType, theme]);
+  }, [symbol, calculateChartHeight, calculateNavigatorTop, chartType, theme, onDataPointSelect]);
 
   // Add new Y-axis for oscillators with fixed pixel positioning
   const addNewYAxis = useCallback((title: string): number => {
@@ -1431,6 +1618,22 @@ export default function MarketChart({
         addIndicator(key, data);
       }
     });
+    
+    // Automatically select the last data point after chart is fully loaded
+    if (onDataPointSelect && data.ohlc.length > 0 && chartRef.current) {
+      setTimeout(() => {
+        if (!chartRef.current) return;
+        
+        const mainSeries = chartRef.current.get('main-series') as Highcharts.Series | null;
+        if (mainSeries && mainSeries.points && mainSeries.points.length > 0) {
+          const lastPoint = mainSeries.points[mainSeries.points.length - 1];
+          if (lastPoint && lastPoint.firePointEvent) {
+            // Fire the click event on the last point to trigger data display
+            lastPoint.firePointEvent('click');
+          }
+        }
+      }, 500); // Wait for chart to be fully rendered with indicators
+    }
   }, [buildChartConfig, indicators, addIndicator]);
 
 
@@ -1486,6 +1689,28 @@ export default function MarketChart({
           volume: processedVolume,
           indicators: result.indicators
         };
+        
+        // Extract latest price data and calculate change
+        if (onLatestPriceUpdate && result.ohlc.length > 0) {
+          const latestPoint = result.ohlc[result.ohlc.length - 1]; // [timestamp, open, high, low, close]
+          const latestClose = latestPoint[4];
+          const latestDate = new Date(latestPoint[0]).toISOString();
+          
+          // Find previous day's close for change calculation
+          let previousClose = latestPoint[1]; // Default to today's open
+          if (result.ohlc.length > 1) {
+            const previousPoint = result.ohlc[result.ohlc.length - 2];
+            previousClose = previousPoint[4];
+          }
+          
+          const changePercent = ((latestClose - previousClose) / previousClose) * 100;
+          
+          onLatestPriceUpdate({
+            lastPrice: latestClose,
+            changePercent: changePercent,
+            latestDate: latestDate
+          });
+        }
         
         // Debug: Log ATR data
         console.log('[MarketChart] ATR_14 in indicators:', 'ATR_14' in (result.indicators || {}));
