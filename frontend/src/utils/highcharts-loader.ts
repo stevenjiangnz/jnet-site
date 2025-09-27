@@ -50,13 +50,13 @@ export async function loadHighchartsModules() {
     
     for (const modulePath of indicatorModules) {
       try {
-        const module = await import(modulePath);
-        if (module.default && typeof module.default === 'function') {
-          module.default(Highcharts);
+        const loadedModule = await import(modulePath);
+        if (loadedModule.default && typeof loadedModule.default === 'function') {
+          loadedModule.default(Highcharts);
           const moduleName = modulePath.split('/').pop();
           console.log(`[Highcharts] Loaded ${moduleName} indicator`);
         }
-      } catch (err) {
+      } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
         // Some indicators might not be available, that's OK
         const moduleName = modulePath.split('/').pop();
         console.warn(`[Highcharts] Could not load ${moduleName} indicator`);
