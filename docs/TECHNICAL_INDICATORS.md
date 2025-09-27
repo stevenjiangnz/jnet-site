@@ -21,6 +21,7 @@ The system provides three predefined indicator sets:
 
 3. **Full** - Complete technical analysis toolkit
    - All Advanced indicators
+   - EMA 20 (20-period Exponential Moving Average)
    - ADX (14-period) with DI+ and DI-
 
 ### Indicator Details
@@ -30,6 +31,9 @@ The system provides three predefined indicator sets:
   - SMA 20 (Red): Short-term trend
   - SMA 50 (Teal): Medium-term trend
   - SMA 200 (Blue): Long-term trend
+
+- **EMA (Exponential Moving Average)**
+  - EMA 20 (Orange): Short-term trend with exponential weighting
   
 - **Bollinger Bands**
   - Upper/Lower bands with gray fill

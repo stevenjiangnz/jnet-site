@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from 'next/dynamic';
 import toast from 'react-hot-toast';
 import { toBrisbaneTime } from '@/utils/dateUtils';
+import { useTheme } from '@/providers/theme-provider';
 
 // Dynamically import MarketChart to avoid SSR issues
 const MarketChart = dynamic(() => import('@/components/charts/MarketChart'), {
@@ -27,7 +28,29 @@ interface Symbol {
   latest_date?: string;
 }
 
-export default function MarketPageContentEnhanced() {
+function MarketPageContentEnhancedInner() {
+  // Get current theme
+  const { theme } = useTheme();
+  
+  // Determine actual theme (resolve 'system' to actual theme)
+  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark');
+  
+  useEffect(() => {
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      setActualTheme(mediaQuery.matches ? 'dark' : 'light');
+      
+      const handleChange = (e: MediaQueryListEvent) => {
+        setActualTheme(e.matches ? 'dark' : 'light');
+      };
+      
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    } else {
+      setActualTheme(theme as 'light' | 'dark');
+    }
+  }, [theme]);
+  
   // Symbol management
   const [symbols, setSymbols] = useState<Symbol[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
@@ -433,6 +456,7 @@ export default function MarketPageContentEnhanced() {
                 viewType={viewType}
                 dateRange={dateRange}
                 chartType={chartType}
+                theme={actualTheme}
                 onDataPointSelect={setSelectedDataPoint}
               />
             </div>
@@ -567,4 +591,28 @@ export default function MarketPageContentEnhanced() {
       </div>
     </div>
   );
+}
+
+export default function MarketPageContentEnhanced() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render until mounted to avoid SSR issues with ThemeProvider
+  if (!mounted) {
+    return (
+      <div className="flex min-h-[calc(100vh-4rem)] market-page">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400 mx-auto mb-2"></div>
+            <p className="text-gray-400 text-sm">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <MarketPageContentEnhancedInner />;
 }

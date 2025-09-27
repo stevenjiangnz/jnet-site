@@ -1,22 +1,34 @@
 """Indicator configuration and presets."""
 
-# Default indicators calculated for all symbols
-DEFAULT_INDICATORS = [
+# Full list of all available indicators
+FULL_INDICATORS = [
     "SMA_20",  # 20-day Simple Moving Average
     "SMA_50",  # 50-day Simple Moving Average
     "SMA_200",  # 200-day Simple Moving Average
+    "EMA_12",  # 12-day Exponential Moving Average
+    "EMA_20",  # 20-day Exponential Moving Average
+    "EMA_26",  # 26-day Exponential Moving Average
     "RSI_14",  # 14-day Relative Strength Index
     "MACD",  # MACD (12,26,9)
-    "VOLUME_SMA_20",  # 20-day Volume Moving Average
+    "BB_20",  # Bollinger Bands (20,2)
     "ADX_14",  # Average Directional Index with DI+ and DI-
+    "ATR_14",  # Average True Range
+    "STOCH",  # Stochastic Oscillator
+    "OBV",  # On Balance Volume
+    "CMF_20",  # Chaikin Money Flow
+    "VOLUME_SMA_20",  # 20-day Volume Moving Average
 ]
+
+# Default indicators calculated for all symbols (now uses full list)
+DEFAULT_INDICATORS = FULL_INDICATORS
 
 # Indicator sets for different use cases
 INDICATOR_SETS = {
     "default": DEFAULT_INDICATORS,
-    "chart_basic": ["SMA_20", "SMA_50", "SMA_200", "VOLUME_SMA_20"],
+    "chart_basic": ["SMA_20", "EMA_20", "SMA_50", "SMA_200", "VOLUME_SMA_20"],
     "chart_advanced": [
         "SMA_20",
+        "EMA_20",
         "SMA_50",
         "SMA_200",
         "EMA_12",
@@ -27,6 +39,7 @@ INDICATOR_SETS = {
     ],
     "chart_full": [
         "SMA_20",
+        "EMA_20",
         "SMA_50",
         "SMA_200",
         "EMA_12",
@@ -51,6 +64,7 @@ INDICATOR_MIN_PERIODS = {
     "SMA_50": 50,
     "SMA_200": 200,
     "EMA_12": 25,  # 2x period for stability
+    "EMA_20": 40,  # 2x period for stability
     "EMA_26": 50,
     "RSI_14": 15,
     "MACD": 35,  # 26 + 9 signal period
@@ -87,6 +101,12 @@ INDICATOR_METADATA = {
         "display_name": "Exponential Moving Average (12)",
         "category": "trend",
         "description": "12-day exponential moving average",
+        "outputs": ["EMA"],
+    },
+    "EMA_20": {
+        "display_name": "Exponential Moving Average (20)",
+        "category": "trend",
+        "description": "20-day exponential moving average",
         "outputs": ["EMA"],
     },
     "EMA_26": {

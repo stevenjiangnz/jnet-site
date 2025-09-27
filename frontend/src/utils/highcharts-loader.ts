@@ -2,8 +2,9 @@
 export async function loadHighchartsModules() {
   if (typeof window === 'undefined') return null;
   
-  // Check if already loaded
-  if (window.Highcharts) {
+  // Check if already loaded with indicators
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ((window.Highcharts as any)?.seriesTypes?.bb) {
     return window.Highcharts;
   }
   
@@ -14,14 +15,18 @@ export async function loadHighchartsModules() {
     
     // Load required modules - handle missing modules gracefully
     const modulesToLoad = [
-      'highcharts/indicators/indicators',
-      'highcharts/modules/indicators-all',  // This includes all indicators
-      'highcharts/modules/exporting'       // Required for custom buttons
+      'highcharts/indicators/indicators',    // Base indicators module
+      'highcharts/modules/indicators-all',   // This includes all indicators including bollinger-bands
+      'highcharts/modules/exporting'         // Required for custom buttons
     ];
     
     for (const moduleToLoad of modulesToLoad) {
       try {
-        await import(moduleToLoad);
+        const loadedModule = await import(moduleToLoad);
+        // Most Highcharts modules need to be initialized explicitly
+        if (loadedModule.default && typeof loadedModule.default === 'function') {
+          loadedModule.default(Highcharts);
+        }
         console.log(`[Highcharts] Loaded module: ${moduleToLoad}`);
       } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
         console.warn(`[Highcharts] Could not load module ${moduleToLoad}, trying alternative approach`);
