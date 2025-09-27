@@ -13,6 +13,7 @@ FULL_INDICATORS = [
     "BB_20",  # Bollinger Bands (20,2)
     "ADX_14",  # Average Directional Index with DI+ and DI-
     "ATR_14",  # Average True Range
+    "WILLIAMS_R_14",  # 14-day Williams %R
     "STOCH",  # Stochastic Oscillator
     "OBV",  # On Balance Volume
     "CMF_20",  # Chaikin Money Flow
@@ -49,6 +50,7 @@ INDICATOR_SETS = {
         "BB_20",
         "ADX_14",
         "ATR_14",
+        "WILLIAMS_R_14",
         "VOLUME_SMA_20",
         "OBV",
     ],
@@ -71,6 +73,7 @@ INDICATOR_MIN_PERIODS = {
     "BB_20": 20,
     "ADX_14": 28,  # 2x period
     "ATR_14": 15,
+    "WILLIAMS_R_14": 14,
     "STOCH": 14,
     "OBV": 2,
     "CMF_20": 21,
@@ -168,5 +171,11 @@ INDICATOR_METADATA = {
         "category": "volume",
         "description": "20-day simple moving average of volume",
         "outputs": ["Volume_SMA"],
+    },
+    "WILLIAMS_R_14": {
+        "display_name": "Williams %R (14)",
+        "category": "momentum",
+        "description": "14-day Williams Percent Range",
+        "outputs": ["Williams_R"],
     },
 }
