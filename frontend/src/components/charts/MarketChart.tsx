@@ -15,17 +15,18 @@ interface MarketChartProps {
   isVisible: boolean;
   indicators?: {
     // Overlays
-    volume: boolean;
-    sma20: boolean;
-    sma50: boolean;
-    sma200: boolean;
-    ema20: boolean;
-    bb20: boolean;
+    volume?: boolean;
+    sma20?: boolean;
+    sma50?: boolean;
+    sma200?: boolean;
+    ema20?: boolean;
+    bb20?: boolean;
     
     // Oscillators
-    macd: boolean;
-    rsi14: boolean;
-    adx14: boolean;
+    macd?: boolean;
+    rsi14?: boolean;
+    adx14?: boolean;
+    atr14?: boolean;
   };
   indicatorSet?: 'chart_basic' | 'chart_advanced' | 'chart_full';
   theme?: 'light' | 'dark';
@@ -54,6 +55,7 @@ interface ChartData {
     MACD?: { MACD: number[][], signal: number[][], histogram: number[][] };
     RSI_14?: { RSI: number[][] };
     ADX_14?: { ADX: number[][], 'DI+': number[][], 'DI-': number[][] };
+    ATR_14?: { ATR: number[][] };
   };
 }
 
@@ -64,6 +66,7 @@ const PANE_HEIGHTS = {
   macd: 180,       // MACD oscillator
   rsi: 120,        // RSI oscillator
   adx: 150,        // ADX oscillator
+  atr: 120,        // ATR oscillator
   navigator: 60,   // Bottom timeline navigator
   margins: 40,     // Total margins and padding
   topMargin: 10,   // Minimal top margin for very compact layout
@@ -175,7 +178,8 @@ const INDICATOR_COLORS = {
     adx: '#FF9800',    // Orange
     plusDI: '#4CAF50', // Green
     minusDI: '#F44336' // Red
-  }
+  },
+  atr: '#9C27B0'       // Deep Purple
 };
 
 // Map indicatorSet to individual indicators
@@ -191,7 +195,8 @@ const getIndicatorsFromSet = (indicatorSet?: string) => {
         bb20: false,
         macd: false,
         rsi14: false,
-        adx14: false
+        adx14: false,
+        atr14: false
       };
     case 'chart_advanced':
       return {
@@ -203,7 +208,8 @@ const getIndicatorsFromSet = (indicatorSet?: string) => {
         bb20: true,
         macd: true,
         rsi14: true,
-        adx14: false
+        adx14: false,
+        atr14: false
       };
     case 'chart_full':
       return {
@@ -215,7 +221,8 @@ const getIndicatorsFromSet = (indicatorSet?: string) => {
         bb20: true,
         macd: true,
         rsi14: true,
-        adx14: true
+        adx14: true,
+        atr14: true
       };
     default:
       return null;
@@ -300,9 +307,10 @@ export default function MarketChart({
     if (indicators?.macd) totalHeight += PANE_HEIGHTS.macd;
     if (indicators?.rsi14) totalHeight += PANE_HEIGHTS.rsi;
     if (indicators?.adx14) totalHeight += PANE_HEIGHTS.adx;
+    if (indicators?.atr14) totalHeight += PANE_HEIGHTS.atr;
     
     // Add extra spacing for navigator when oscillators are present
-    const hasOscillators = indicators?.macd || indicators?.rsi14 || indicators?.adx14;
+    const hasOscillators = indicators?.macd || indicators?.rsi14 || indicators?.adx14 || indicators?.atr14;
     if (hasOscillators) {
       totalHeight += 60; // Match the extra spacing in calculateNavigatorTop
     }
@@ -318,9 +326,10 @@ export default function MarketChart({
     if (indicators?.macd) topPosition += PANE_HEIGHTS.macd;
     if (indicators?.rsi14) topPosition += PANE_HEIGHTS.rsi;
     if (indicators?.adx14) topPosition += PANE_HEIGHTS.adx;
+    if (indicators?.atr14) topPosition += PANE_HEIGHTS.atr;
     
     // Add extra spacing before navigator when oscillators are present
-    const hasOscillators = indicators?.macd || indicators?.rsi14 || indicators?.adx14;
+    const hasOscillators = indicators?.macd || indicators?.rsi14 || indicators?.adx14 || indicators?.atr14;
     if (hasOscillators) {
       topPosition += 60; // Extra spacing to prevent overlap
     }
@@ -736,7 +745,8 @@ export default function MarketChart({
       const height = 
         axisTitle === 'MACD' ? PANE_HEIGHTS.macd :
         axisTitle === 'RSI' ? PANE_HEIGHTS.rsi :
-        axisTitle === 'ADX' ? PANE_HEIGHTS.adx : 120;
+        axisTitle === 'ADX' ? PANE_HEIGHTS.adx :
+        axisTitle === 'ATR' ? PANE_HEIGHTS.atr : 120;
       topPosition += height;
     }
     
@@ -744,7 +754,8 @@ export default function MarketChart({
     const oscillatorHeight = 
       title === 'MACD' ? PANE_HEIGHTS.macd :
       title === 'RSI' ? PANE_HEIGHTS.rsi :
-      title === 'ADX' ? PANE_HEIGHTS.adx : 120;
+      title === 'ADX' ? PANE_HEIGHTS.adx :
+      title === 'ATR' ? PANE_HEIGHTS.atr : 120;
     
     // Add new axis with fixed pixel positioning
     const newAxis: Highcharts.YAxisOptions = {
@@ -1173,6 +1184,23 @@ export default function MarketChart({
           return; // Exit early as we handled redraw
         }
         break;
+        
+      case 'atr14':
+        if (data?.indicators?.ATR_14?.ATR) {
+          const atrAxisIndex = addNewYAxis('ATR');
+          
+          series = {
+            type: 'line',
+            id: 'atr-series',
+            name: 'ATR (14)',
+            data: data.indicators.ATR_14.ATR,
+            yAxis: atrAxisIndex,
+            color: INDICATOR_COLORS.atr,
+            lineWidth: 1,
+            ...seriesOptions
+          };
+        }
+        break;
     }
     
     if (series) {
@@ -1256,6 +1284,12 @@ export default function MarketChart({
           chartRef.current.yAxis[axisIndex].remove(false);
           yAxisManager.current.oscillatorAxes.delete('Volume');
         }
+      } else if (indicatorType === 'atr14') {
+        const axisIndex = yAxisManager.current.oscillatorAxes.get('ATR');
+        if (axisIndex !== undefined && chartRef.current.yAxis[axisIndex]) {
+          chartRef.current.yAxis[axisIndex].remove(false);
+          yAxisManager.current.oscillatorAxes.delete('ATR');
+        }
       }
     }
     
@@ -1333,7 +1367,7 @@ export default function MarketChart({
     
     // Add indicators based on current state
     // Add indicators in a specific order to ensure proper layout
-    const indicatorOrder = ['volume', 'sma20', 'sma50', 'sma200', 'ema20', 'bb20', 'macd', 'rsi14', 'adx14'];
+    const indicatorOrder = ['volume', 'sma20', 'sma50', 'sma200', 'ema20', 'bb20', 'macd', 'rsi14', 'adx14', 'atr14'];
     indicatorOrder.forEach(key => {
       if (indicators?.[key as keyof typeof indicators] && data) {
         addIndicator(key, data);
@@ -1394,6 +1428,15 @@ export default function MarketChart({
           volume: processedVolume,
           indicators: result.indicators
         };
+        
+        // Debug: Log ATR data
+        console.log('[MarketChart] ATR_14 in indicators:', 'ATR_14' in (result.indicators || {}));
+        if (result.indicators?.ATR_14) {
+          console.log('[MarketChart] ATR_14 data points:', result.indicators.ATR_14.ATR?.length);
+        }
+        
+        // Store in window for debugging
+        (window as any).__chartData = data;
         
         // Store chart data for client-side indicator toggling
         setChartData(data);
@@ -1477,6 +1520,10 @@ export default function MarketChart({
           return seriesId && chartRef.current!.get(seriesId);
         });
         seriesExists = adxSeries;
+      } else if (key === 'atr14') {
+        // ATR has a single series
+        const seriesId = indicatorSeriesIds.current['atr14'];
+        seriesExists = seriesId ? !!chartRef.current!.get(seriesId) : false;
       } else {
         // Single series indicators
         const seriesId = indicatorSeriesIds.current[key];

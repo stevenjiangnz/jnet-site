@@ -55,8 +55,12 @@ export async function GET(
     });
     
     // Fetch chart data with indicators from api-service
+    const apiUrl = `${apiConfig.baseUrl}/api/v1/stock/${symbol}/chart?${queryParams}`;
+    console.log('[Chart API] Fetching from:', apiUrl);
+    console.log('[Chart API] Headers:', JSON.stringify(apiConfig.headers));
+    
     const response = await fetch(
-      `${apiConfig.baseUrl}/api/v1/stock/${symbol}/chart?${queryParams}`,
+      apiUrl,
       {
         headers: apiConfig.headers,
       }
@@ -70,6 +74,8 @@ export async function GET(
     }
 
     const chartData = await response.json();
+    console.log('[Chart API] Response indicators:', Object.keys(chartData.indicators || {}));
+    console.log('[Chart API] Has ATR_14:', 'ATR_14' in (chartData.indicators || {}));
     
     // Return the chart data with indicators
     return NextResponse.json(chartData);
