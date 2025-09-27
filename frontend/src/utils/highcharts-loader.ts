@@ -1,8 +1,3 @@
-// Import statements at the top for better production builds
-import HighchartsExporting from 'highcharts/modules/exporting';
-import HighchartsIndicators from 'highcharts/indicators/indicators';
-import HighchartsIndicatorsAll from 'highcharts/modules/indicators-all';
-
 // Utility to load Highcharts and all required modules
 export async function loadHighchartsModules() {
   if (typeof window === 'undefined') return null;
@@ -18,48 +13,57 @@ export async function loadHighchartsModules() {
     const Highcharts = (await import('highcharts/highstock')).default;
     window.Highcharts = Highcharts;
     
-    // Load required modules using static imports for better production compatibility
+    // Load modules in a Next.js-compatible way
+    // We'll use dynamic imports with specific handling for each module
+    
+    // 1. Load indicators module first (required base module)
     try {
-      // Initialize modules in the correct order
-      // 1. Indicators base module first
-      if (HighchartsIndicators && typeof HighchartsIndicators === 'function') {
-        HighchartsIndicators(Highcharts);
-        console.log('[Highcharts] Initialized indicators module');
-      }
-      
-      // 2. All indicators module
-      if (HighchartsIndicatorsAll && typeof HighchartsIndicatorsAll === 'function') {
-        HighchartsIndicatorsAll(Highcharts);
-        console.log('[Highcharts] Initialized indicators-all module');
-      }
-      
-      // 3. Exporting module - critical for D/W/M buttons
-      if (HighchartsExporting && typeof HighchartsExporting === 'function') {
-        HighchartsExporting(Highcharts);
-        console.log('[Highcharts] Initialized exporting module - D/W/M buttons should work');
-      } else {
-        console.error('[Highcharts] Exporting module not properly imported');
+      const indicatorsModule = await import('highcharts/indicators/indicators');
+      if (indicatorsModule.default && typeof indicatorsModule.default === 'function') {
+        indicatorsModule.default(Highcharts);
+        console.log('[Highcharts] Loaded indicators module');
       }
     } catch (err) {
-      console.error('[Highcharts] Error initializing modules:', err);
+      console.warn('[Highcharts] Could not load indicators module:', err);
     }
     
-    // If indicators-all didn't work, try loading individual indicators from the main indicators module
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!(window.Highcharts as any).seriesTypes?.sma) {
+    // 2. Load exporting module - CRITICAL for D/W/M buttons
+    try {
+      const exportingModule = await import('highcharts/modules/exporting');
+      if (exportingModule.default && typeof exportingModule.default === 'function') {
+        exportingModule.default(Highcharts);
+        console.log('[Highcharts] Loaded exporting module - D/W/M buttons enabled');
+      }
+    } catch (err) {
+      console.error('[Highcharts] Failed to load exporting module - D/W/M buttons will not work:', err);
+    }
+    
+    // 3. Try to load specific indicator modules we need
+    const indicatorModules = [
+      'highcharts/indicators/ema',
+      'highcharts/indicators/sma',
+      'highcharts/indicators/bollinger-bands',
+      'highcharts/indicators/macd',
+      'highcharts/indicators/rsi',
+      'highcharts/indicators/adx'
+    ];
+    
+    for (const modulePath of indicatorModules) {
       try {
-        // Try importing the indicators module which should initialize indicator functions
-        const indicatorsModule = await import('highcharts/indicators/indicators');
-        if (indicatorsModule.default) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (indicatorsModule.default as any)(Highcharts);
+        const module = await import(modulePath);
+        if (module.default && typeof module.default === 'function') {
+          module.default(Highcharts);
+          const moduleName = modulePath.split('/').pop();
+          console.log(`[Highcharts] Loaded ${moduleName} indicator`);
         }
-      } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
-        console.warn('[Highcharts] Could not initialize indicators module');
+      } catch (err) {
+        // Some indicators might not be available, that's OK
+        const moduleName = modulePath.split('/').pop();
+        console.warn(`[Highcharts] Could not load ${moduleName} indicator`);
       }
     }
     
-    console.log('[Highcharts] Core modules loaded successfully');
+    console.log('[Highcharts] Module loading complete');
     return Highcharts;
   } catch (error) {
     console.error('[Highcharts] Error loading modules:', error);
