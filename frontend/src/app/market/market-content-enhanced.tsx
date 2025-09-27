@@ -28,7 +28,7 @@ interface Symbol {
   latest_date?: string;
 }
 
-export default function MarketPageContentEnhanced() {
+function MarketPageContentEnhancedInner() {
   // Get current theme
   const { theme } = useTheme();
   
@@ -591,4 +591,28 @@ export default function MarketPageContentEnhanced() {
       </div>
     </div>
   );
+}
+
+export default function MarketPageContentEnhanced() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render until mounted to avoid SSR issues with ThemeProvider
+  if (!mounted) {
+    return (
+      <div className="flex min-h-[calc(100vh-4rem)] market-page">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400 mx-auto mb-2"></div>
+            <p className="text-gray-400 text-sm">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <MarketPageContentEnhancedInner />;
 }

@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Available in the "Full" indicator set for Market page charts
   - Displays as an orange line overlay on the price chart
   - Calculated and stored by stock-data-service during data downloads
+- **Consolidated Chart Component**
+  - Replaced PriceChart and MarketChart with a unified MarketChart component
+  - Single chart component now used across both Market and Symbols pages
+  - Supports both light and dark themes with full theme switching
+  - Maintains all functionality from both original components
 
 ### Fixed
 - **SMA_200 indicator visibility issue**
@@ -24,6 +29,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added client-side only rendering for timestamp display to prevent server/client mismatch
   - Introduced `isClient` state to control rendering of dynamic time elements
   - Prevents "Hydration failed because the server rendered HTML didn't match the client" error
+- **Fixed ThemeProvider context error in market page**
+  - Resolved "useTheme must be used within a ThemeProvider" error
+  - Added client-side mounting check before rendering components that use theme context
+  - Fixed SSR compatibility issue with Next.js
+- **Fixed theme switching requiring page refresh**
+  - Chart now properly updates when toggling between light and dark themes
+  - Added theme dependency to chart recreation logic
+  - Theme changes now apply immediately without page reload
+
+### Changed
+- **Enhanced Highcharts readability**
+  - Increased font sizes throughout all chart elements for better visibility
+  - Title: 18px → 20px
+  - Axis labels: 12px → 14px  
+  - Range selector buttons: 12px → 13px
+  - Legend, tooltip, and other text elements also increased proportionally
 
 ### Changed
 - Updated market page date range options

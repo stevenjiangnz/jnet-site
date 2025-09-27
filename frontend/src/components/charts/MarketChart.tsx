@@ -373,7 +373,7 @@ export default function MarketChart({
           style: {
             color: themeConfig.labelColor,
             fontWeight: 'normal',
-            fontSize: '12px'
+            fontSize: '13px'
           },
           states: {
             hover: {
@@ -400,11 +400,11 @@ export default function MarketChart({
         inputStyle: {
           backgroundColor: themeConfig.inputBackgroundColor,
           color: themeConfig.inputColor,
-          fontSize: '12px'
+          fontSize: '13px'
         },
         labelStyle: {
           color: themeConfig.labelColor,
-          fontSize: '12px'
+          fontSize: '13px'
         }
       },
       
@@ -412,8 +412,8 @@ export default function MarketChart({
         text: `${symbol} Stock Price`,
         style: {
           color: themeConfig.textColor,
-          fontSize: '18px',
-          fontWeight: '500'
+          fontSize: '20px',
+          fontWeight: '600'
         }
       },
       
@@ -424,14 +424,14 @@ export default function MarketChart({
           x: -3,
           style: {
             color: themeConfig.labelColor,
-            fontSize: '12px'
+            fontSize: '14px'
           }
         },
         title: { 
           text: 'Price',
           style: {
             color: themeConfig.labelColor,
-            fontSize: '12px'
+            fontSize: '14px'
           }
         },
         top: 55,  // Position below range selector (10px marginTop + 15px rangeSelector y + 30px spacing)
@@ -494,7 +494,7 @@ export default function MarketChart({
               r: 4,
               style: {
                 color: themeConfig.labelColor,
-                fontSize: '12px'
+                fontSize: '13px'
               },
               states: {
                 hover: {
@@ -528,7 +528,7 @@ export default function MarketChart({
               r: 4,
               style: {
                 color: themeConfig.labelColor,
-                fontSize: '12px'
+                fontSize: '13px'
               },
               states: {
                 hover: {
@@ -562,7 +562,7 @@ export default function MarketChart({
               r: 4,
               style: {
                 color: themeConfig.labelColor,
-                fontSize: '12px'
+                fontSize: '13px'
               },
               states: {
                 hover: {
@@ -591,7 +591,7 @@ export default function MarketChart({
       legend: {
         itemStyle: {
           color: themeConfig.labelColor,
-          fontSize: '12px'
+          fontSize: '13px'
         },
         itemHoverStyle: {
           color: themeConfig.textColor
@@ -629,7 +629,7 @@ export default function MarketChart({
         labels: {
           style: {
             color: themeConfig.labelColor,
-            fontSize: '12px'
+            fontSize: '13px'
           }
         }
       },
@@ -648,7 +648,7 @@ export default function MarketChart({
           labels: {
             style: {
               color: themeConfig.labelColor,
-              fontSize: '11px'
+              fontSize: '12px'
             }
           }
         },
@@ -684,7 +684,7 @@ export default function MarketChart({
         borderColor: themeConfig.tooltipBorderColor,
         style: {
           color: themeConfig.tooltipTextColor,
-          fontSize: '12px'
+          fontSize: '13px'
         },
         shadow: true
       }
@@ -738,14 +738,14 @@ export default function MarketChart({
         x: -3,
         style: {
           color: themeConfig.labelColor,
-          fontSize: '11px'
+          fontSize: '13px'
         }
       },
       title: { 
         text: title,
         style: {
           color: themeConfig.labelColor,
-          fontSize: '12px'
+          fontSize: '14px'
         }
       },
       top: topPosition,
@@ -817,7 +817,7 @@ export default function MarketChart({
               x: 3,
               style: {
                 color: themeConfig.labelColor,
-                fontSize: '11px'
+                fontSize: '13px'
               },
               // Format volume labels to be more compact
               formatter: function() {
@@ -836,7 +836,7 @@ export default function MarketChart({
               text: 'Volume',
               style: {
                 color: themeConfig.labelColor,
-                fontSize: '12px'
+                fontSize: '14px'
               }
             },
             top: 55, // Same as price axis
@@ -1073,7 +1073,7 @@ export default function MarketChart({
                 align: 'left',
                 style: {
                   color: themeConfig.plotLineColors.rsi70,
-                  fontSize: '11px'
+                  fontSize: '12px'
                 }
               }
             }, {
@@ -1086,7 +1086,7 @@ export default function MarketChart({
                 align: 'left',
                 style: {
                   color: themeConfig.plotLineColors.rsi30,
-                  fontSize: '11px'
+                  fontSize: '12px'
                 }
               }
             }]
@@ -1477,7 +1477,16 @@ export default function MarketChart({
     });
   }, [indicators, highchartsLoaded, chartData, addIndicator, removeIndicator]);
 
-  // Initial load and reload on symbol/dateRange change
+  // Handle theme changes for existing charts
+  useEffect(() => {
+    if (!chartRef.current || !highchartsLoaded || !chartData) return;
+    
+    // Recreate the chart with the new theme
+    console.log('[MarketChart] Theme changed, recreating chart');
+    createChart(chartData);
+  }, [theme, createChart, chartData, highchartsLoaded]);
+
+  // Initial load and reload on symbol/dateRange/theme change
   useEffect(() => {
     if (highchartsLoaded && isVisible && symbol) {
       // Capture ref values at effect creation time
@@ -1510,7 +1519,7 @@ export default function MarketChart({
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol, isVisible, highchartsLoaded, dateRange]);
+  }, [symbol, isVisible, highchartsLoaded, dateRange, theme]);
 
 
   // Cleanup on unmount
