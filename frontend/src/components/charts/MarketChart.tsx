@@ -1620,21 +1620,23 @@ export default function MarketChart({
     });
     
     // Automatically select the last data point after chart is fully loaded
-    if (onDataPointSelect && data.ohlc.length > 0 && chartRef.current) {
+    if (onDataPointSelect && data && data.ohlc && data.ohlc.length > 0 && chartRef.current) {
       setTimeout(() => {
         if (!chartRef.current) return;
         
         const mainSeries = chartRef.current.get('main-series') as Highcharts.Series | null;
         if (mainSeries && mainSeries.points && mainSeries.points.length > 0) {
           const lastPoint = mainSeries.points[mainSeries.points.length - 1];
-          if (lastPoint && lastPoint.firePointEvent) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if (lastPoint && (lastPoint as any).firePointEvent) {
             // Fire the click event on the last point to trigger data display
-            lastPoint.firePointEvent('click');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (lastPoint as any).firePointEvent('click');
           }
         }
       }, 500); // Wait for chart to be fully rendered with indicators
     }
-  }, [buildChartConfig, indicators, addIndicator]);
+  }, [buildChartConfig, indicators, addIndicator, onDataPointSelect]);
 
 
 
@@ -1755,7 +1757,7 @@ export default function MarketChart({
       setError('Failed to load chart data');
       setLoading(false);
     }
-  }, [isVisible, symbol, dateRange, createChart, theme]);
+  }, [isVisible, symbol, dateRange, createChart, theme, onLatestPriceUpdate]);
 
   // Handle chart type changes
   useEffect(() => {
