@@ -79,7 +79,8 @@ function MarketPageContentEnhancedInner() {
     macd: false,
     rsi14: false,
     adx14: false,
-    atr14: false
+    atr14: false,
+    williamsr14: false
   };
 
   // Indicators with flexible selection - load from localStorage
@@ -213,7 +214,7 @@ function MarketPageContentEnhancedInner() {
       
       if (['sma20', 'sma50', 'sma200', 'ema20', 'bb20'].includes(key)) {
         overlays++;
-      } else if (['macd', 'rsi14', 'adx14', 'atr14'].includes(key)) {
+      } else if (['macd', 'rsi14', 'adx14', 'atr14', 'williamsr14'].includes(key)) {
         oscillators++;
       }
     });
@@ -407,7 +408,8 @@ function MarketPageContentEnhancedInner() {
                 { key: 'macd', label: 'MACD' },
                 { key: 'rsi14', label: 'RSI (14)' },
                 { key: 'adx14', label: 'ADX (14)' },
-                { key: 'atr14', label: 'ATR (14)' }
+                { key: 'atr14', label: 'ATR (14)' },
+                { key: 'williamsr14', label: 'Williams %R (14)' }
               ].map(({ key, label }) => (
                 <label key={key} className="flex items-center space-x-2 cursor-pointer">
                   <input

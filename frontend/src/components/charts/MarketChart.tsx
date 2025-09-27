@@ -27,6 +27,7 @@ interface MarketChartProps {
     rsi14?: boolean;
     adx14?: boolean;
     atr14?: boolean;
+    williamsr14?: boolean;
   };
   indicatorSet?: 'chart_basic' | 'chart_advanced' | 'chart_full';
   theme?: 'light' | 'dark';
@@ -56,6 +57,7 @@ interface ChartData {
     RSI_14?: { RSI: number[][] };
     ADX_14?: { ADX: number[][], 'DI+': number[][], 'DI-': number[][] };
     ATR_14?: { ATR: number[][] };
+    WILLIAMS_R_14?: { Williams_R: number[][] };
   };
 }
 
@@ -63,10 +65,11 @@ interface ChartData {
 const PANE_HEIGHTS = {
   price: 400,      // Main price chart
   volume: 120,     // Volume bars
-  macd: 180,       // MACD oscillator
+  macd: 200,       // MACD oscillator
   rsi: 120,        // RSI oscillator
   adx: 150,        // ADX oscillator
   atr: 120,        // ATR oscillator
+  williamsr: 100,  // Williams %R
   navigator: 60,   // Bottom timeline navigator
   margins: 40,     // Total margins and padding
   topMargin: 10,   // Minimal top margin for very compact layout
@@ -179,7 +182,8 @@ const INDICATOR_COLORS = {
     plusDI: '#4CAF50', // Green
     minusDI: '#F44336' // Red
   },
-  atr: '#9C27B0'       // Deep Purple
+  atr: '#9C27B0',      // Deep Purple
+  williamsr: '#FF5722' // Deep Orange for Williams %R
 };
 
 // Map indicatorSet to individual indicators
@@ -196,7 +200,8 @@ const getIndicatorsFromSet = (indicatorSet?: string) => {
         macd: false,
         rsi14: false,
         adx14: false,
-        atr14: false
+        atr14: false,
+        williamsr14: false
       };
     case 'chart_advanced':
       return {
@@ -209,7 +214,8 @@ const getIndicatorsFromSet = (indicatorSet?: string) => {
         macd: true,
         rsi14: true,
         adx14: false,
-        atr14: false
+        atr14: false,
+        williamsr14: false
       };
     case 'chart_full':
       return {
@@ -222,7 +228,8 @@ const getIndicatorsFromSet = (indicatorSet?: string) => {
         macd: true,
         rsi14: true,
         adx14: true,
-        atr14: true
+        atr14: true,
+        williamsr14: true
       };
     default:
       return null;
@@ -254,7 +261,9 @@ export default function MarketChart({
       bb20: false,
       macd: false,
       rsi14: false,
-      adx14: false
+      adx14: false,
+      atr14: false,
+      williamsr14: false
     };
   }, [indicatorSet, propIndicators]);
   const [isClient, setIsClient] = useState(false);
@@ -308,9 +317,10 @@ export default function MarketChart({
     if (indicators?.rsi14) totalHeight += PANE_HEIGHTS.rsi;
     if (indicators?.adx14) totalHeight += PANE_HEIGHTS.adx;
     if (indicators?.atr14) totalHeight += PANE_HEIGHTS.atr;
+    if (indicators?.williamsr14) totalHeight += PANE_HEIGHTS.williamsr;
     
     // Add extra spacing for navigator when oscillators are present
-    const hasOscillators = indicators?.macd || indicators?.rsi14 || indicators?.adx14 || indicators?.atr14;
+    const hasOscillators = indicators?.macd || indicators?.rsi14 || indicators?.adx14 || indicators?.atr14 || indicators?.williamsr14;
     if (hasOscillators) {
       totalHeight += 60; // Match the extra spacing in calculateNavigatorTop
     }
@@ -327,9 +337,10 @@ export default function MarketChart({
     if (indicators?.rsi14) topPosition += PANE_HEIGHTS.rsi;
     if (indicators?.adx14) topPosition += PANE_HEIGHTS.adx;
     if (indicators?.atr14) topPosition += PANE_HEIGHTS.atr;
+    if (indicators?.williamsr14) topPosition += PANE_HEIGHTS.williamsr;
     
     // Add extra spacing before navigator when oscillators are present
-    const hasOscillators = indicators?.macd || indicators?.rsi14 || indicators?.adx14 || indicators?.atr14;
+    const hasOscillators = indicators?.macd || indicators?.rsi14 || indicators?.adx14 || indicators?.atr14 || indicators?.williamsr14;
     if (hasOscillators) {
       topPosition += 60; // Extra spacing to prevent overlap
     }
@@ -368,6 +379,8 @@ export default function MarketChart({
           { type: 'month', count: 6, text: '6M' },
           { type: 'year', count: 1, text: '1Y' },
           { type: 'year', count: 3, text: '3Y' },
+          { type: 'year', count: 5, text: '5Y' },
+          { type: 'year', count: 10, text: '10Y' },
           { type: 'all', text: 'All' },
         ],
         selected: 2, // Default to 6M view
@@ -483,8 +496,8 @@ export default function MarketChart({
           },
           dailyBtn: {
             text: 'D',
-            x: -90,
-            y: 0,
+            x: -120,
+            y: 10,
             align: 'right',
             verticalAlign: 'top',
             onclick: function(this: Highcharts.Chart) {
@@ -522,8 +535,8 @@ export default function MarketChart({
           },
           weeklyBtn: {
             text: 'W',
-            x: -60,
-            y: 0,
+            x: -80,
+            y: 10,
             align: 'right',
             verticalAlign: 'top',
             onclick: function(this: Highcharts.Chart) {
@@ -561,8 +574,8 @@ export default function MarketChart({
           },
           monthlyBtn: {
             text: 'M',
-            x: -30,
-            y: 0,
+            x: -40,
+            y: 10,
             align: 'right',
             verticalAlign: 'top',
             onclick: function(this: Highcharts.Chart) {
@@ -746,7 +759,8 @@ export default function MarketChart({
         axisTitle === 'MACD' ? PANE_HEIGHTS.macd :
         axisTitle === 'RSI' ? PANE_HEIGHTS.rsi :
         axisTitle === 'ADX' ? PANE_HEIGHTS.adx :
-        axisTitle === 'ATR' ? PANE_HEIGHTS.atr : 120;
+        axisTitle === 'ATR' ? PANE_HEIGHTS.atr :
+        axisTitle === 'Williams %R' ? PANE_HEIGHTS.williamsr : 120;
       topPosition += height;
     }
     
@@ -755,7 +769,8 @@ export default function MarketChart({
       title === 'MACD' ? PANE_HEIGHTS.macd :
       title === 'RSI' ? PANE_HEIGHTS.rsi :
       title === 'ADX' ? PANE_HEIGHTS.adx :
-      title === 'ATR' ? PANE_HEIGHTS.atr : 120;
+      title === 'ATR' ? PANE_HEIGHTS.atr :
+      title === 'Williams %R' ? PANE_HEIGHTS.williamsr : 120;
     
     // Add new axis with fixed pixel positioning
     const newAxis: Highcharts.YAxisOptions = {
@@ -782,6 +797,26 @@ export default function MarketChart({
       gridLineWidth: 1,
       lineColor: themeConfig.lineColor
     };
+    
+    // Add specific configuration for Williams %R
+    if (title === 'Williams %R') {
+      newAxis.min = -100;
+      newAxis.max = 0;
+      newAxis.tickInterval = 20;
+      newAxis.plotLines = [{
+        value: -20,
+        color: '#FF5722',
+        width: 1,
+        dashStyle: 'Dash',
+        label: { text: 'Overbought', style: { color: '#666' } }
+      }, {
+        value: -80,
+        color: '#FF5722',
+        width: 1,
+        dashStyle: 'Dash',
+        label: { text: 'Oversold', style: { color: '#666' } }
+      }];
+    }
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const axis = chartRef.current.addAxis(newAxis as any, false, false);
@@ -1201,6 +1236,23 @@ export default function MarketChart({
           };
         }
         break;
+        
+      case 'williamsr14':
+        if (data?.indicators?.WILLIAMS_R_14?.Williams_R) {
+          const williamsrAxisIndex = addNewYAxis('Williams %R');
+          
+          series = {
+            type: 'line',
+            id: 'williamsr-series',
+            name: 'Williams %R (14)',
+            data: data.indicators.WILLIAMS_R_14.Williams_R,
+            yAxis: williamsrAxisIndex,
+            color: INDICATOR_COLORS.williamsr,
+            lineWidth: 1,
+            ...seriesOptions
+          };
+        }
+        break;
     }
     
     if (series) {
@@ -1290,6 +1342,12 @@ export default function MarketChart({
           chartRef.current.yAxis[axisIndex].remove(false);
           yAxisManager.current.oscillatorAxes.delete('ATR');
         }
+      } else if (indicatorType === 'williamsr14') {
+        const axisIndex = yAxisManager.current.oscillatorAxes.get('Williams %R');
+        if (axisIndex !== undefined && chartRef.current.yAxis[axisIndex]) {
+          chartRef.current.yAxis[axisIndex].remove(false);
+          yAxisManager.current.oscillatorAxes.delete('Williams %R');
+        }
       }
     }
     
@@ -1367,7 +1425,7 @@ export default function MarketChart({
     
     // Add indicators based on current state
     // Add indicators in a specific order to ensure proper layout
-    const indicatorOrder = ['volume', 'sma20', 'sma50', 'sma200', 'ema20', 'bb20', 'macd', 'rsi14', 'adx14', 'atr14'];
+    const indicatorOrder = ['volume', 'sma20', 'sma50', 'sma200', 'ema20', 'bb20', 'macd', 'rsi14', 'adx14', 'atr14', 'williamsr14'];
     indicatorOrder.forEach(key => {
       if (indicators?.[key as keyof typeof indicators] && data) {
         addIndicator(key, data);

@@ -132,6 +132,8 @@ class IndicatorCalculator:
             return self._calculate_adx(df, metadata)
         elif indicator_name == "ATR_14":
             return self._calculate_atr(df, metadata)
+        elif indicator_name == "WILLIAMS_R_14":
+            return self._calculate_williams_r(df, metadata)
         elif indicator_name == "STOCH":
             return self._calculate_stochastic(df, metadata)
         elif indicator_name == "OBV":
@@ -253,6 +255,20 @@ class IndicatorCalculator:
             metadata=metadata,
             df=df,
             values_dict={"ATR": atr.average_true_range()},
+            parameters={"period": 14},
+        )
+
+    def _calculate_williams_r(self, df: pd.DataFrame, metadata: Dict) -> IndicatorData:
+        """Calculate Williams %R."""
+        williams_r = ta.momentum.WilliamsRIndicator(
+            high=df["high"], low=df["low"], close=df["close"], lbp=14
+        )
+
+        return self._create_indicator_data(
+            name="WILLIAMS_R_14",
+            metadata=metadata,
+            df=df,
+            values_dict={"Williams_R": williams_r.williams_r()},
             parameters={"period": 14},
         )
 
