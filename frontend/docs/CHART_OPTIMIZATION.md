@@ -121,3 +121,58 @@ If D/W/M buttons are still missing:
 2. Verify the exporting module loads successfully
 3. Ensure the chart configuration includes the correct button positioning
 4. Check that the production build includes the Highcharts modules in node_modules
+
+## Click Handler Enhancement (September 2025)
+
+### Problem
+Users needed to see complete OHLCV data regardless of which chart element they clicked on. Previously, clicking on an indicator might only show indicator values without the OHLC context.
+
+### Solution
+Enhanced the click handler in MarketChart.tsx to always fetch OHLC and volume data:
+
+```typescript
+point: {
+  events: {
+    click: function() {
+      const pointData = {
+        timestamp: this.x || 0
+      };
+      
+      // Always try to get OHLC data from the main series first
+      const mainSeries = chart.get('main-series') as Highcharts.Series | null;
+      if (mainSeries && mainSeries.points) {
+        const pricePoint = mainSeries.points.find(p => p.x === this.x);
+        // Extract OHLC data...
+      }
+      
+      // Always try to get volume data from the volume series
+      const volumeSeries = chart.get('volume-series') as Highcharts.Series | null;
+      if (volumeSeries && volumeSeries.points) {
+        const volumePoint = volumeSeries.points.find(p => p.x === this.x);
+        // Extract volume data...
+      }
+      
+      // Then extract indicator values...
+    }
+  }
+}
+```
+
+### Benefits
+- Consistent user experience - always see price context
+- Complete data visibility with every click
+- Better trading decisions with full information
+- No need to click specifically on price bars to see OHLC
+
+## ADX Series ID Correction
+
+### Issue
+ADX indicator values (ADX, DI+, DI-) were not appearing in Data Point Details due to incorrect series ID references.
+
+### Fix
+Corrected the series IDs in the click handler to match the actual IDs used by Highcharts:
+- `'adx-series'` → `'adx-line-series'`
+- `'adx-di-plus-series'` → `'adx-plus-series'`
+- `'adx-di-minus-series'` → `'adx-minus-series'`
+
+This ensures all ADX-related values are properly extracted and displayed when clicking on chart points.
