@@ -21,9 +21,11 @@ Personal public site with microservices architecture, built with modern web tech
   - See [Symbol Catalog Display](docs/SYMBOL_CATALOG_DISPLAY.md) for details
 - **Price Data**: Historical EOD data with automatic downloads from Yahoo Finance
 - **Technical Indicators**: Advanced charting with multiple technical indicators
+  - Unified MarketChart component supporting both light and dark themes
   - Multi-panel chart layout with dynamic height adjustment
   - Three indicator sets: Basic, Advanced, and Full
-  - Includes SMA, Bollinger Bands, MACD, RSI, and ADX
+  - Includes SMA, EMA, Bollinger Bands, MACD, RSI, and ADX
+  - Individual indicator toggles for market page, preset selections for symbols page
   - See [Technical Indicators Documentation](docs/TECHNICAL_INDICATORS.md) for details
 - **Google Cloud Integration**: Secure storage and data management with GCS
 - **System Configuration**: Centralized settings management through UI

@@ -5,8 +5,8 @@ import { toBrisbaneTime, toBrisbaneDateOnly } from '@/utils/dateUtils';
 import toast from 'react-hot-toast';
 import dynamic from 'next/dynamic';
 
-// Dynamically import PriceChart to avoid SSR issues with Highcharts
-const PriceChart = dynamic(() => import('@/components/charts/PriceChart'), {
+// Dynamically import MarketChart to avoid SSR issues with Highcharts
+const MarketChart = dynamic(() => import('@/components/charts/MarketChart'), {
   ssr: false,
   loading: () => (
     <div className="flex justify-center items-center h-96">
@@ -676,10 +676,11 @@ export default function SymbolsPageContent() {
                 <div className="flex flex-col lg:flex-row gap-4">
                   {/* Chart Section */}
                   <div className="flex-1 min-w-0">
-                    <PriceChart 
+                    <MarketChart 
                       symbol={selectedSymbol} 
                       isVisible={showPriceChart || isPanelCollapsed} 
                       indicatorSet={indicatorSet}
+                      theme="light"
                     />
                   </div>
                   {/* List Section */}

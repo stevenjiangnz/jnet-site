@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import type Highcharts from 'highcharts';
 
 // Extend Window to include Highcharts
@@ -13,7 +13,7 @@ declare global {
 interface MarketChartProps {
   symbol: string;
   isVisible: boolean;
-  indicators: {
+  indicators?: {
     // Overlays
     volume: boolean;
     sma20: boolean;
@@ -27,8 +27,10 @@ interface MarketChartProps {
     rsi14: boolean;
     adx14: boolean;
   };
-  viewType: 'daily' | 'weekly'; // Not used currently - data grouping is controlled by Highcharts buttons
-  dateRange: string;
+  indicatorSet?: 'chart_basic' | 'chart_advanced' | 'chart_full';
+  theme?: 'light' | 'dark';
+  viewType?: 'daily' | 'weekly'; // Not used currently - data grouping is controlled by Highcharts buttons
+  dateRange?: string;
   chartType?: 'candlestick' | 'line' | 'area'; // Optional, defaults to candlestick
   onDataPointSelect?: (point: {
     timestamp: number;
@@ -68,17 +70,100 @@ const PANE_HEIGHTS = {
   rangeSelector: 55 // Space for range selector buttons and inputs
 };
 
-// Indicator colors configuration
+// Theme configurations
+const THEMES = {
+  dark: {
+    backgroundColor: '#1a1a1a',
+    textColor: '#ffffff',
+    labelColor: '#a0a0a0',
+    gridLineColor: '#2a2a2a',
+    lineColor: '#404040',
+    buttonFill: '#2d2d2d',
+    buttonStroke: '#404040',
+    buttonHoverFill: '#3d3d3d',
+    buttonHoverStroke: '#505050',
+    buttonSelectFill: '#4f46e5',
+    buttonSelectStroke: '#4f46e5',
+    inputBoxBorderColor: '#404040',
+    inputBackgroundColor: '#2d2d2d',
+    inputColor: '#e0e0e0',
+    navigatorMaskFill: 'rgba(139, 92, 246, 0.1)',
+    navigatorSeriesColor: '#8b5cf6',
+    navigatorHandlesColor: '#8b5cf6',
+    scrollbarColors: {
+      barBackgroundColor: '#404040',
+      barBorderColor: '#404040',
+      buttonBackgroundColor: '#2d2d2d',
+      buttonBorderColor: '#404040',
+      trackBackgroundColor: '#1a1a1a',
+      trackBorderColor: '#404040',
+      buttonArrowColor: '#a0a0a0'
+    },
+    tooltipBackgroundColor: 'rgba(30, 30, 30, 0.95)',
+    tooltipBorderColor: '#404040',
+    tooltipTextColor: '#ffffff',
+    candleColors: {
+      downColor: '#ef4444',
+      upColor: '#10b981'
+    },
+    volumeColor: 'rgba(139, 92, 246, 0.3)',
+    plotLineColors: {
+      rsi70: '#ef4444',
+      rsi30: '#10b981'
+    }
+  },
+  light: {
+    backgroundColor: '#ffffff',
+    textColor: '#000000',
+    labelColor: '#666666',
+    gridLineColor: '#e0e0e0',
+    lineColor: '#cccccc',
+    buttonFill: '#f0f0f0',
+    buttonStroke: '#cccccc',
+    buttonHoverFill: '#e0e0e0',
+    buttonHoverStroke: '#bbbbbb',
+    buttonSelectFill: '#4f46e5',
+    buttonSelectStroke: '#4f46e5',
+    inputBoxBorderColor: '#cccccc',
+    inputBackgroundColor: '#f5f5f5',
+    inputColor: '#333333',
+    navigatorMaskFill: 'rgba(79, 70, 229, 0.1)',
+    navigatorSeriesColor: '#4f46e5',
+    navigatorHandlesColor: '#4f46e5',
+    scrollbarColors: {
+      barBackgroundColor: '#cccccc',
+      barBorderColor: '#cccccc',
+      buttonBackgroundColor: '#f0f0f0',
+      buttonBorderColor: '#cccccc',
+      trackBackgroundColor: '#f5f5f5',
+      trackBorderColor: '#cccccc',
+      buttonArrowColor: '#666666'
+    },
+    tooltipBackgroundColor: 'rgba(255, 255, 255, 0.95)',
+    tooltipBorderColor: '#cccccc',
+    tooltipTextColor: '#000000',
+    candleColors: {
+      downColor: '#ef4444',
+      upColor: '#22c55e'
+    },
+    volumeColor: 'rgba(79, 70, 229, 0.3)',
+    plotLineColors: {
+      rsi70: '#ef4444',
+      rsi30: '#22c55e'
+    }
+  }
+};
+
+// Indicator colors configuration (theme-independent)
 const INDICATOR_COLORS = {
   sma20: '#fbbf24',  // Amber
   sma50: '#3b82f6',  // Blue
   sma200: '#a855f7', // Purple
   ema20: '#f97316',  // Orange
   bb: {
-    upper: 'rgba(168, 85, 247, 0.3)',
-    middle: '#a855f7',
-    lower: 'rgba(168, 85, 247, 0.3)',
-    fill: 'rgba(168, 85, 247, 0.1)'
+    upper: '#a855f7',     // Solid purple for upper band
+    middle: '#8b5cf6',    // Slightly darker purple for middle
+    lower: '#a855f7'      // Solid purple for lower band
   },
   macd: {
     macd: '#10b981',   // Emerald
@@ -93,15 +178,78 @@ const INDICATOR_COLORS = {
   }
 };
 
+// Map indicatorSet to individual indicators
+const getIndicatorsFromSet = (indicatorSet?: string) => {
+  switch (indicatorSet) {
+    case 'chart_basic':
+      return {
+        volume: true,
+        sma20: true,
+        sma50: true,
+        sma200: false,
+        ema20: false,
+        bb20: false,
+        macd: false,
+        rsi14: false,
+        adx14: false
+      };
+    case 'chart_advanced':
+      return {
+        volume: true,
+        sma20: true,
+        sma50: true,
+        sma200: false,
+        ema20: false,
+        bb20: true,
+        macd: true,
+        rsi14: true,
+        adx14: false
+      };
+    case 'chart_full':
+      return {
+        volume: true,
+        sma20: true,
+        sma50: true,
+        sma200: true,
+        ema20: true,
+        bb20: true,
+        macd: true,
+        rsi14: true,
+        adx14: true
+      };
+    default:
+      return null;
+  }
+};
+
 export default function MarketChart({
   symbol,
   isVisible,
-  indicators,
+  indicators: propIndicators,
+  indicatorSet,
+  theme = 'dark',
   viewType, // eslint-disable-line @typescript-eslint/no-unused-vars
-  dateRange,
+  dateRange = '1Y',
   chartType = 'candlestick', // Default to candlestick
   onDataPointSelect // eslint-disable-line @typescript-eslint/no-unused-vars
 }: MarketChartProps) {
+  // Determine indicators to use based on indicatorSet or individual props
+  const indicators = useMemo(() => {
+    if (indicatorSet) {
+      return getIndicatorsFromSet(indicatorSet);
+    }
+    return propIndicators || {
+      volume: false,
+      sma20: false,
+      sma50: false,
+      sma200: false,
+      ema20: false,
+      bb20: false,
+      macd: false,
+      rsi14: false,
+      adx14: false
+    };
+  }, [indicatorSet, propIndicators]);
   const [isClient, setIsClient] = useState(false);
   const [highchartsLoaded, setHighchartsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -183,10 +331,11 @@ export default function MarketChart({
   // Build chart configuration
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buildChartConfig = useCallback((): any => {
+    const themeConfig = THEMES[theme];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const config: any = {
       chart: {
-        backgroundColor: '#1a1a1a',
+        backgroundColor: themeConfig.backgroundColor,
         height: calculateChartHeight(),
         marginTop: 10,  // Minimal top margin for very compact layout
         style: {
@@ -217,27 +366,27 @@ export default function MarketChart({
         verticalAlign: 'top',
         y: 15,  // Add vertical offset to position below title
         buttonTheme: {
-          fill: '#2d2d2d',
-          stroke: '#404040',
+          fill: themeConfig.buttonFill,
+          stroke: themeConfig.buttonStroke,
           'stroke-width': 1,
           r: 4,
           style: {
-            color: '#a0a0a0',
+            color: themeConfig.labelColor,
             fontWeight: 'normal',
             fontSize: '12px'
           },
           states: {
             hover: {
-              fill: '#3d3d3d',
-              stroke: '#505050',
+              fill: themeConfig.buttonHoverFill,
+              stroke: themeConfig.buttonHoverStroke,
               style: {
-                color: '#ffffff',
+                color: themeConfig.textColor,
                 cursor: 'pointer'
               }
             },
             select: {
-              fill: '#4f46e5',
-              stroke: '#4f46e5',
+              fill: themeConfig.buttonSelectFill,
+              stroke: themeConfig.buttonSelectStroke,
               style: {
                 color: '#ffffff',
                 fontWeight: '500'
@@ -245,16 +394,16 @@ export default function MarketChart({
             }
           }
         },
-        inputBoxBorderColor: '#404040',
+        inputBoxBorderColor: themeConfig.inputBoxBorderColor,
         inputBoxHeight: 32,
         inputBoxWidth: 120,
         inputStyle: {
-          backgroundColor: '#2d2d2d',
-          color: '#e0e0e0',
+          backgroundColor: themeConfig.inputBackgroundColor,
+          color: themeConfig.inputColor,
           fontSize: '12px'
         },
         labelStyle: {
-          color: '#a0a0a0',
+          color: themeConfig.labelColor,
           fontSize: '12px'
         }
       },
@@ -262,7 +411,7 @@ export default function MarketChart({
       title: {
         text: `${symbol} Stock Price`,
         style: {
-          color: '#ffffff',
+          color: themeConfig.textColor,
           fontSize: '18px',
           fontWeight: '500'
         }
@@ -274,14 +423,14 @@ export default function MarketChart({
           align: 'right', 
           x: -3,
           style: {
-            color: '#a0a0a0',
+            color: themeConfig.labelColor,
             fontSize: '12px'
           }
         },
         title: { 
           text: 'Price',
           style: {
-            color: '#a0a0a0',
+            color: themeConfig.labelColor,
             fontSize: '12px'
           }
         },
@@ -289,9 +438,9 @@ export default function MarketChart({
         height: PANE_HEIGHTS.price,
         lineWidth: 0,
         id: 'price-axis',
-        gridLineColor: '#2a2a2a',
+        gridLineColor: themeConfig.gridLineColor,
         gridLineWidth: 1,
-        lineColor: '#404040'
+        lineColor: themeConfig.lineColor
       }],
       
       plotOptions: {
@@ -303,13 +452,13 @@ export default function MarketChart({
           }
         },
         candlestick: {
-          color: '#ef4444',
-          upColor: '#10b981',
-          lineColor: '#ef4444',
-          upLineColor: '#10b981'
+          color: themeConfig.candleColors.downColor,
+          upColor: themeConfig.candleColors.upColor,
+          lineColor: themeConfig.candleColors.downColor,
+          upLineColor: themeConfig.candleColors.upColor
         },
         column: {
-          color: 'rgba(139, 92, 246, 0.3)',
+          color: themeConfig.volumeColor,
           borderColor: 'transparent'
         },
         line: {
@@ -339,19 +488,19 @@ export default function MarketChart({
               this.redraw();
             },
             theme: {
-              fill: '#2d2d2d',
-              stroke: '#404040',
+              fill: themeConfig.buttonFill,
+              stroke: themeConfig.buttonStroke,
               'stroke-width': 1,
               r: 4,
               style: {
-                color: '#a0a0a0',
+                color: themeConfig.labelColor,
                 fontSize: '12px'
               },
               states: {
                 hover: {
-                  fill: '#3d3d3d',
+                  fill: themeConfig.buttonHoverFill,
                   style: {
-                    color: '#ffffff'
+                    color: themeConfig.textColor
                   }
                 }
               }
@@ -373,19 +522,19 @@ export default function MarketChart({
               this.redraw();
             },
             theme: {
-              fill: '#2d2d2d',
-              stroke: '#404040',
+              fill: themeConfig.buttonFill,
+              stroke: themeConfig.buttonStroke,
               'stroke-width': 1,
               r: 4,
               style: {
-                color: '#a0a0a0',
+                color: themeConfig.labelColor,
                 fontSize: '12px'
               },
               states: {
                 hover: {
-                  fill: '#3d3d3d',
+                  fill: themeConfig.buttonHoverFill,
                   style: {
-                    color: '#ffffff'
+                    color: themeConfig.textColor
                   }
                 }
               }
@@ -407,19 +556,19 @@ export default function MarketChart({
               this.redraw();
             },
             theme: {
-              fill: '#2d2d2d',
-              stroke: '#404040',
+              fill: themeConfig.buttonFill,
+              stroke: themeConfig.buttonStroke,
               'stroke-width': 1,
               r: 4,
               style: {
-                color: '#a0a0a0',
+                color: themeConfig.labelColor,
                 fontSize: '12px'
               },
               states: {
                 hover: {
-                  fill: '#3d3d3d',
+                  fill: themeConfig.buttonHoverFill,
                   style: {
-                    color: '#ffffff'
+                    color: themeConfig.textColor
                   }
                 }
               }
@@ -441,14 +590,14 @@ export default function MarketChart({
       
       legend: {
         itemStyle: {
-          color: '#a0a0a0',
+          color: themeConfig.labelColor,
           fontSize: '12px'
         },
         itemHoverStyle: {
-          color: '#ffffff'
+          color: themeConfig.textColor
         },
         itemHiddenStyle: {
-          color: '#606060'
+          color: theme === 'dark' ? '#606060' : '#cccccc'
         },
         enabled: true,
         align: 'center',
@@ -475,11 +624,11 @@ export default function MarketChart({
       
       // Add xAxis theme
       xAxis: {
-        lineColor: '#404040',
-        tickColor: '#404040',
+        lineColor: themeConfig.lineColor,
+        tickColor: themeConfig.lineColor,
         labels: {
           style: {
-            color: '#a0a0a0',
+            color: themeConfig.labelColor,
             fontSize: '12px'
           }
         }
@@ -488,17 +637,17 @@ export default function MarketChart({
       // Navigator styling with dynamic positioning
       navigator: {
         enabled: true,
-        maskFill: 'rgba(139, 92, 246, 0.1)',
+        maskFill: themeConfig.navigatorMaskFill,
         series: {
-          color: '#8b5cf6',
-          lineColor: '#8b5cf6',
+          color: themeConfig.navigatorSeriesColor,
+          lineColor: themeConfig.navigatorSeriesColor,
           lineWidth: 1
         },
         xAxis: {
-          gridLineColor: '#2a2a2a',
+          gridLineColor: themeConfig.gridLineColor,
           labels: {
             style: {
-              color: '#a0a0a0',
+              color: themeConfig.labelColor,
               fontSize: '11px'
             }
           }
@@ -507,8 +656,8 @@ export default function MarketChart({
           top: calculateNavigatorTop()
         },
         handles: {
-          backgroundColor: '#8b5cf6',
-          borderColor: '#8b5cf6',
+          backgroundColor: themeConfig.navigatorHandlesColor,
+          borderColor: themeConfig.navigatorHandlesColor,
           borderRadius: 2
         },
         height: 40,
@@ -517,24 +666,24 @@ export default function MarketChart({
       
       // Scrollbar styling
       scrollbar: {
-        barBackgroundColor: '#404040',
-        barBorderColor: '#404040',
-        buttonBackgroundColor: '#2d2d2d',
-        buttonBorderColor: '#404040',
-        trackBackgroundColor: '#1a1a1a',
-        trackBorderColor: '#404040',
-        buttonArrowColor: '#a0a0a0'
+        barBackgroundColor: themeConfig.scrollbarColors.barBackgroundColor,
+        barBorderColor: themeConfig.scrollbarColors.barBorderColor,
+        buttonBackgroundColor: themeConfig.scrollbarColors.buttonBackgroundColor,
+        buttonBorderColor: themeConfig.scrollbarColors.buttonBorderColor,
+        trackBackgroundColor: themeConfig.scrollbarColors.trackBackgroundColor,
+        trackBorderColor: themeConfig.scrollbarColors.trackBorderColor,
+        buttonArrowColor: themeConfig.scrollbarColors.buttonArrowColor
       },
       
       // Tooltip styling
       tooltip: {
         split: true,
         crosshairs: true,
-        backgroundColor: 'rgba(30, 30, 30, 0.95)',
+        backgroundColor: themeConfig.tooltipBackgroundColor,
         borderWidth: 1,
-        borderColor: '#404040',
+        borderColor: themeConfig.tooltipBorderColor,
         style: {
-          color: '#ffffff',
+          color: themeConfig.tooltipTextColor,
           fontSize: '12px'
         },
         shadow: true
@@ -542,11 +691,13 @@ export default function MarketChart({
     };
     
     return config;
-  }, [symbol, calculateChartHeight, calculateNavigatorTop, chartType]);
+  }, [symbol, calculateChartHeight, calculateNavigatorTop, chartType, theme]);
 
   // Add new Y-axis for oscillators with fixed pixel positioning
   const addNewYAxis = useCallback((title: string): number => {
     if (!chartRef.current) return -1;
+    
+    const themeConfig = THEMES[theme];
     
     // Check if an axis with this title already exists
     const existingAxisIndex = yAxisManager.current.oscillatorAxes.get(title);
@@ -586,14 +737,14 @@ export default function MarketChart({
         align: 'right', 
         x: -3,
         style: {
-          color: '#a0a0a0',
+          color: themeConfig.labelColor,
           fontSize: '11px'
         }
       },
       title: { 
         text: title,
         style: {
-          color: '#a0a0a0',
+          color: themeConfig.labelColor,
           fontSize: '12px'
         }
       },
@@ -601,9 +752,9 @@ export default function MarketChart({
       height: oscillatorHeight,
       offset: 0,
       lineWidth: 0,
-      gridLineColor: '#2a2a2a',
+      gridLineColor: themeConfig.gridLineColor,
       gridLineWidth: 1,
-      lineColor: '#404040'
+      lineColor: themeConfig.lineColor
     };
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -626,12 +777,14 @@ export default function MarketChart({
     }
     
     return axisIndex;
-  }, [calculateChartHeight, calculateNavigatorTop]);
+  }, [calculateChartHeight, calculateNavigatorTop, theme]);
 
 
   // Add indicator dynamically
   const addIndicator = useCallback((indicatorType: string, data?: ChartData) => {
     if (!chartRef.current) return;
+    
+    const themeConfig = THEMES[theme];
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let series: any;
@@ -663,7 +816,7 @@ export default function MarketChart({
               align: 'left',
               x: 3,
               style: {
-                color: '#a0a0a0',
+                color: themeConfig.labelColor,
                 fontSize: '11px'
               },
               // Format volume labels to be more compact
@@ -682,7 +835,7 @@ export default function MarketChart({
             title: {
               text: 'Volume',
               style: {
-                color: '#a0a0a0',
+                color: themeConfig.labelColor,
                 fontSize: '12px'
               }
             },
@@ -786,26 +939,40 @@ export default function MarketChart({
         
       case 'bb20':
         if (data?.indicators?.BB_20) {
-          // Add fill area
-          if (data.indicators.BB_20.upper && data.indicators.BB_20.lower) {
+          // Add upper band line
+          if (data.indicators.BB_20.upper) {
             chartRef.current.addSeries({
-              type: 'arearange',
-              id: 'bb-range-series',
-              name: 'BB Bands',
-              data: data.indicators.BB_20.upper.map((point, i) => {
-                return [point[0], data.indicators!.BB_20!.lower[i][1], point[1]];
-              }),
+              type: 'line',
+              id: 'bb-upper-series',
+              name: 'BB Upper',
+              data: data.indicators.BB_20.upper,
               yAxis: 0,
-              lineWidth: 0,
-              linkedTo: ':previous',
               color: INDICATOR_COLORS.bb.upper,
-              fillOpacity: 0.1,
-              zIndex: 0,
+              lineWidth: 1,
+              dashStyle: 'Solid',
               ...seriesOptions
             }, false);
-            
-            indicatorSeriesIds.current['bb20-range'] = 'bb-range-series';
+            indicatorSeriesIds.current['bb20-upper'] = 'bb-upper-series';
           }
+          
+          // Add lower band line
+          if (data.indicators.BB_20.lower) {
+            chartRef.current.addSeries({
+              type: 'line',
+              id: 'bb-lower-series',
+              name: 'BB Lower',
+              data: data.indicators.BB_20.lower,
+              yAxis: 0,
+              color: INDICATOR_COLORS.bb.lower,
+              lineWidth: 1,
+              dashStyle: 'Solid',
+              ...seriesOptions
+            }, false);
+            indicatorSeriesIds.current['bb20-lower'] = 'bb-lower-series';
+          }
+          
+          // Remove the arearange implementation - just use the two lines
+          // The user correctly pointed out that BB only needs two lines, not a filled area
           
           // Add middle line
           if (data.indicators.BB_20.middle) {
@@ -821,6 +988,10 @@ export default function MarketChart({
               ...seriesOptions
             };
           }
+          
+          // Trigger redraw after adding all BB series
+          chartRef.current.redraw();
+          return; // Exit early as we handled redraw
         }
         break;
         
@@ -894,27 +1065,27 @@ export default function MarketChart({
           chartRef.current.yAxis[rsiAxisIndex].update({
             plotLines: [{
               value: 70,
-              color: '#ef4444',
+              color: themeConfig.plotLineColors.rsi70,
               width: 1,
               dashStyle: 'ShortDash',
               label: { 
                 text: '70', 
                 align: 'left',
                 style: {
-                  color: '#ef4444',
+                  color: themeConfig.plotLineColors.rsi70,
                   fontSize: '11px'
                 }
               }
             }, {
               value: 30,
-              color: '#10b981',
+              color: themeConfig.plotLineColors.rsi30,
               width: 1,
               dashStyle: 'ShortDash',
               label: { 
                 text: '30', 
                 align: 'left',
                 style: {
-                  color: '#10b981',
+                  color: themeConfig.plotLineColors.rsi30,
                   fontSize: '11px'
                 }
               }
@@ -994,7 +1165,7 @@ export default function MarketChart({
       indicatorSeriesIds.current[indicatorType] = series.id;
       chartRef.current.redraw(); // Redraw once after all operations
     }
-  }, [addNewYAxis]);
+  }, [addNewYAxis, theme]);
 
   // Remove indicator dynamically
   const removeIndicator = useCallback((indicatorType: string) => {
@@ -1002,7 +1173,7 @@ export default function MarketChart({
     
     // Handle multi-series indicators
     if (indicatorType === 'bb20') {
-      ['bb20', 'bb20-range'].forEach(id => {
+      ['bb20', 'bb20-upper', 'bb20-lower'].forEach(id => {
         const seriesId = indicatorSeriesIds.current[id];
         if (seriesId) {
           const series = chartRef.current!.get(seriesId);
@@ -1164,6 +1335,8 @@ export default function MarketChart({
     setLoading(true);
     setError(null);
     
+    const themeConfig = THEMES[theme];
+    
     try {
       // Always fetch all indicators (chart_full) to enable client-side toggling
       const params = new URLSearchParams({
@@ -1191,7 +1364,7 @@ export default function MarketChart({
               return {
                 x: vol[0],
                 y: vol[1],
-                color: isUp ? '#22c55e' : '#ef4444' // Green for up, red for down
+                color: isUp ? themeConfig.candleColors.upColor : themeConfig.candleColors.downColor
               };
             }
             return vol;
@@ -1241,7 +1414,7 @@ export default function MarketChart({
       setError('Failed to load chart data');
       setLoading(false);
     }
-  }, [isVisible, symbol, dateRange, createChart]);
+  }, [isVisible, symbol, dateRange, createChart, theme]);
 
   // Handle chart type changes
   useEffect(() => {
@@ -1276,7 +1449,7 @@ export default function MarketChart({
         seriesExists = macdSeries;
       } else if (key === 'bb20') {
         // Bollinger Bands has multiple series
-        const bbSeries = ['bb20', 'bb20-range'].some(id => {
+        const bbSeries = ['bb20', 'bb20-upper', 'bb20-lower'].some(id => {
           const seriesId = indicatorSeriesIds.current[id];
           return seriesId && chartRef.current!.get(seriesId);
         });
@@ -1385,7 +1558,7 @@ export default function MarketChart({
       
       <div 
         ref={chartContainerRef} 
-        className="w-full bg-[#1a1a1a] rounded-lg shadow-lg p-2 border border-gray-800"
+        className={`w-full rounded-lg shadow-lg p-2 ${theme === 'dark' ? 'bg-[#1a1a1a] border border-gray-800' : 'bg-white border border-gray-200'}`}
         style={{ 
           height: `${calculateChartHeight()}px`,
           width: '100%',

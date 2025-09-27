@@ -41,6 +41,7 @@ class IndicatorCalculator:
         results = {}
 
         for indicator_name in indicators:
+            logger.info(f"Attempting to calculate indicator: {indicator_name}")
             try:
                 # Check if we have enough data
                 min_period = self.min_periods.get(indicator_name, 0)
@@ -58,6 +59,9 @@ class IndicatorCalculator:
 
             except Exception as e:
                 logger.error(f"Error calculating {indicator_name}: {str(e)}")
+                import traceback
+
+                logger.error(f"Traceback: {traceback.format_exc()}")
                 continue
 
         return results
@@ -204,14 +208,24 @@ class IndicatorCalculator:
         """Calculate Bollinger Bands."""
         bb = ta.volatility.BollingerBands(df["close"], window=20, window_dev=2)
 
+        # Get the series with proper datetime index
+        upper_band = bb.bollinger_hband()
+        middle_band = bb.bollinger_mavg()
+        lower_band = bb.bollinger_lband()
+
+        # Ensure the series have the same index as the dataframe
+        upper_band.index = df.index
+        middle_band.index = df.index
+        lower_band.index = df.index
+
         return self._create_indicator_data(
             name="BB_20",
             metadata=metadata,
             df=df,
             values_dict={
-                "upper": bb.bollinger_hband(),
-                "middle": bb.bollinger_mavg(),
-                "lower": bb.bollinger_lband(),
+                "upper": upper_band,
+                "middle": middle_band,
+                "lower": lower_band,
             },
             parameters={"period": 20, "std_dev": 2},
         )
