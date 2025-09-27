@@ -27,7 +27,7 @@ interface MarketChartProps {
     rsi14: boolean;
     adx14: boolean;
   };
-  viewType: 'daily' | 'weekly';
+  viewType: 'daily' | 'weekly'; // Not used currently - data grouping is controlled by Highcharts buttons
   dateRange: string;
   chartType?: 'candlestick' | 'line' | 'area'; // Optional, defaults to candlestick
   onDataPointSelect?: (point: {
@@ -96,7 +96,7 @@ export default function MarketChart({
   symbol,
   isVisible,
   indicators,
-  viewType,
+  viewType, // eslint-disable-line @typescript-eslint/no-unused-vars
   dateRange,
   chartType = 'candlestick', // Default to candlestick
   onDataPointSelect // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -325,9 +325,10 @@ export default function MarketChart({
           dailyBtn: {
             text: 'D',
             x: -90,
-            onclick: function() {
-              this.series.forEach(function(series) {
-                series.update({
+            onclick: function(this: Highcharts.Chart) {
+              this.series.forEach(function(series: Highcharts.Series) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (series as any).update({
                   dataGrouping: {
                     forced: true,
                     units: [['day', [1]]]
@@ -358,9 +359,10 @@ export default function MarketChart({
           weeklyBtn: {
             text: 'W',
             x: -60,
-            onclick: function() {
-              this.series.forEach(function(series) {
-                series.update({
+            onclick: function(this: Highcharts.Chart) {
+              this.series.forEach(function(series: Highcharts.Series) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (series as any).update({
                   dataGrouping: {
                     forced: true,
                     units: [['week', [1]]]
@@ -391,9 +393,10 @@ export default function MarketChart({
           monthlyBtn: {
             text: 'M',
             x: -30,
-            onclick: function() {
-              this.series.forEach(function(series) {
-                series.update({
+            onclick: function(this: Highcharts.Chart) {
+              this.series.forEach(function(series: Highcharts.Series) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (series as any).update({
                   dataGrouping: {
                     forced: true,
                     units: [['month', [1]]]
@@ -538,7 +541,7 @@ export default function MarketChart({
     };
     
     return config;
-  }, [symbol, calculateChartHeight, calculateNavigatorTop, dateRange, viewType, chartType]);
+  }, [symbol, calculateChartHeight, calculateNavigatorTop, chartType]);
 
   // Add new Y-axis for oscillators with fixed pixel positioning
   const addNewYAxis = useCallback((title: string): number => {
