@@ -635,13 +635,13 @@ export default function MarketChart({
                   const rsi = findValueAtTimestamp('rsi-series');
                   if (rsi !== undefined) pointData.indicators.rsi = rsi;
                   
-                  const adx = findValueAtTimestamp('adx-series');
+                  const adx = findValueAtTimestamp('adx-line-series');
                   if (adx !== undefined) pointData.indicators.adx = adx;
                   
-                  const diPlus = findValueAtTimestamp('adx-di-plus-series');
+                  const diPlus = findValueAtTimestamp('adx-plus-series');
                   if (diPlus !== undefined) pointData.indicators.diPlus = diPlus;
                   
-                  const diMinus = findValueAtTimestamp('adx-di-minus-series');
+                  const diMinus = findValueAtTimestamp('adx-minus-series');
                   if (diMinus !== undefined) pointData.indicators.diMinus = diMinus;
                   
                   const atr = findValueAtTimestamp('atr-series');

@@ -722,7 +722,26 @@ function MarketPageContentEnhancedInner() {
                           {selectedDataPoint.indicators.adx !== undefined && (
                             <div className="flex justify-between items-center">
                               <span className="market-text-muted text-sm">ADX (14):</span>
-                              <span className="font-semibold text-base">{selectedDataPoint.indicators.adx.toFixed(2)}</span>
+                              <span className={`font-semibold text-base ${
+                                (() => {
+                                  const adx = selectedDataPoint.indicators.adx;
+                                  const diPlus = selectedDataPoint.indicators.diPlus;
+                                  const diMinus = selectedDataPoint.indicators.diMinus;
+                                  
+                                  if (diPlus !== undefined && diMinus !== undefined) {
+                                    // DI+ > ADX > DI-: Green (bullish)
+                                    if (diPlus > adx && adx > diMinus) {
+                                      return 'text-green-600';
+                                    }
+                                    // DI- > ADX > DI+: Red (bearish)
+                                    else if (diMinus > adx && adx > diPlus) {
+                                      return 'text-red-600';
+                                    }
+                                  }
+                                  // Default: no special color
+                                  return '';
+                                })()
+                              }`}>{selectedDataPoint.indicators.adx.toFixed(2)}</span>
                             </div>
                           )}
                           {selectedDataPoint.indicators.diPlus !== undefined && (
