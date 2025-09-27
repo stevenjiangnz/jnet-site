@@ -21,10 +21,10 @@ export async function loadHighchartsModules() {
     
     for (const moduleToLoad of modulesToLoad) {
       try {
-        const module = await import(moduleToLoad);
+        const loadedModule = await import(moduleToLoad);
         // Most Highcharts modules need to be initialized explicitly
-        if (module.default && typeof module.default === 'function') {
-          module.default(Highcharts);
+        if (loadedModule.default && typeof loadedModule.default === 'function') {
+          loadedModule.default(Highcharts);
         }
         console.log(`[Highcharts] Loaded module: ${moduleToLoad}`);
       } catch (err) { // eslint-disable-line @typescript-eslint/no-unused-vars
