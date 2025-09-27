@@ -114,67 +114,67 @@ const THEMES = {
   },
   light: {
     backgroundColor: '#ffffff',
-    textColor: '#000000',
+    textColor: '#333333',
     labelColor: '#666666',
-    gridLineColor: '#e0e0e0',
-    lineColor: '#cccccc',
-    buttonFill: '#f0f0f0',
-    buttonStroke: '#cccccc',
-    buttonHoverFill: '#e0e0e0',
-    buttonHoverStroke: '#bbbbbb',
-    buttonSelectFill: '#4f46e5',
-    buttonSelectStroke: '#4f46e5',
-    inputBoxBorderColor: '#cccccc',
-    inputBackgroundColor: '#f5f5f5',
+    gridLineColor: '#e6e6e6',
+    lineColor: '#d4d4d4',
+    buttonFill: '#f7f7f7',
+    buttonStroke: '#d0d0d0',
+    buttonHoverFill: '#e8e8e8',
+    buttonHoverStroke: '#b0b0b0',
+    buttonSelectFill: '#006bb3',
+    buttonSelectStroke: '#006bb3',
+    inputBoxBorderColor: '#d0d0d0',
+    inputBackgroundColor: '#ffffff',
     inputColor: '#333333',
-    navigatorMaskFill: 'rgba(79, 70, 229, 0.1)',
-    navigatorSeriesColor: '#4f46e5',
-    navigatorHandlesColor: '#4f46e5',
+    navigatorMaskFill: 'rgba(24, 144, 255, 0.1)',
+    navigatorSeriesColor: '#1890ff',
+    navigatorHandlesColor: '#f0f0f0',
     scrollbarColors: {
-      barBackgroundColor: '#cccccc',
-      barBorderColor: '#cccccc',
+      barBackgroundColor: '#d0d0d0',
+      barBorderColor: '#d0d0d0',
       buttonBackgroundColor: '#f0f0f0',
-      buttonBorderColor: '#cccccc',
-      trackBackgroundColor: '#f5f5f5',
-      trackBorderColor: '#cccccc',
+      buttonBorderColor: '#d0d0d0',
+      trackBackgroundColor: '#f8f8f8',
+      trackBorderColor: '#e0e0e0',
       buttonArrowColor: '#666666'
     },
-    tooltipBackgroundColor: 'rgba(255, 255, 255, 0.95)',
-    tooltipBorderColor: '#cccccc',
-    tooltipTextColor: '#000000',
+    tooltipBackgroundColor: 'rgba(247, 247, 247, 0.85)',
+    tooltipBorderColor: '#d0d0d0',
+    tooltipTextColor: '#333333',
     candleColors: {
-      downColor: '#ef4444',
-      upColor: '#22c55e'
+      downColor: '#eb5757',
+      upColor: '#26a69a'
     },
-    volumeColor: 'rgba(79, 70, 229, 0.3)',
+    volumeColor: 'rgba(144, 164, 174, 0.65)',
     plotLineColors: {
-      rsi70: '#ef4444',
-      rsi30: '#22c55e'
+      rsi70: '#FF6E40',
+      rsi30: '#00E676'
     }
   }
 };
 
 // Indicator colors configuration (theme-independent)
 const INDICATOR_COLORS = {
-  sma20: '#fbbf24',  // Amber
-  sma50: '#3b82f6',  // Blue
-  sma200: '#a855f7', // Purple
-  ema20: '#f97316',  // Orange
+  sma20: '#FF6B6B',  // Coral red
+  sma50: '#4ECDC4',  // Turquoise
+  sma200: '#8B5CF6', // Purple
+  ema20: '#FF9F40',  // Orange
   bb: {
-    upper: '#a855f7',     // Solid purple for upper band
-    middle: '#8b5cf6',    // Slightly darker purple for middle
-    lower: '#a855f7'      // Solid purple for lower band
+    upper: '#999999',     // Gray for upper band
+    middle: '#666666',    // Darker gray for middle
+    lower: '#999999'      // Gray for lower band
   },
   macd: {
-    macd: '#10b981',   // Emerald
-    signal: '#f59e0b', // Amber
-    histogram: 'rgba(139, 92, 246, 0.5)' // Purple with transparency
+    macd: '#12B981',   // Green
+    signal: '#FF5252', // Red
+    histogram: 'rgba(156, 39, 176, 0.5)' // Purple with transparency
   },
-  rsi: '#ec4899',    // Pink
+  rsi: '#E91E63',    // Pink
   adx: {
-    adx: '#f59e0b',    // Amber
-    plusDI: '#10b981', // Emerald
-    minusDI: '#ef4444' // Red
+    adx: '#FF9800',    // Orange
+    plusDI: '#4CAF50', // Green
+    minusDI: '#F44336' // Red
   }
 };
 

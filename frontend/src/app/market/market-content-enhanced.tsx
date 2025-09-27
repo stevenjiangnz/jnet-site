@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import dynamic from 'next/dynamic';
 import toast from 'react-hot-toast';
 import { toBrisbaneTime } from '@/utils/dateUtils';
+import { useTheme } from '@/providers/theme-provider';
 
 // Dynamically import MarketChart to avoid SSR issues
 const MarketChart = dynamic(() => import('@/components/charts/MarketChart'), {
@@ -28,6 +29,28 @@ interface Symbol {
 }
 
 export default function MarketPageContentEnhanced() {
+  // Get current theme
+  const { theme } = useTheme();
+  
+  // Determine actual theme (resolve 'system' to actual theme)
+  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark');
+  
+  useEffect(() => {
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      setActualTheme(mediaQuery.matches ? 'dark' : 'light');
+      
+      const handleChange = (e: MediaQueryListEvent) => {
+        setActualTheme(e.matches ? 'dark' : 'light');
+      };
+      
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    } else {
+      setActualTheme(theme as 'light' | 'dark');
+    }
+  }, [theme]);
+  
   // Symbol management
   const [symbols, setSymbols] = useState<Symbol[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
@@ -433,6 +456,7 @@ export default function MarketPageContentEnhanced() {
                 viewType={viewType}
                 dateRange={dateRange}
                 chartType={chartType}
+                theme={actualTheme}
                 onDataPointSelect={setSelectedDataPoint}
               />
             </div>
