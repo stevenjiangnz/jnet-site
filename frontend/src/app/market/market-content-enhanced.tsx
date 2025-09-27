@@ -109,6 +109,32 @@ function MarketPageContentEnhancedInner() {
     low?: number;
     close?: number;
     volume?: number;
+    indicators?: {
+      sma20?: number;
+      sma50?: number;
+      sma200?: number;
+      ema20?: number;
+      bbUpper?: number;
+      bbMiddle?: number;
+      bbLower?: number;
+      macd?: number;
+      macdSignal?: number;
+      macdHistogram?: number;
+      rsi?: number;
+      adx?: number;
+      diPlus?: number;
+      diMinus?: number;
+      atr?: number;
+      williamsR?: number;
+    };
+  } | null>(null);
+  
+  // Latest price data from chart
+  const [latestPriceData, setLatestPriceData] = useState<{
+    symbol: string;
+    lastPrice: number;
+    changePercent: number;
+    latestDate: string;
   } | null>(null);
 
   // Load symbols from API
@@ -462,6 +488,14 @@ function MarketPageContentEnhancedInner() {
                 chartType={chartType}
                 theme={actualTheme}
                 onDataPointSelect={setSelectedDataPoint}
+                onLatestPriceUpdate={(priceData) => {
+                  setLatestPriceData({
+                    symbol: selectedSymbol,
+                    ...priceData
+                  });
+                  setLastUpdateTime(new Date(priceData.latestDate));
+                  setIsDataFresh(true);
+                }}
               />
             </div>
           </div>
@@ -480,47 +514,62 @@ function MarketPageContentEnhancedInner() {
           <div className="space-y-4">
             {/* Symbol Info */}
             <div className="market-info-card p-4 rounded-lg">
-              <h4 className="font-medium mb-2 market-title">Symbol</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="market-text-muted">Symbol:</span>
-                  <span className="font-medium">{selectedSymbol}</span>
+              <h4 className="font-semibold mb-2 market-title text-base">Symbol</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="market-text-muted text-sm">Symbol:</span>
+                  <span className="font-semibold text-base">{selectedSymbol}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="market-text-muted">Name:</span>
-                  <span className="font-medium text-right text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="market-text-muted text-sm">Name:</span>
+                  <span className="font-semibold text-right text-sm">
                     {symbols.find(s => s.symbol === selectedSymbol)?.name || '-'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="market-text-muted">Last Price:</span>
-                  <span className="font-medium">
-                    ${symbols.find(s => s.symbol === selectedSymbol)?.last_price?.toFixed(2) || '-'}
+                <div className="flex justify-between items-center">
+                  <span className="market-text-muted text-sm">Last Price:</span>
+                  <span className="font-semibold text-base">
+                    ${latestPriceData?.symbol === selectedSymbol ? latestPriceData.lastPrice.toFixed(2) : '-'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="market-text-muted">Change:</span>
-                  <span className={`font-medium ${
-                    (symbols.find(s => s.symbol === selectedSymbol)?.change_percent || 0) >= 0
+                <div className="flex justify-between items-center">
+                  <span className="market-text-muted text-sm">Change:</span>
+                  <span className={`font-semibold text-base flex items-center gap-1 ${
+                    latestPriceData?.symbol === selectedSymbol && latestPriceData.changePercent >= 0
                       ? 'text-green-600'
-                      : 'text-red-600'
+                      : latestPriceData?.symbol === selectedSymbol ? 'text-red-600' : ''
                   }`}>
                     {(() => {
-                      const sym = symbols.find(s => s.symbol === selectedSymbol);
-                      if (sym?.change_percent !== undefined) {
-                        return `${sym.change_percent >= 0 ? '+' : ''}${sym.change_percent.toFixed(2)}%`;
+                      if (latestPriceData?.symbol === selectedSymbol) {
+                        const isPositive = latestPriceData.changePercent >= 0;
+                        return (
+                          <>
+                            <span className="text-lg">
+                              {isPositive ? '▲' : '▼'}
+                            </span>
+                            {`${isPositive ? '+' : ''}${latestPriceData.changePercent.toFixed(2)}%`}
+                          </>
+                        );
                       }
                       return '-';
                     })()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="market-text-muted text-sm">Last Trade:</span>
+                  <span className="font-semibold text-base">
+                    {latestPriceData?.symbol === selectedSymbol && latestPriceData.latestDate
+                      ? new Date(latestPriceData.latestDate).toLocaleDateString()
+                      : '-'}
                   </span>
                 </div>
                 {(() => {
                   const sym = symbols.find(s => s.symbol === selectedSymbol);
                   if (sym?.sector) {
                     return (
-                      <div className="flex justify-between">
-                        <span className="market-text-muted">Sector:</span>
-                        <span className="font-medium text-right text-xs">
+                      <div className="flex justify-between items-center">
+                        <span className="market-text-muted text-sm">Sector:</span>
+                        <span className="font-semibold text-right text-sm">
                           {sym.sector}
                         </span>
                       </div>
@@ -533,37 +582,177 @@ function MarketPageContentEnhancedInner() {
 
             {/* Selected Point Data */}
             <div className="market-info-card p-4 rounded-lg">
-              <h4 className="font-medium mb-2 market-title">Data Point Details</h4>
+              <h4 className="font-semibold mb-2 market-title text-base">Data Point Details</h4>
               {selectedDataPoint ? (
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="market-text-muted">Date:</span>
-                    <span className="font-medium">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="market-text-muted text-sm">Date:</span>
+                    <span className="font-semibold text-base">
                       {new Date(selectedDataPoint.timestamp).toLocaleDateString()}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="market-text-muted">Open:</span>
-                    <span className="font-medium">${selectedDataPoint.open?.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="market-text-muted">High:</span>
-                    <span className="font-medium">${selectedDataPoint.high?.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="market-text-muted">Low:</span>
-                    <span className="font-medium">${selectedDataPoint.low?.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="market-text-muted">Close:</span>
-                    <span className="font-medium">${selectedDataPoint.close?.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="market-text-muted">Volume:</span>
-                    <span className="font-medium">
-                      {selectedDataPoint.volume?.toLocaleString()}
-                    </span>
-                  </div>
+                  {selectedDataPoint.open !== undefined && (
+                    <div className="flex justify-between items-center">
+                      <span className="market-text-muted text-sm">Open:</span>
+                      <span className="font-semibold text-base">${selectedDataPoint.open.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedDataPoint.high !== undefined && (
+                    <div className="flex justify-between items-center">
+                      <span className="market-text-muted text-sm">High:</span>
+                      <span className="font-semibold text-base">${selectedDataPoint.high.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedDataPoint.low !== undefined && (
+                    <div className="flex justify-between items-center">
+                      <span className="market-text-muted text-sm">Low:</span>
+                      <span className="font-semibold text-base">${selectedDataPoint.low.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedDataPoint.close !== undefined && (
+                    <div className="flex justify-between items-center">
+                      <span className="market-text-muted text-sm">Close:</span>
+                      <span className="font-semibold text-base">${selectedDataPoint.close.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedDataPoint.volume !== undefined && (
+                    <div className="flex justify-between items-center">
+                      <span className="market-text-muted text-sm">Volume:</span>
+                      <span className="font-semibold text-base">
+                        {selectedDataPoint.volume.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                  {/* Show indicator values if available */}
+                  {selectedDataPoint.indicators && Object.keys(selectedDataPoint.indicators).length > 0 && (
+                    <>
+                      <div className="border-t border-gray-700 my-3"></div>
+                      <div className="text-xs font-medium market-text-muted uppercase mb-2">Indicators</div>
+                      
+                      {/* Price Overlays */}
+                      {(selectedDataPoint.indicators.sma20 !== undefined || 
+                        selectedDataPoint.indicators.sma50 !== undefined || 
+                        selectedDataPoint.indicators.sma200 !== undefined || 
+                        selectedDataPoint.indicators.ema20 !== undefined) && (
+                        <>
+                          {selectedDataPoint.indicators.sma20 !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">SMA (20):</span>
+                              <span className="font-semibold text-base">${selectedDataPoint.indicators.sma20.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.sma50 !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">SMA (50):</span>
+                              <span className="font-semibold text-base">${selectedDataPoint.indicators.sma50.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.sma200 !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">SMA (200):</span>
+                              <span className="font-semibold text-base">${selectedDataPoint.indicators.sma200.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.ema20 !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">EMA (20):</span>
+                              <span className="font-semibold text-base">${selectedDataPoint.indicators.ema20.toFixed(2)}</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {/* Bollinger Bands */}
+                      {(selectedDataPoint.indicators.bbUpper !== undefined || 
+                        selectedDataPoint.indicators.bbMiddle !== undefined || 
+                        selectedDataPoint.indicators.bbLower !== undefined) && (
+                        <>
+                          {selectedDataPoint.indicators.bbUpper !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">BB Upper:</span>
+                              <span className="font-semibold text-base">${selectedDataPoint.indicators.bbUpper.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.bbMiddle !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">BB Middle:</span>
+                              <span className="font-semibold text-base">${selectedDataPoint.indicators.bbMiddle.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.bbLower !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">BB Lower:</span>
+                              <span className="font-semibold text-base">${selectedDataPoint.indicators.bbLower.toFixed(2)}</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                      
+                      {/* Oscillators */}
+                      {(selectedDataPoint.indicators.macd !== undefined || 
+                        selectedDataPoint.indicators.rsi !== undefined || 
+                        selectedDataPoint.indicators.adx !== undefined || 
+                        selectedDataPoint.indicators.atr !== undefined || 
+                        selectedDataPoint.indicators.williamsR !== undefined) && (
+                        <>
+                          {selectedDataPoint.indicators.macd !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">MACD:</span>
+                              <span className="font-semibold text-base">{selectedDataPoint.indicators.macd.toFixed(4)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.macdSignal !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">MACD Signal:</span>
+                              <span className="font-semibold text-base">{selectedDataPoint.indicators.macdSignal.toFixed(4)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.macdHistogram !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">MACD Histogram:</span>
+                              <span className="font-semibold text-base">{selectedDataPoint.indicators.macdHistogram.toFixed(4)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.rsi !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">RSI (14):</span>
+                              <span className="font-semibold text-base">{selectedDataPoint.indicators.rsi.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.adx !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">ADX (14):</span>
+                              <span className="font-semibold text-base">{selectedDataPoint.indicators.adx.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.diPlus !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">DI+:</span>
+                              <span className="font-semibold text-base">{selectedDataPoint.indicators.diPlus.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.diMinus !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">DI-:</span>
+                              <span className="font-semibold text-base">{selectedDataPoint.indicators.diMinus.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.atr !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">ATR (14):</span>
+                              <span className="font-semibold text-base">${selectedDataPoint.indicators.atr.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {selectedDataPoint.indicators.williamsR !== undefined && (
+                            <div className="flex justify-between items-center">
+                              <span className="market-text-muted text-sm">Williams %R:</span>
+                              <span className="font-semibold text-base">{selectedDataPoint.indicators.williamsR.toFixed(2)}</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm market-text-muted">
@@ -582,10 +771,6 @@ function MarketPageContentEnhancedInner() {
               </div>
             )}
 
-            {/* News/Analysis Placeholder */}
-            <div className="market-info-card p-4 rounded-lg">
-              <h4 className="font-medium mb-2 market-title">Market news and analysis coming soon.</h4>
-            </div>
           </div>
         ) : (
           <p className="market-text-muted text-center">

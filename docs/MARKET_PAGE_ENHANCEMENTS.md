@@ -45,10 +45,29 @@ The market page has been enhanced from a static mockup to a fully functional tra
 - **Crosshair**: Synchronized across all panels
 - **Tooltips**: Shows values for all visible indicators
 - **Point Selection**: Click on chart to see detailed OHLC data
+- **Automatic Last Day Display**: Data Point Details automatically shows the latest trading day's data when chart loads
 - **Zoom/Pan**: Built-in Highcharts navigation
 - **Responsive Design**: Adapts to different screen sizes
 
-### 7. Data Management
+### 7. Data Details Panel (Right Side)
+- **Symbol Information**:
+  - Symbol code and full name
+  - Latest price with directional indicator (▲ green for up, ▼ red for down)
+  - Percentage change from previous close
+  - Last trading date
+  - Sector information (when available)
+- **Data Point Details**:
+  - Automatically displays last trading day's data by default
+  - Shows OHLC (Open, High, Low, Close) values
+  - Volume with thousand separators
+  - All active indicator values at selected point
+  - Updates dynamically when clicking on chart
+- **Enhanced UI**:
+  - Larger font sizes for better readability
+  - Reduced line spacing for compact display
+  - Clear visual hierarchy with font weights
+
+### 8. Data Management
 - **Smart Loading**: Only requests necessary indicator data based on selection
 - **Dynamic Updates**: Indicators can be added/removed without recreating chart
 - **Error Handling**: Graceful handling of API errors and missing data
@@ -171,3 +190,37 @@ All features have been tested using Playwright across different viewports and br
 - View type changes
 - Date range selections
 - Error scenarios
+- Click functionality on chart data points
+- Automatic display of last day's data
+- UI responsiveness with reduced spacing
+
+## Recent Enhancements (September 2025)
+
+### 1. Click-to-Display Data Point Details
+- Implemented comprehensive click handler in MarketChart component
+- Supports clicking on candlesticks, volume bars, and indicator lines
+- Extracts and displays complete data including OHLC, volume, and all active indicators
+- Cross-series data correlation (clicking price shows volume, clicking volume shows price)
+
+### 2. Improved UI Readability
+- Increased font sizes across Data Details panel
+- Applied font-semibold to values for better visual weight
+- Reduced line spacing from space-y-3 to space-y-1 for compact display
+- Maintained clear visual hierarchy
+
+### 3. Enhanced Symbol Information Display
+- Added directional indicators (▲/▼) for price changes
+- Implemented color coding (green for positive, red for negative)
+- Displays last trading date alongside price information
+- Real-time updates from chart data
+
+### 4. Automatic Last Day Data Display
+- Data Point Details now automatically shows the latest trading day's data on chart load
+- Eliminates need for users to click to see current information
+- Seamless integration with existing click functionality
+- 500ms delay ensures all indicators are loaded before selection
+
+### 5. UI Cleanup
+- Removed placeholder "Market news and analysis coming soon" section
+- Cleaner, more professional appearance
+- Better use of available space

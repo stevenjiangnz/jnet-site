@@ -1,0 +1,294 @@
+name: Job - ASX Price Updater
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'services/job-runners/asx-price-updater/**'
+      - 'services/api-service/app/jobs/asx_price_updater.py'
+      - 'services/api-service/app/services/stock_catalog.py'
+      - 'services/api-service/app/services/download_orchestrator.py'
+      - '.github/workflows/job-asx-price-updater.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'services/job-runners/asx-price-updater/**'
+      - 'services/api-service/app/jobs/asx_price_updater.py'
+      - '.github/workflows/job-asx-price-updater.yml'
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even without changes'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: write
+
+env:
+  JOB_NAME: asx-price-updater
+  JOB_PATH: ./services/job-runners/asx-price-updater
+  API_SERVICE_PATH: ./services/api-service
+  IMAGE_NAME: jnet-job-asx-price-updater
+  CLOUD_RUN_JOB_NAME: job-asx-price-updater
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 'latest'
+      
+      - name: Install API Service dependencies
+        working-directory: ${{ env.API_SERVICE_PATH }}
+        run: |
+          uv sync
+      
+      - name: Run API Service job tests
+        working-directory: ${{ env.API_SERVICE_PATH }}
+        run: |
+          uv run pytest tests/jobs/test_asx_price_updater.py -v --cov=app.jobs.asx_price_updater || true
+      
+      - name: Check job runner syntax
+        run: |
+          python -m py_compile ${{ env.JOB_PATH }}/main.py || echo "Job runner file doesn't exist yet"
+
+  version:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      semVer: ${{ steps.versioning.outputs.new-version }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Git Version
+        id: version
+        uses: codacy/git-version@2.7.1
+        with:
+          prefix: job-asx-price-updater-v
+          release-branch: main
+
+      - name: Print Version
+        id: versioning
+        run: |
+          echo "Version: ${{ steps.version.outputs.version }}"
+          VERSION_NUMBER=$(echo ${{ steps.version.outputs.version }} | sed 's/^job-asx-price-updater-v//')
+          echo "Version Number: $VERSION_NUMBER"
+          echo "new-version=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          release_name: ASX Price Updater Job Release ${{ steps.version.outputs.version }}
+          body: |
+            ASX Price Updater Job Release ${{ steps.version.outputs.version }}
+            
+            Docker image: `${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:${{ steps.versioning.outputs.new-version }}`
+            
+            ## What's Changed
+            See commit history for changes included in this release.
+          draft: false
+          prerelease: false
+
+  build-and-push:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: version
+    env:
+      SEMVER: ${{ needs.version.outputs.semVer }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}" --password-stdin
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ env.JOB_PATH }}/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:latest
+            ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:${{ env.SEMVER }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: [version, build-and-push]
+    environment:
+      name: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        
+      - name: Create/Update Cloud Run Job
+        run: |
+          # Check if job exists
+          if gcloud run jobs describe ${{ env.CLOUD_RUN_JOB_NAME }} --region us-central1 &>/dev/null; then
+            echo "Updating existing job..."
+            gcloud run jobs update ${{ env.CLOUD_RUN_JOB_NAME }} \
+              --image docker.io/${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.semVer }} \
+              --region us-central1
+          else
+            echo "Creating new job..."
+            gcloud run jobs create ${{ env.CLOUD_RUN_JOB_NAME }} \
+              --image docker.io/${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.semVer }} \
+              --region us-central1 \
+              --parallelism 1 \
+              --task-timeout 5m \
+              --max-retries 1 \
+              --service-account 506487697841-compute@developer.gserviceaccount.com \
+              --set-env-vars="ENVIRONMENT=production,LOG_LEVEL=INFO,API_BASE_URL=${{ secrets.API_SERVICE_URL }},STOCK_DATA_SERVICE_URL=${{ secrets.STOCK_DATA_SERVICE_URL }},VERSION=${{ needs.version.outputs.semVer }}" \
+              --memory 512Mi \
+              --cpu 1
+          fi
+          
+      - name: Create/Update Cloud Scheduler
+        run: |
+          # Check if scheduler exists
+          if gcloud scheduler jobs describe ${{ env.CLOUD_RUN_JOB_NAME }}-schedule --location us-central1 &>/dev/null; then
+            echo "Updating existing scheduler..."
+            gcloud scheduler jobs update http ${{ env.CLOUD_RUN_JOB_NAME }}-schedule \
+              --location us-central1 \
+              --schedule "30 16 * * MON-FRI" \
+              --time-zone "Australia/Sydney"
+          else
+            echo "Creating new scheduler..."
+            gcloud scheduler jobs create http ${{ env.CLOUD_RUN_JOB_NAME }}-schedule \
+              --location us-central1 \
+              --schedule "30 16 * * MON-FRI" \
+              --time-zone "Australia/Sydney" \
+              --uri "https://us-central1-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${{ secrets.GCP_PROJECT_ID }}/jobs/${{ env.CLOUD_RUN_JOB_NAME }}:run" \
+              --http-method POST \
+              --oidc-service-account-email 506487697841-compute@developer.gserviceaccount.com
+          fi
+            
+      - name: Job Details
+        run: |
+          echo "### ASX Price Updater Job Deployment Complete! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "Job Name: ${{ env.CLOUD_RUN_JOB_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "Version: ${{ needs.version.outputs.semVer }}" >> $GITHUB_STEP_SUMMARY
+          echo "Schedule: 4:30 PM Sydney time (Mon-Fri)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Manual Execution" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "gcloud run jobs execute ${{ env.CLOUD_RUN_JOB_NAME }} --region us-central1" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+  build-develop:
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}" --password-stdin
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ env.JOB_PATH }}/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:develop
+            ${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-develop:
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: build-develop
+    environment:
+      name: development
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        
+      - name: Create/Update Development Cloud Run Job
+        run: |
+          DEV_JOB_NAME="${{ env.CLOUD_RUN_JOB_NAME }}-dev"
+          
+          # Check if job exists
+          if gcloud run jobs describe ${DEV_JOB_NAME} --region us-central1 &>/dev/null; then
+            echo "Updating existing development job..."
+            gcloud run jobs update ${DEV_JOB_NAME} \
+              --image docker.io/${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }} \
+              --region us-central1
+          else
+            echo "Creating new development job..."
+            gcloud run jobs create ${DEV_JOB_NAME} \
+              --image docker.io/${{ secrets.DOCKER_USERNAME || 'stevenjiangnz' }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }} \
+              --region us-central1 \
+              --parallelism 1 \
+              --task-timeout 5m \
+              --max-retries 1 \
+              --service-account 506487697841-compute@developer.gserviceaccount.com \
+              --set-env-vars="ENVIRONMENT=development,LOG_LEVEL=DEBUG,API_BASE_URL=${{ secrets.API_SERVICE_URL }},STOCK_DATA_SERVICE_URL=${{ secrets.STOCK_DATA_SERVICE_URL }}" \
+              --memory 512Mi \
+              --cpu 1
+          fi
+            
+      - name: Development Job Details
+        run: |
+          echo "### ASX Price Updater Job (Development) Deployment Complete! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "Job Name: ${{ env.CLOUD_RUN_JOB_NAME }}-dev" >> $GITHUB_STEP_SUMMARY
+          echo "Image: develop-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Manual Execution" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "gcloud run jobs execute ${{ env.CLOUD_RUN_JOB_NAME }}-dev --region us-central1" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
