@@ -297,12 +297,12 @@ export default function MarketChart({
     let totalHeight = PANE_HEIGHTS.price + PANE_HEIGHTS.navigator + PANE_HEIGHTS.margins + PANE_HEIGHTS.topMargin + PANE_HEIGHTS.rangeSelector;
     
     // Volume is now merged into price pane, so don't add its height
-    if (indicators.macd) totalHeight += PANE_HEIGHTS.macd;
-    if (indicators.rsi14) totalHeight += PANE_HEIGHTS.rsi;
-    if (indicators.adx14) totalHeight += PANE_HEIGHTS.adx;
+    if (indicators?.macd) totalHeight += PANE_HEIGHTS.macd;
+    if (indicators?.rsi14) totalHeight += PANE_HEIGHTS.rsi;
+    if (indicators?.adx14) totalHeight += PANE_HEIGHTS.adx;
     
     // Add extra spacing for navigator when oscillators are present
-    const hasOscillators = indicators.macd || indicators.rsi14 || indicators.adx14;
+    const hasOscillators = indicators?.macd || indicators?.rsi14 || indicators?.adx14;
     if (hasOscillators) {
       totalHeight += 60; // Match the extra spacing in calculateNavigatorTop
     }
@@ -315,12 +315,12 @@ export default function MarketChart({
     let topPosition = PANE_HEIGHTS.rangeSelector + PANE_HEIGHTS.price;
     
     // Add heights for all active oscillators (volume is now merged into price)
-    if (indicators.macd) topPosition += PANE_HEIGHTS.macd;
-    if (indicators.rsi14) topPosition += PANE_HEIGHTS.rsi;
-    if (indicators.adx14) topPosition += PANE_HEIGHTS.adx;
+    if (indicators?.macd) topPosition += PANE_HEIGHTS.macd;
+    if (indicators?.rsi14) topPosition += PANE_HEIGHTS.rsi;
+    if (indicators?.adx14) topPosition += PANE_HEIGHTS.adx;
     
     // Add extra spacing before navigator when oscillators are present
-    const hasOscillators = indicators.macd || indicators.rsi14 || indicators.adx14;
+    const hasOscillators = indicators?.macd || indicators?.rsi14 || indicators?.adx14;
     if (hasOscillators) {
       topPosition += 60; // Extra spacing to prevent overlap
     }
@@ -1320,7 +1320,7 @@ export default function MarketChart({
     // Add indicators in a specific order to ensure proper layout
     const indicatorOrder = ['volume', 'sma20', 'sma50', 'sma200', 'ema20', 'bb20', 'macd', 'rsi14', 'adx14'];
     indicatorOrder.forEach(key => {
-      if (indicators[key as keyof typeof indicators] && data) {
+      if (indicators?.[key as keyof typeof indicators] && data) {
         addIndicator(key, data);
       }
     });
@@ -1436,6 +1436,7 @@ export default function MarketChart({
     if (!chartRef.current || !highchartsLoaded || !chartData) return;
     
     // Check each indicator
+    if (!indicators) return;
     Object.entries(indicators).forEach(([key, enabled]) => {
       let seriesExists = false;
       
