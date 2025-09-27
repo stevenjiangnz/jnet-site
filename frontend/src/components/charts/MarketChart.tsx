@@ -1436,7 +1436,7 @@ export default function MarketChart({
         }
         
         // Store in window for debugging
-        (window as any).__chartData = data;
+        (window as Window & { __chartData?: ChartData }).__chartData = data;
         
         // Store chart data for client-side indicator toggling
         setChartData(data);
