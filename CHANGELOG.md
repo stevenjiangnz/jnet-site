@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **EMA (Exponential Moving Average) indicator support**
+  - Added EMA_20 (20-day Exponential Moving Average) to technical indicators
+  - Available in the "Full" indicator set for Market page charts
+  - Displays as an orange line overlay on the price chart
+  - Calculated and stored by stock-data-service during data downloads
+
 ### Fixed
+- **SMA_200 indicator visibility issue**
+  - Fixed SMA_200 not displaying when insufficient historical data was available
+  - Resolved by downloading maximum historical data for symbols
+  - SMA_200 now properly displays when viewing "MAX" date range with adequate data
+  - Note: SMA_200 requires at least 200 days of historical data to calculate
 - Fixed React hydration error in market page
   - Added client-side only rendering for timestamp display to prevent server/client mismatch
   - Introduced `isClient` state to control rendering of dynamic time elements

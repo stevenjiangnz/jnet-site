@@ -47,6 +47,7 @@ interface ChartData {
     SMA_20?: { SMA: number[][] };
     SMA_50?: { SMA: number[][] };
     SMA_200?: { SMA: number[][] };
+    EMA_20?: { EMA: number[][] };
     BB_20?: { upper: number[][], middle: number[][], lower: number[][] };
     MACD?: { MACD: number[][], signal: number[][], histogram: number[][] };
     RSI_14?: { RSI: number[][] };
@@ -762,6 +763,21 @@ export default function MarketChart({
             data: data.indicators.SMA_200.SMA,
             yAxis: 0,
             color: INDICATOR_COLORS.sma200,
+            lineWidth: 1,
+            ...seriesOptions
+          };
+        }
+        break;
+        
+      case 'ema20':
+        if (data?.indicators?.EMA_20?.EMA) {
+          series = {
+            type: 'line',
+            id: 'ema20-series',
+            name: 'EMA (20)',
+            data: data.indicators.EMA_20.EMA,
+            yAxis: 0,
+            color: INDICATOR_COLORS.ema20,
             lineWidth: 1,
             ...seriesOptions
           };
