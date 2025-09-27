@@ -172,10 +172,10 @@ export default function SettingsContentV2() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">System Configuration</h1>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">System Configuration</h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Edit configuration as JSON5 with support for comments. All changes are saved together.
           </p>
@@ -205,7 +205,7 @@ export default function SettingsContentV2() {
       </div>
 
       {message && (
-        <div className={`mb-4 p-4 rounded-md ${
+        <div className={`p-4 rounded-md ${
           message.type === 'success' 
             ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border border-green-200 dark:border-green-800' 
             : 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border border-red-200 dark:border-red-800'

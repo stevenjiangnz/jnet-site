@@ -87,6 +87,9 @@ Deploy to production:
 - `GET /api/v1/health/ready` - Readiness check
 - `GET /api/v1/health/dependencies` - Dependencies status
 
+### Admin
+- `POST /api/v1/admin/redis/clear` - Clear all Redis cache keys (requires authentication)
+
 ### Backtesting
 - `POST /api/v1/backtest` - Run a backtest
 - `GET /api/v1/backtest/{id}` - Get backtest results
