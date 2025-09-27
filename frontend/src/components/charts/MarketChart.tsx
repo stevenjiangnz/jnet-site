@@ -807,13 +807,13 @@ export default function MarketChart({
         value: -20,
         color: '#FF5722',
         width: 1,
-        dashStyle: 'dash',
+        dashStyle: 'Dash',
         label: { text: 'Overbought', style: { color: '#666' } }
       }, {
         value: -80,
         color: '#FF5722',
         width: 1,
-        dashStyle: 'dash',
+        dashStyle: 'Dash',
         label: { text: 'Oversold', style: { color: '#666' } }
       }];
     }
