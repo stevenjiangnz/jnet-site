@@ -36,9 +36,9 @@ export default function MarketPageContentEnhanced() {
   const [isLoadingSymbols, setIsLoadingSymbols] = useState(true);
   
   // Chart configuration
-  const [dateRange, setDateRange] = useState("6M");
+  const [dateRange, setDateRange] = useState("3Y");
   const [viewType, setViewType] = useState<"daily" | "weekly">("daily");
-  const [chartType, setChartType] = useState<"candlestick" | "line" | "area">("candlestick");
+  const chartType = "candlestick"; // Fixed to candlestick only
   
   // Default indicators configuration
   const DEFAULT_INDICATORS = {
@@ -76,6 +76,7 @@ export default function MarketPageContentEnhanced() {
   // Data freshness
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
   const [isDataFresh, setIsDataFresh] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const [selectedDataPoint, setSelectedDataPoint] = useState<{
     timestamp: number;
     open?: number;
@@ -154,6 +155,11 @@ export default function MarketPageContentEnhanced() {
     setLastUpdateTime(latestDate);
   }, [selectedSymbol, symbols]);
 
+  // Set client-side flag
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   useEffect(() => {
     checkDataFreshness();
   }, [checkDataFreshness]);
@@ -209,11 +215,10 @@ export default function MarketPageContentEnhanced() {
     const prefs = {
       dateRange,
       viewType,
-      chartType,
       indicators
     };
     localStorage.setItem('marketPreferences', JSON.stringify(prefs));
-  }, [dateRange, viewType, chartType, indicators]);
+  }, [dateRange, viewType, indicators]);
 
   // Load preferences on mount
   useEffect(() => {
@@ -223,7 +228,7 @@ export default function MarketPageContentEnhanced() {
         const prefs = JSON.parse(saved);
         if (prefs.dateRange) setDateRange(prefs.dateRange);
         if (prefs.viewType) setViewType(prefs.viewType);
-        if (prefs.chartType) setChartType(prefs.chartType);
+        // chartType is now fixed to candlestick, no need to set it
         if (prefs.indicators) setIndicators(prefs.indicators);
       } catch (error) {
         console.error('Error loading preferences:', error);
@@ -308,7 +313,7 @@ export default function MarketPageContentEnhanced() {
             Date Range
           </label>
           <div className="grid grid-cols-4 gap-2">
-            {['1M', '3M', '6M', '1Y', '3Y', '5Y', 'ALL'].map((range) => (
+            {['1Y', '3Y', '5Y', 'MAX'].map((range) => (
               <button
                 key={range}
                 onClick={() => setDateRange(range)}
@@ -324,50 +329,8 @@ export default function MarketPageContentEnhanced() {
           </div>
         </div>
 
-        {/* View Type */}
-        <div className="mb-6">
-          <label className="block text-xs font-medium mb-2 market-label uppercase">
-            View Type
-          </label>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setViewType('daily')}
-              className={`flex-1 px-3 py-1.5 text-sm rounded transition-colors ${
-                viewType === 'daily'
-                  ? 'market-button active'
-                  : 'market-button'
-              }`}
-            >
-              Daily
-            </button>
-            <button
-              onClick={() => setViewType('weekly')}
-              className={`flex-1 px-3 py-1.5 text-sm rounded transition-colors ${
-                viewType === 'weekly'
-                  ? 'market-button active'
-                  : 'market-button'
-              }`}
-            >
-              Weekly
-            </button>
-          </div>
-        </div>
+        {/* View Type - Removed as it's now handled by Highcharts data grouping buttons */}
 
-        {/* Chart Type */}
-        <div className="mb-6">
-          <label className="block text-xs font-medium mb-2 market-label uppercase">
-            Chart Type
-          </label>
-          <select
-            value={chartType}
-            onChange={(e) => setChartType(e.target.value as 'candlestick' | 'line' | 'area')}
-            className="w-full px-3 py-1.5 rounded market-select text-sm"
-          >
-            <option value="candlestick">Candlestick</option>
-            <option value="line">Line</option>
-            <option value="area">Area</option>
-          </select>
-        </div>
 
         {/* Technical Indicators */}
         <div className="mb-6">
@@ -454,7 +417,7 @@ export default function MarketPageContentEnhanced() {
               <h2 className="text-xl font-bold market-title">
                 {selectedSymbol} - {symbols.find(s => s.symbol === selectedSymbol)?.name || 'Loading...'}
               </h2>
-              {lastUpdateTime && (
+              {isClient && lastUpdateTime && (
                 <div className="text-sm market-text-muted">
                   Last updated: {toBrisbaneTime(lastUpdateTime.toISOString())}
                 </div>

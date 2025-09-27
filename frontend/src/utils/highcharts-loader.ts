@@ -15,7 +15,8 @@ export async function loadHighchartsModules() {
     // Load required modules - handle missing modules gracefully
     const modulesToLoad = [
       'highcharts/indicators/indicators',
-      'highcharts/modules/indicators-all'  // This includes all indicators
+      'highcharts/modules/indicators-all',  // This includes all indicators
+      'highcharts/modules/exporting'       // Required for custom buttons
     ];
     
     for (const moduleToLoad of modulesToLoad) {

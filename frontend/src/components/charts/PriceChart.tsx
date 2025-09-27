@@ -75,7 +75,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
     };
   }, [isClient]);
 
-  const createChart = useCallback((ohlc: number[][], volume: number[][], indicators: Indicators | null) => {
+  const createChart = useCallback((ohlc: number[][], volume: (number[] | { x: number; y: number; color: string })[], indicators: Indicators | null) => {
     if (!chartContainerRef.current || !window.Highcharts) {
       console.error('[PriceChart] Missing requirements:', {
         hasContainer: !!chartContainerRef.current,
@@ -144,41 +144,16 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
     const yAxis = [];
     const series = [];
     
-    // Calculate panel heights based on indicator set
-    let priceHeight: number;
-    let volumeHeight: number; 
-    let macdHeight: number;
-    let rsiHeight = 0; // Default to 0 for sets without RSI
-    let adxHeight = 0; // Default to 0 for sets without ADX
-    const panelGap = 2; // Gap between panels in percentage
-    
-    // Reserve space for range selector at bottom (10% of chart height)
-    // const rangeSelecterHeight = 10;
-    // const availableHeight = 100 - rangeSelecterHeight;
-    
-    if (indicatorSet === 'chart_full') {
-      // Full: 5 panels total - distribute within available height
-      priceHeight = 28;
-      volumeHeight = 10;
-      macdHeight = 18;
-      rsiHeight = 10;
-      adxHeight = 18;  // Same as MACD
-    } else if (indicatorSet === 'chart_advanced') {
-      // Advanced: 4 panels total
-      priceHeight = 35;
-      volumeHeight = 12;
-      macdHeight = 20;
-      rsiHeight = 15;
-    } else {
-      // Basic: 3 panels total
-      priceHeight = 45;
-      volumeHeight = 15;
-      macdHeight = 25;
-    }
+    // Fixed pixel heights for all panes
+    const priceHeight = 300; // Fixed height for price+volume panel
+    const macdHeight = 150; // Fixed height for MACD panel
+    const rsiHeight = 100; // Fixed height for RSI panel
+    const adxHeight = 150; // Fixed height for ADX panel
+    const panelGap = 10; // Gap between panels in pixels
     
     let currentTop = 0;
     
-    // Price panel (always present)
+    // Price panel with volume (merged) - using fixed pixel height
     yAxis.push({
       labels: {
         align: 'right',
@@ -187,28 +162,34 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
       title: {
         text: 'Price'
       },
-      height: `${priceHeight}%`,
+      height: priceHeight,
+      top: currentTop,
       lineWidth: 2
     });
-    currentTop = priceHeight + panelGap;
-
-    // Volume panel (always present)
+    
+    // Secondary y-axis for volume (on the same panel as price)
     yAxis.push({
       labels: {
-        align: 'right',
-        x: -3
+        align: 'left',
+        x: 3
       },
       title: {
         text: 'Volume'
       },
-      top: `${currentTop}%`,
-      height: `${volumeHeight}%`,
-      offset: 0,
-      lineWidth: 2
+      height: priceHeight,
+      top: currentTop,
+      opposite: true,
+      lineWidth: 0,
+      gridLineWidth: 0,
+      // Scale volume to use only bottom 49% of the panel (70% of 70%)
+      max: undefined,
+      endOnTick: false,
+      maxPadding: 0.51 // This creates 51% padding at the top, effectively limiting volume to 49% height
     });
-    currentTop += volumeHeight + panelGap;
+    
+    currentTop += priceHeight + panelGap;
 
-    // MACD panel (if present)
+    // MACD panel (if present) - using fixed pixel height
     if (indicators && indicators.MACD) {
       yAxis.push({
         labels: {
@@ -218,15 +199,15 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
         title: {
           text: 'MACD'
         },
-        top: `${currentTop}%`,
-        height: `${macdHeight}%`,
+        top: currentTop,
+        height: macdHeight,
         offset: 0,
         lineWidth: 2
       });
       currentTop += macdHeight + panelGap;
     }
 
-    // ADX panel (if present) - moved before RSI
+    // ADX panel (if present) - using fixed pixel height
     if (indicators && indicators.ADX_14) {
       yAxis.push({
         labels: {
@@ -236,15 +217,15 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
         title: {
           text: 'ADX'
         },
-        top: `${currentTop}%`,
-        height: `${adxHeight}%`,
+        top: currentTop,
+        height: adxHeight,
         offset: 0,
         lineWidth: 2
       });
       currentTop += adxHeight + panelGap;
     }
 
-    // RSI panel (if present) - moved after ADX
+    // RSI panel (if present) - using fixed pixel height
     if (indicators && indicators.RSI_14) {
       yAxis.push({
         labels: {
@@ -254,8 +235,8 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
         title: {
           text: 'RSI'
         },
-        top: `${currentTop}%`,
-        height: `${rsiHeight}%`,
+        top: currentTop,
+        height: rsiHeight,
         offset: 0,
         lineWidth: 2,
         plotLines: [{
@@ -289,13 +270,18 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
       dataGrouping: dataGroupingConfig
     });
 
-    // Add volume series
+    // Add volume series (on the same panel as price, using secondary y-axis)
     series.push({
       type: 'column',
       name: 'Volume',
       data: volume,
       yAxis: 1,
-      dataGrouping: dataGroupingConfig
+      turboThreshold: 0, // Disable threshold to support color objects
+      dataGrouping: {
+        enabled: false // Disable data grouping to preserve colors
+      },
+      opacity: 0.7
+      // Colors are now embedded in the data points
     });
 
     // Add overlay indicators (on price panel)
@@ -350,7 +336,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
         }
       }
 
-      // MACD (separate panel)
+      // MACD (separate panel) - adjusted index since volume is merged
       const macdYAxis = 2;
       if (indicators.MACD) {
         // MACD histogram
@@ -450,22 +436,24 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
       }
     }
 
-    // Calculate dynamic chart height based on panels and indicator set
-    let chartHeight = 400; // Base height for price and volume
+    // Calculate total chart height based on actual panels present
+    let chartHeight = priceHeight; // Start with price panel height
     
-    if (indicatorSet === 'chart_basic') {
-      // Basic: Price + Volume + MACD
-      chartHeight = 600;
-    } else if (indicatorSet === 'chart_advanced') {
-      // Advanced: Price + Volume + MACD + RSI
-      chartHeight = 750;
-    } else if (indicatorSet === 'chart_full') {
-      // Full: Price + Volume + MACD + RSI + ADX
-      chartHeight = 900;
+    // Add heights for each indicator panel that's actually present
+    if (indicators && indicators.MACD) {
+      chartHeight += panelGap + macdHeight;
     }
     
-    // Add extra padding for better spacing
-    chartHeight += 50;
+    if (indicators && indicators.ADX_14) {
+      chartHeight += panelGap + adxHeight;
+    }
+    
+    if (indicators && indicators.RSI_14) {
+      chartHeight += panelGap + rsiHeight;
+    }
+    
+    // Add padding for range selector and margins
+    chartHeight += 80; // Extra space for range selector and chart margins
 
     // Create the chart
     try {
@@ -527,7 +515,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
       console.error('[PriceChart] Error creating chart:', error);
       setError('Failed to render chart: ' + (error as Error).message);
     }
-  }, [symbol, indicatorSet]);
+  }, [symbol]);
 
   const renderChart = useCallback((data: PriceData[], indicators?: Indicators) => {
     if (!chartContainerRef.current || !window.Highcharts) {
@@ -540,7 +528,7 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
 
     // Prepare data for Highcharts
     const ohlc: number[][] = [];
-    const volume: number[][] = [];
+    const volume: (number[] | { x: number; y: number; color: string })[] = [];
 
     data.forEach((item, index) => {
       // Simple timestamp conversion - let JavaScript Date handle it
@@ -583,10 +571,14 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
         item.low,
         item.close
       ]);
-      volume.push([
-        timestamp,
-        item.volume
-      ]);
+      
+      // Store volume with color information based on price movement
+      const isGreen = item.close >= item.open;
+      volume.push({
+        x: timestamp,
+        y: item.volume,
+        color: isGreen ? '#22c55e' : '#ef4444' // Green for up, red for down
+      });
     });
 
     createChart(ohlc, volume, indicators || null);
@@ -704,9 +696,9 @@ export default function PriceChart({ symbol, isVisible, indicatorSet = 'chart_ba
           className="w-full bg-white rounded-lg shadow-sm p-2"
           style={{ 
             visibility: isVisible ? 'visible' : 'hidden',
-            minHeight: indicatorSet === 'chart_full' ? '950px' : 
-                      indicatorSet === 'chart_advanced' ? '800px' : 
-                      '650px'
+            minHeight: indicatorSet === 'chart_full' ? '820px' : // 300 + 150 + 150 + 100 + gaps + padding
+                      indicatorSet === 'chart_advanced' ? '570px' : // 300 + 150 + 100 + gaps + padding
+                      '540px' // 300 + 150 + gaps + padding
           }}
         />
       )}

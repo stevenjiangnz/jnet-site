@@ -432,7 +432,7 @@ async def download_incremental_symbol_data(symbol: str) -> Dict[str, Any]:
 async def get_chart_data_with_indicators(
     symbol: str,
     period: str = QueryParam(
-        default="1y", description="Time period (1mo, 3mo, 6mo, 1y, 2y, 5y)"
+        default="1y", description="Time period (1mo, 3mo, 6mo, 1y, 2y, 5y, max)"
     ),
     indicators: str = QueryParam(
         default="chart_basic",
